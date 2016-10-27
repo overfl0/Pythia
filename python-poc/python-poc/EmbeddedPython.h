@@ -1,7 +1,7 @@
 #pragma once
 
 // Forward declarations
-class PyObject;
+#include <Python.h>
 #include <string>
 
 class EmbeddedPython
