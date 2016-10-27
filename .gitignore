@@ -1,1 +1,9 @@
 *.ipch
+*.db
+python-poc/python-poc/Debug
+python-poc/python-poc/Release
+python-poc/Debug
+python-poc/Release
+python-poc/.vs
+*.vcxproj.user
+*.opendb
