@@ -1,17 +1,19 @@
 #include "stdafx.h"
 #include "EmbeddedPython.h"
-#include <Python.h>
+#include "ResourceLoader.h"
 #include <iostream>
+#include "resource.h"
 
 EmbeddedPython *python = NULL;
 
 EmbeddedPython::EmbeddedPython()
 {
-	std::cout << "Entering EmbeddedPython::EmbeddedPython()" << std::endl;
+	std::cout << "Entering EmbeddedPython::EmbeddedPython" << std::endl;
 
 	Py_Initialize();
 
-	PyObject *pName = PyUnicode_DecodeFSDefault("python-code/Adapter.py");
+	std::cout << "Loading Python entry point" << std::endl;
+	PyObject *pName = PyUnicode_DecodeFSDefault(ResourceLoader::loadTextResource(PYTHON_ADAPTER, TEXT("PYTHON")).c_str());
 	if (pName)
 	{
 		pModule = PyImport_Import(pName);
@@ -48,19 +50,19 @@ EmbeddedPython::EmbeddedPython()
 		std::cout << "Failed to convert to python string 'python-code/Adapter.py'" << std::endl;
 	}
 
-	std::cout << "Leaving EmbeddedPython::EmbeddedPython()" << std::endl;
+	std::cout << "Leaving EmbeddedPython::EmbeddedPython" << std::endl;
 }
 
 EmbeddedPython::~EmbeddedPython()
 {
-	std::cout << "Entering EmbeddedPython::~EmbeddedPython()" << std::endl;
+	std::cout << "Entering EmbeddedPython::~EmbeddedPython" << std::endl;
 
 	Py_XDECREF(pFunc);
 	Py_XDECREF(pModule);
 
 	Py_Finalize();
 
-	std::cout << "Leaving EmbeddedPython::~EmbeddedPython()" << std::endl;
+	std::cout << "Leaving EmbeddedPython::~EmbeddedPython" << std::endl;
 }
 
 std::string EmbeddedPython::execute(const char * input)

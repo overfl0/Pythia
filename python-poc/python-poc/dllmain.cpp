@@ -13,23 +13,23 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 {
 	switch (ul_reason_for_call)
 	{
-	case DLL_PROCESS_ATTACH:
-	{
-		python = new EmbeddedPython();
-	}
-	break;
-	case DLL_THREAD_ATTACH:
-	case DLL_THREAD_DETACH:
-		break;
-
-	case DLL_PROCESS_DETACH:
-	{
-		if (python)
+		case DLL_PROCESS_ATTACH:
 		{
-			delete python;
+			python = new EmbeddedPython();
 		}
-	}
-	break;
+		break;
+		case DLL_THREAD_ATTACH:
+		case DLL_THREAD_DETACH:
+			break;
+
+		case DLL_PROCESS_DETACH:
+		{
+			if (python)
+			{
+				delete python;
+			}
+		}
+		break;
 	}
 	return TRUE;
 }
