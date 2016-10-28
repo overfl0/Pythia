@@ -55,8 +55,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="python-code\Adapter.py" />
-    <None Include="python1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

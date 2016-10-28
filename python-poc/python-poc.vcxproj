@@ -180,7 +180,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="python-code\Adapter.py" />
-    <None Include="python1.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
