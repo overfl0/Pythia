@@ -2,8 +2,10 @@
 *.db
 python-poc/Debug
 python-poc/Release
+python-poc/x64
 Debug
 Release
+x64
 *.vs
 *.vcxproj.user
 *.opendb
