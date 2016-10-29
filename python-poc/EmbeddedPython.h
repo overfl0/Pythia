@@ -11,6 +11,7 @@ public:
 	virtual ~EmbeddedPython();
 	
 	std::string execute(const char* input);
+	std::string getExceptionDescription();
 
 private:
 	PyObject *pModule;
