@@ -6,6 +6,7 @@
 #include "Logger.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
+#define EXTENSION_DEVELOPMENT 1
 
 EmbeddedPython *python = NULL;
 std::string pythonInitializationError = "";
@@ -123,11 +124,37 @@ namespace
     };
 }
 
-EmbeddedPython::EmbeddedPython(HMODULE moduleHandle)
+EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
 {
     Py_Initialize();
+    initialize();
+}
 
-    std::string text_resource = ResourceLoader::loadTextResource(moduleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str();
+void EmbeddedPython::initialize()
+{
+    #ifdef EXTENSION_DEVELOPMENT
+    PyObjectGuard mainModuleName(PyUnicode_DecodeFSDefault("python.Adapter"));
+    if (!mainModuleName)
+    {
+        THROW_PYEXCEPTION("Failed to create unicode module name");
+    }
+
+    PyObjectGuard moduleOriginal(PyImport_Import(mainModuleName.get()));
+    if (!moduleOriginal)
+    {
+        THROW_PYEXCEPTION("Failed to import adapter module");
+    }
+
+    // Reload the module to force re-reading the file
+    PyObjectGuard module(PyImport_ReloadModule(moduleOriginal.get()));
+    if (!module)
+    {
+        THROW_PYEXCEPTION("Failed to reload adapter module");
+    }
+
+    #else
+
+    std::string text_resource = ResourceLoader::loadTextResource(dllModuleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str();
     PyObject *compiledString = Py_CompileString(
         text_resource.c_str(),
         "python-adapter.py",
@@ -144,6 +171,7 @@ EmbeddedPython::EmbeddedPython(HMODULE moduleHandle)
     {
         THROW_PYEXCEPTION("Failed to add compiled module");
     }
+    #endif
 
     PyObjectGuard function(PyObject_GetAttrString(module.get(), "python_adapter"));
     if (!function || !PyCallable_Check(function.get()))
@@ -155,19 +183,42 @@ EmbeddedPython::EmbeddedPython(HMODULE moduleHandle)
     pFunc = function.transfer();
 }
 
+void EmbeddedPython::deinitialize()
+{
+    Py_CLEAR(pFunc);
+    Py_CLEAR(pModule);
+}
+
+void EmbeddedPython::reload()
+{
+    deinitialize();
+    try
+    {
+        initialize();
+        LOG_INFO("Python extension successfully reloaded");
+    }
+    catch (const std::exception& ex)
+    {
+        LOG_ERROR("Caught error when reloading the extension: " << ex.what());
+        pythonInitializationError = ex.what();
+    }
+}
+
 EmbeddedPython::~EmbeddedPython()
 {
-    Py_XDECREF(pFunc);
-    Py_XDECREF(pModule);
-
+    deinitialize();
     Py_Finalize();
 }
 
 std::string EmbeddedPython::execute(const char * input)
 {
+    #ifdef EXTENSION_DEVELOPMENT
+        reload();
+    #endif
+
     if (!pFunc)
     {
-        throw std::runtime_error("Python extension not initialised.");
+        throw std::runtime_error("No bootstrapping function. Additional error: " + pythonInitializationError);
     }
 
     PyObjectGuard pArgs(PyUnicode_FromString(input));
@@ -193,5 +244,4 @@ std::string EmbeddedPython::execute(const char * input)
         THROW_PYEXCEPTION("Failed to execute python extension");
     }
 }
-
 

@@ -10,6 +10,9 @@ public:
     EmbeddedPython(HMODULE moduleHandle);
     virtual ~EmbeddedPython();
     
+    void initialize();
+    void deinitialize();
+    void reload();
     std::string execute(const char* input);
 
 private:
@@ -19,5 +22,6 @@ private:
 private:
     PyObject *pModule;
     PyObject *pFunc;
+    HMODULE dllModuleHandle;
 };
 
