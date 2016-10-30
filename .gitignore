@@ -6,6 +6,7 @@ python-poc/x64
 Debug
 Release
 x64
+*.aps
 *.vs
 *.vcxproj.user
 *.opendb
