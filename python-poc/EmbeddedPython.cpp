@@ -127,11 +127,13 @@ EmbeddedPython::EmbeddedPython(HMODULE moduleHandle)
 {
     Py_Initialize();
 
-    PyObjectGuard pCompiledContents(Py_CompileString(
-        ResourceLoader::loadTextResource(moduleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str(),
+    std::string text_resource = ResourceLoader::loadTextResource(moduleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str();
+    PyObject *compiledString = Py_CompileString(
+        text_resource.c_str(),
         "python-adapter.py",
-        Py_file_input));
+        Py_file_input);
 
+    PyObjectGuard pCompiledContents(compiledString);
     if (!pCompiledContents)
     {
         THROW_PYEXCEPTION("Failed to compile embedded python module");
