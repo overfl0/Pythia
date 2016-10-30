@@ -5,6 +5,7 @@
 #include "EmbeddedPython.h"
 
 extern EmbeddedPython *python;
+extern std::string pythonInitializationError;
 
 extern "C"
 {
@@ -29,6 +30,6 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     }
     else
     {
-        strncpy_s(output, outputSize, "e:python not initialised", _TRUNCATE);
+        strncpy_s(output, outputSize, (std::string("e:python not initialised. Previous error: ") + pythonInitializationError).c_str(), _TRUNCATE);
     }
 }

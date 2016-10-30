@@ -5,6 +5,7 @@
 #include <iostream>
 
 extern EmbeddedPython *python;
+extern std::string pythonInitializationError;
 
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
@@ -23,6 +24,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             catch (const std::exception& ex)
             {
                 LOG_ERROR("Caught error when creating the embedded python: " << ex.what());
+                pythonInitializationError = ex.what();
             }
         }
         break;

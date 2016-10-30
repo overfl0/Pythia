@@ -8,6 +8,7 @@
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 
 EmbeddedPython *python = NULL;
+std::string pythonInitializationError = "";
 
 namespace
 {
@@ -164,7 +165,7 @@ std::string EmbeddedPython::execute(const char * input)
 {
     if (!pFunc)
     {
-        throw std::runtime_error("Python extension not initialised");
+        throw std::runtime_error("Python extension not initialised.");
     }
 
     PyObjectGuard pArgs(PyUnicode_FromString(input));
