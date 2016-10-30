@@ -4,6 +4,6 @@
 
 namespace ResourceLoader
 {
-	std::string loadTextResource(int id, LPTSTR type);
+    std::string loadTextResource(HMODULE moduleHandle, int id, LPTSTR type);
 };
 

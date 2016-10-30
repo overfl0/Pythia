@@ -3,100 +3,149 @@
 #include "ResourceLoader.h"
 #include <iostream>
 #include "resource.h"
+#include "Logger.h"
+
+#define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 
 EmbeddedPython *python = NULL;
 
-EmbeddedPython::EmbeddedPython()
+namespace
 {
-	std::cout << "Entering EmbeddedPython::EmbeddedPython" << std::endl;
+    class PyObjectGuard final
+    {
+    public:
+        PyObjectGuard(PyObject* source) : ptr(source)
+        {
+        }
 
-	Py_Initialize();
+        ~PyObjectGuard()
+        {
+            if (ptr != NULL)
+            {
+                Py_DECREF(ptr);
+            }
+        }
 
-	std::cout << "Loading Python entry point" << std::endl;
-	PyObject *pName = PyUnicode_DecodeFSDefault(ResourceLoader::loadTextResource(PYTHON_ADAPTER, TEXT("PYTHON")).c_str());
-	if (pName)
-	{
-		pModule = PyImport_Import(pName);
-		Py_DECREF(pName);
+        PyObject* get() const
+        {
+            return ptr;
+        }
 
-		if (pModule)
-		{
-			pFunc = PyObject_GetAttrString(pModule, "python_extension");
-			if (!pFunc || PyCallable_Check(pFunc))
-			{
-				if (PyErr_Occurred())
-				{
-					PyErr_Print();
-				}
-				std::cout << "Failed to reference python function 'python_extension' from python-code/Adapter.py" << std::endl;
-			}
-			else
-			{
-				std::cout << "Python extension initialised";
-			}
-		}
-		else
-		{
-			PyErr_Print();
-			std::cout << "Failed to load python-code/Adapter.py" << std::endl;
-		}
-	}
-	else
-	{
-		if (PyErr_Occurred())
-		{
-			PyErr_Print();
-		}
-		std::cout << "Failed to convert to python string 'python-code/Adapter.py'" << std::endl;
-	}
+        explicit operator bool() const
+        {
+            return ptr != NULL;
+        }
 
-	std::cout << "Leaving EmbeddedPython::EmbeddedPython" << std::endl;
+        /// Release ownership
+        PyObject* transfer()
+        {
+            PyObject* tmp = ptr;
+            ptr = NULL;
+            return tmp;
+        }
+
+    private:
+        PyObjectGuard(const PyObjectGuard&) = delete;
+        void operator=(const PyObjectGuard&) = delete;
+
+    private:
+        PyObject *ptr;
+    };
+
+    class PyExceptionFetcher final
+    {
+    public:
+        PyExceptionFetcher()
+        {
+            PyErr_Fetch(&pType, &pValue, &pTraceback);
+        }
+
+        ~PyExceptionFetcher()
+        {
+            PyErr_Restore(pType, pValue, pTraceback);
+        }
+
+        std::string getError()
+        {
+            return (pValue != NULL ? PyUnicode_AsUTF8(pValue) : "");
+        }
+
+    private:
+        PyExceptionFetcher(const PyExceptionFetcher&) = delete;
+        void operator=(const PyExceptionFetcher&) = delete;
+
+    private:
+        PyObject *pType, *pValue, *pTraceback;
+    };
+}
+
+EmbeddedPython::EmbeddedPython(HMODULE moduleHandle)
+{
+    Py_Initialize();
+
+    PyObjectGuard pCompiledContents(Py_CompileString(
+        ResourceLoader::loadTextResource(moduleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str(),
+        "python-adapter.py",
+        Py_file_input));
+
+    if (!pCompiledContents)
+    {
+        THROW_PYEXCEPTION("Failed to compile embedded python module");
+    }
+
+    PyObjectGuard module(PyImport_ExecCodeModule("adapter", pCompiledContents.get()));
+    if (!module)
+    {
+        THROW_PYEXCEPTION("Failed to add compiled module");
+    }
+
+    PyObjectGuard function(PyObject_GetAttrString(module.get(), "python_adapter"));
+    if (!function || !PyCallable_Check(function.get()))
+    {
+        THROW_PYEXCEPTION("Failed to reference python function 'python_adapter'");
+    }
+
+    pModule = module.transfer();
+    pFunc = function.transfer();
 }
 
 EmbeddedPython::~EmbeddedPython()
 {
-	std::cout << "Entering EmbeddedPython::~EmbeddedPython" << std::endl;
+    Py_XDECREF(pFunc);
+    Py_XDECREF(pModule);
 
-	Py_XDECREF(pFunc);
-	Py_XDECREF(pModule);
-
-	Py_Finalize();
-
-	std::cout << "Leaving EmbeddedPython::~EmbeddedPython" << std::endl;
+    Py_Finalize();
 }
 
 std::string EmbeddedPython::execute(const char * input)
 {
-	if (pFunc)
-	{
-		PyObject *pArgs = PyUnicode_FromString(input);
-		if (pArgs)
-		{
-			PyObject *pResult = PyObject_CallObject(pFunc, pArgs);
-			Py_DECREF(pArgs);
+    if (!pFunc)
+    {
+        throw std::runtime_error("Python extension not initialised");
+    }
 
-			if (pResult)
-			{
-				std::string result(PyUnicode_AsUTF8(pResult));
-				Py_DECREF(pResult);
+    PyObjectGuard pArgs(PyUnicode_FromString(input));
+    if (!pArgs)
+    {
+        throw std::runtime_error("Failed to transform given input to unicode");
+    }
 
-				// Hopefully RVO applies here
-				return result;
-			}
-			else
-			{
-				PyErr_Print();
-				throw std::runtime_error("Failed to execute python extension. See log file");
-			}
-		}
-		else
-		{
-			std::cout << "Failed to transform to Unicode input #" << input << "#" << std::endl;
-			throw std::runtime_error("Failed to transform the given input to Unicode. See log file");
-		}
-	}
-	else
-	{
-		throw std::runtime_error("Python extension not initialised");
-	}
+    PyObjectGuard pTuple(PyTuple_Pack(1, pArgs.get()));
+    if (!pTuple)
+    {
+        throw std::runtime_error("Failed to convert argument string to tuple");
+    }
+
+    PyObjectGuard pResult(PyObject_CallObject(pFunc, pTuple.get()));
+    if (pResult)
+    {
+        // Hopefully RVO applies here
+        return std::string(PyUnicode_AsUTF8(pResult.get()));
+    }
+    else
+    {
+        THROW_PYEXCEPTION("Failed to execute python extension");
+    }
 }
+
+

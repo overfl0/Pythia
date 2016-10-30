@@ -1,7 +1,5 @@
-import traceback
-
 # The extension entry point in python
-def python_extension(input):
+def python_adapter(input):
 
     return input
 

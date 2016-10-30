@@ -8,7 +8,7 @@ extern EmbeddedPython *python;
 
 extern "C"
 {
-	__declspec (dllexport) void __stdcall RVExtension(char *output, int outputSize, const char *input);
+    __declspec (dllexport) void __stdcall RVExtension(char *output, int outputSize, const char *input);
 }
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
@@ -16,19 +16,19 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     outputSize -= 1;
     output[outputSize] = '\0';
 
-	if (python != NULL)
-	{
-		try
-		{
-			strncpy_s(output, outputSize, python->execute(input).c_str(), _TRUNCATE);
-		}
-		catch (const std::exception& ex)
-		{
-			strncpy_s(output, outputSize, (std::string("e:") + ex.what()).c_str(), _TRUNCATE);
-		}
-	}
-	else
-	{
-		strncpy_s(output, outputSize, "e:python not initialised", _TRUNCATE);
-	}
+    if (python != NULL)
+    {
+        try
+        {
+            strncpy_s(output, outputSize, python->execute(input).c_str(), _TRUNCATE);
+        }
+        catch (const std::exception& ex)
+        {
+            strncpy_s(output, outputSize, (std::string("e:") + ex.what()).c_str(), _TRUNCATE);
+        }
+    }
+    else
+    {
+        strncpy_s(output, outputSize, "e:python not initialised", _TRUNCATE);
+    }
 }
