@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "EmbeddedPython.h"
+#include <regex>
 
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
@@ -25,11 +26,17 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         }
         catch (const std::exception& ex)
         {
-            strncpy_s(output, outputSize, (std::string("e:") + ex.what()).c_str(), _TRUNCATE);
+            // Escape all quotes (") in the second argument. We don't care about performance
+            // since this is going to happen rarely
+            std::string escaped = std::regex_replace(ex.what(), std::regex("\""), "\"\"");
+            strncpy_s(output, outputSize, (std::string("[\"e\", \"") + escaped + "\"]").c_str(), _TRUNCATE);
         }
     }
     else
     {
-        strncpy_s(output, outputSize, (std::string("e:python not initialised. Previous error: ") + pythonInitializationError).c_str(), _TRUNCATE);
+        // Escape all quotes (") in the second argument. We don't care about performance
+        // since this is going to happen rarely
+        std::string escaped = std::regex_replace(pythonInitializationError, std::regex("\""), "\"\"");
+        strncpy_s(output, outputSize, (std::string("[\"e\", \"python not initialised. Previous error: ") + escaped + "\"]").c_str(), _TRUNCATE);
     }
 }
