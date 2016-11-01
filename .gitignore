@@ -12,3 +12,4 @@ x64
 *.opendb
 __pycache__
 .idea
+@Pythia/Pythia.dll

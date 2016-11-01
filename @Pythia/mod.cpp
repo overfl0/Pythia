@@ -1,0 +1,12 @@
+name = "Pythia";
+picture = "\@pythia\addons\pythia\logo.paa";
+actionName = "Github";
+action = "https://github.com/5sigmapoint2/arma-python-extension";
+description = "Arma addon to use python";
+logo = "\@pythia\addons\pythia\logo.paa";
+logoOver = "\@pythia\addons\pythia\logo.paa";
+tooltip = "Pythia";
+tooltipOwned = "Pythia";
+overview = "Arma addon to use python.";
+author = "Overfl0 & 5Sigma";
+overviewPicture = "\@pythia\addons\pythia\logo.paa";
