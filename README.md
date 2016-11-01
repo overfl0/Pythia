@@ -1,4 +1,4 @@
-# arma-python-extension
+# Pythia
 A POC for a Arma 3 extension that enable you to write the logic in python
 
 ## Requirements
