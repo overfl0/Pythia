@@ -1,8 +1,8 @@
 *.ipch
 *.db
-python-poc/Debug
-python-poc/Release
-python-poc/x64
+src/Debug
+src/Release
+src/x64
 Debug
 Release
 x64
@@ -11,3 +11,4 @@ x64
 *.vcxproj.user
 *.opendb
 __pycache__
+.idea

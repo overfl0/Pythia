@@ -6,7 +6,7 @@
 #include "Logger.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
-#define EXTENSION_DEVELOPMENT 1
+//#define EXTENSION_DEVELOPMENT 1
 
 EmbeddedPython *python = NULL;
 std::string pythonInitializationError = "";

@@ -19,10 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{332C48F8-4C08-4531-B95D-91C989D6A0AB}</ProjectGuid>
+    <ProjectGuid>{495BFB09-85DB-4BDF-84E5-558046598748}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>pythonpoc</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>Pythia</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -170,7 +171,7 @@
     </ClCompile>
     <ClCompile Include="EmbeddedPython.cpp" />
     <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="python-poc.cpp" />
+    <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -180,10 +181,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="python-poc.rc" />
+    <ResourceCompile Include="Pythia.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="python-code\Adapter.py" />
+    <None Include="python_code\Adapter.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
