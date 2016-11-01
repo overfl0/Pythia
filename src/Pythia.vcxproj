@@ -72,12 +72,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -96,6 +98,15 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35\libs;D:\Python3\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)@Pythia\$(ProjectName).dll"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy Pythia.dll to @Pythia directory</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>Nonexisting file to force the script to run each time</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -128,6 +139,15 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35\libs;D:\Python3\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)@Pythia\$(ProjectName).dll"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy Pythia.dll to @Pythia directory</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>Nonexisting file to force the script to run each time</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
