@@ -217,6 +217,7 @@
   <ItemGroup>
     <ClInclude Include="DelayedLoader.h" />
     <ClInclude Include="EmbeddedPython.h" />
+    <ClInclude Include="FileHandles.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceLoader.h" />
@@ -240,6 +241,7 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="EmbeddedPython.cpp" />
+    <ClCompile Include="FileHandles.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
