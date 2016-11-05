@@ -5,14 +5,6 @@ import sys
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
 
-FUNCTION_CACHE = {}
-
-# Sample function for testing
-def ping(*args):
-    return list(args)
-
-FUNCTION_CACHE['Pythia.ping'] = ping
-
 def format_error_string(stacktrace_str):
     """Return a formatted exception."""
     return '["e", "{}"]'.format(stacktrace_str.replace('"', '""'))
@@ -79,6 +71,24 @@ def python_adapter(input_string):
 
     except:
         return format_error_string(traceback.format_exc())
+
+###############################################################################
+# Below are testing functions which exist solely to check if everything is
+# working correctly.
+# If someone wants to check if their python module works, they should Call
+# Pythia.test() and later Pythia.ping() to make sure they understand the syntax
+###############################################################################
+
+def test(*args):
+    return "OK"
+
+def ping(*args):
+    return list(args)
+
+FUNCTION_CACHE = {
+    'Pythia.ping': ping,
+    'Pythia.test': test,
+}
 
 # Somehow Visual Studio cannot load this if there is a newline at The
 # end of the file
