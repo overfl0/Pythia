@@ -267,8 +267,19 @@ int getOpenFiles(WStringVector &files)
             // only once, anyway.
             if (!wcsncmp(objectTypeInfo->Name.Buffer, L"File", 4))
             {
-                std::wstring file_name(objectName.Buffer, objectName.Length / 2);
-                files.push_back(file_name);
+                //std::wstring fileName(objectName.Buffer, objectName.Length / 2);
+                wchar_t tmpPath[1000];
+                DWORD max_size = (sizeof(tmpPath) / sizeof(wchar_t)) - 1;
+
+                DWORD retval = GetFinalPathNameByHandleW(dupHandle, tmpPath, max_size, FILE_NAME_OPENED);
+                if (retval && retval < max_size)
+                {
+                    files.push_back(tmpPath);
+                }
+                else
+                {
+                    //ErrorExit(fileName.c_str());
+                }
             }
         }
         else

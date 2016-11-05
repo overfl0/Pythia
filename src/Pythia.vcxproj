@@ -219,6 +219,7 @@
     <ClInclude Include="EmbeddedPython.h" />
     <ClInclude Include="FileHandles.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="ModsLocation.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceLoader.h" />
     <ClInclude Include="stdafx.h" />
@@ -243,6 +244,7 @@
     <ClCompile Include="EmbeddedPython.cpp" />
     <ClCompile Include="FileHandles.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="ModsLocation.cpp" />
     <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
     <ClCompile Include="stdafx.cpp">
