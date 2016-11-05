@@ -7,6 +7,12 @@ PYTHON_MODULE_DEVELOPMENT = False
 
 FUNCTION_CACHE = {}
 
+# Sample function for testing
+def ping(*args):
+    return list(args)
+
+FUNCTION_CACHE['Pythia.ping'] = ping
+
 def format_error_string(stacktrace_str):
     """Return a formatted exception."""
     return '["e", "{}"]'.format(stacktrace_str.replace('"', '""'))
@@ -43,7 +49,8 @@ def python_adapter(input_string):
         try:
             # Raise dummy exception if needs force-reload
             if PYTHON_MODULE_DEVELOPMENT:
-                raise KeyError('Dummy KeyError')
+                if not full_function_name.startswith('Pythia.'):
+                    raise KeyError('Dummy KeyError')
 
             function = FUNCTION_CACHE[full_function_name]
 
