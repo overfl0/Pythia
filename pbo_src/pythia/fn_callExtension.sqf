@@ -9,7 +9,7 @@
  *  test = ([["foo"]] call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf")
  */
 
-params ["_arguments"];
+//params ["_arguments"];
 
 #define DEVMODE true
 #ifndef DEVMODE
@@ -18,7 +18,7 @@ params ["_arguments"];
 
 if (DEVMODE && {isNil "_nest"}) exitWith {
 	private _nest = true;
-	_return = [_arguments] call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf";
+	_return = _this call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf";
 	_return;
 };
 
@@ -30,7 +30,7 @@ private _fnc_showHint = {
 	};
 };
 
-private _result = "Pythia" callExtension (str _arguments);
+private _result = "Pythia" callExtension (str _this);
 private _resultCompile = call compile _result;
 if ((isNil "_resultCompile") || {!(_resultCompile isEqualType [])}) exitWith {
 	(format ["Extension output is not array"]) call _fnc_showHint;
