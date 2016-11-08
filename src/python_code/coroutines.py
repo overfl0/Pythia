@@ -1,18 +1,23 @@
 import time
 import types
 
-def routine(arg):
+@types.coroutine
+def SQF(command):
+    return (yield command)
+
+async def routine(arg):
     """Unused. kept for future reference and for tests."""
     print("Arg:", arg)
+    return "test"
 
-    newval = yield "yielded"
+    newval = await SQF("yielded")
     print("Got newval:", newval)
 
-    newval = yield "yielded2"
+    newval = await SQF("yielded2")
     print("Got newval:", newval)
 
     #raise Exception("asd")
-    #yield "yielded"
+    #await SQF("yielded")
 
     return "End of routine", "second"
 
@@ -20,42 +25,44 @@ def main():
     """Unused. kept for future reference and for tests."""
     r = routine("argument")
 
-    if isinstance(r, types.GeneratorType):
+    if isinstance(r, types.CoroutineType):
         # Get what has been yielded
-        yielded_request = next(r)
+        yielded_request = r.send(None)  # Start the coroutine
         print("Main: yielded:", yielded_request)
-
 
         try:
             next_value = r.send("value from main")
+            print("received value")
         except StopIteration as iteration_exception:
             #print("StopIteration has been hit. Running interactive shell... (value_exception variable)")
             #import IPython
             #IPython.embed()
+            print("received StopIteration")
             next_value = iteration_exception.value
+
 
     print("Main:", next_value)
     #next(r)
 
-def test_coroutines():
+async def test_coroutines():
     retval = "Start of function\n"
 
-    get_player = yield "str(player)"  # SQF code here
+    get_player = await SQF("str(player)")
     retval += 'Player: {}\n'.format(get_player)
 
-    get_dayTime = yield "dayTime"  # SQF code here
+    get_dayTime = await SQF("dayTime")
     retval += 'Ingame time: {}\n'.format(get_dayTime)
 
-    tralala = yield "str('tralala')"  # SQF code here
+    tralala = await SQF("str('tralala')")
     retval += 'Tralala string: {}\n'.format(tralala)
 
     retval += "Function end"
     return retval
 
-def test_coroutines2():
+async def test_coroutines2():
     retval = "Start of function2\n"
 
-    get_player, get_dayTime, tralala = yield "[str(player), dayTime, str('tralala')]"  # SQF code here
+    get_player, get_dayTime, tralala = await SQF("[str(player), dayTime, str('tralala')]")
 
     retval += 'Player: {}\n'.format(get_player)
     retval += 'Ingame time: {}\n'.format(get_dayTime)

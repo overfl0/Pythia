@@ -13,21 +13,15 @@ def format_error_string(stacktrace_str):
     """Return a formatted exception."""
     return '["e", "{}"]'.format(stacktrace_str.replace('"', '""'))
 
-def format_response_string(return_value):
+def format_response_string(return_value, sql_call=False, coroutine_id=None):
     """Return a formatted response.
     For now, it's just doing a dumb str() which may or may not work depending
     on the arguments passed. This should work as long as none of the arguments
     contain double quotes (").
     """
-    global COROUTINES_DICT, COROUTINES_COUNTER
 
-    if isinstance(return_value, types.GeneratorType):
-        # Get what has been yielded
-        yielded_request = next(return_value)
-        COROUTINES_COUNTER += 1  # TODO: Find something to rotate this counter
-        COROUTINES_DICT[COROUTINES_COUNTER] = return_value
-
-        return str(["s", COROUTINES_COUNTER, yielded_request])
+    if sql_call:
+        return str(["s", coroutine_id, return_value])
 
     return str(["r", return_value])
 
@@ -37,6 +31,36 @@ def parse_input(input_value):
     """
 
     return eval(input_value)
+
+
+def handle_function_calling(function, args):
+    global COROUTINES_DICT, COROUTINES_COUNTER
+
+    if function == continue_coroutine:
+        # Special handling
+        return continue_coroutine(*args)
+
+    # Call the requested function with the given arguments
+    return_value = function(*args)
+
+    if isinstance(return_value, types.CoroutineType):
+        # This is a coroutine and has to be handled differently
+        try:
+            # Run the coroutine and get the yielded value
+            yielded_value = return_value.send(None)
+
+            COROUTINES_COUNTER += 1
+            COROUTINES_DICT[COROUTINES_COUNTER] = return_value
+
+            return format_response_string(yielded_value, True, COROUTINES_COUNTER)
+
+        except StopIteration as iteration_exception:
+            # The function has ended with a "return" statement
+            return format_response_string(iteration_exception.value)
+
+    else:
+        return format_response_string(return_value)
+
 # The extension entry point in python
 def python_adapter(input_string):
     global FUNCTION_CACHE
@@ -76,13 +100,7 @@ def python_adapter(input_string):
             function = getattr(module, function_name)
             FUNCTION_CACHE[full_function_name] = function
 
-        if full_function_name == 'Pythia.continue':
-            # Special handling
-            return continue_coroutine(*function_args)
-
-        # Call the requested function with the given arguments
-        return_value = function(*function_args)
-        return format_response_string(return_value)
+        return handle_function_calling(function, function_args)
 
     except:
         return format_error_string(traceback.format_exc())
@@ -99,7 +117,7 @@ def continue_coroutine(_id, args):
 
         # Got next yield. Put the coroutine to the list again
         COROUTINES_DICT[_id] = coroutine
-        return str(["s", _id, next_request])
+        return format_response_string(next_request, True, _id)
 
     except StopIteration as iteration_exception:
         # Function has ended with a return. Pass the value back
