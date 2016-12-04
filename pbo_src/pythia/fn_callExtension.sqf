@@ -9,30 +9,32 @@
  *  test = ([["foo"]] call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf")
  */
 
-//params ["_arguments"];
+#define SQF_DEVELOPMENT 1
 
-#define DEVMODE true
-#ifndef DEVMODE
-	#define DEVMODE false
+#ifdef SQF_DEVELOPMENT
+	if (isNil "_nest") exitWith {
+		private _nest = true;
+		_return = _this call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf";
+		_return;
+	};
 #endif
 
-if (DEVMODE && {isNil "_nest"}) exitWith {
-	private _nest = true;
-	_return = _this call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf";
-	_return;
-};
-
 private _fnc_showHint = {
+	diag_log format ["[@Pythia] - Output: '%1'", _this];
+	systemChat _this;
 	if (is3Den) then {
 		[_this, 1] call BIS_fnc_3DENNotification;
-	} else {
-		hint _this;
 	};
 };
 
 private _result = "Pythia" callExtension (str _this);
+if (_result == "") exitWith {
+	(format ["Extension output is empty"]) call _fnc_showHint;
+	[];
+};
+
 private _resultCompile = call compile _result;
-if ((isNil "_resultCompile") || {!(_resultCompile isEqualType [])}) exitWith {
+if !(_resultCompile isEqualType []) exitWith {
 	(format ["Extension output is not array"]) call _fnc_showHint;
 	[];
 };
