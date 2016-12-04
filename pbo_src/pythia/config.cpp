@@ -2,7 +2,7 @@ class CfgPatches {
     class PY3_Pythia {
         units[] = {};
         weapons[] = {};
-        requiredVersion = 1.64;
+        requiredVersion = 1.66;
         requiredAddons[] = {};
         bullshit = "test";
 
@@ -21,6 +21,10 @@ class CfgFunctions {
                 file = "\@pythia\addons\pythia";
                 class callExtension {
                     recompile = 1;
+                };
+                class extensionTest {
+                    preStart = 1;
+                    preInit = 1;
                 };
                 bullshit = "test";
             };
