@@ -4,7 +4,6 @@ class CfgPatches {
         weapons[] = {};
         requiredVersion = 1.66;
         requiredAddons[] = {};
-        bullshit = "test";
 
         // author = AUTHOR_STR;
         // authors[] = AUTHOR_ARR;
@@ -22,11 +21,15 @@ class CfgFunctions {
                 class callExtension {
                     recompile = 1;
                 };
+
+                class callEx {
+                    recompile = 1;
+                };
+
                 class extensionTest {
                     preStart = 1;
                     preInit = 1;
                 };
-                bullshit = "test";
             };
       };
 };
