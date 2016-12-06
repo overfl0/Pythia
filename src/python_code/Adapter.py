@@ -9,9 +9,19 @@ PYTHON_MODULE_DEVELOPMENT = False
 COROUTINES_DICT = {}
 COROUTINES_COUNTER = 0
 
+MULTIPART_DICT = {}
+MULTIPART_COUNTER = 0
+
+
+def split_by_len(item, itemlen, maxlen):
+    """"Requires item to be sliceable (with __getitem__ defined)."""
+    return [item[ind:ind + maxlen] for ind in range(0, itemlen, maxlen)]
+
+
 def format_error_string(stacktrace_str):
     """Return a formatted exception."""
     return '["e", "{}"]'.format(stacktrace_str.replace('"', '""'))
+
 
 def format_response_string(return_value, sql_call=False, coroutine_id=None):
     """Return a formatted response.
@@ -25,6 +35,7 @@ def format_response_string(return_value, sql_call=False, coroutine_id=None):
 
     return str(["r", return_value])
 
+
 def parse_input(input_value):
     """Parses the input value passed directly from the RVEngine.
     For now it just does an eval() which is INSECURE and HAS TO BE CHANGED!
@@ -36,9 +47,9 @@ def parse_input(input_value):
 def handle_function_calling(function, args):
     global COROUTINES_DICT, COROUTINES_COUNTER
 
-    if function == continue_coroutine:
+    if function == continue_coroutine or function == multipart:
         # Special handling
-        return continue_coroutine(*args)
+        return function(*args)
 
     # Call the requested function with the given arguments
     return_value = function(*args)
@@ -61,9 +72,11 @@ def handle_function_calling(function, args):
     else:
         return format_response_string(return_value)
 
+
 # The extension entry point in python
 def python_adapter(input_string):
     global FUNCTION_CACHE
+    global MULTIPART_DICT, MULTIPART_COUNTER
 
     try:
         if input_string == "":
@@ -89,7 +102,7 @@ def python_adapter(input_string):
 
             except KeyError:
                 # Module not imported yet, import it
-                #print("Module not imported")
+                # print("Module not imported")
                 module = importlib.import_module(function_path)
 
             # Force reloading the module if we're developing
@@ -100,10 +113,45 @@ def python_adapter(input_string):
             function = getattr(module, function_name)
             FUNCTION_CACHE[full_function_name] = function
 
-        return handle_function_calling(function, function_args)
+        retval = handle_function_calling(function, function_args)
 
     except:
-        return format_error_string(traceback.format_exc())
+        retval = format_error_string(traceback.format_exc())
+
+    # Multipart response handling
+    # If the returned value is larger than 10KB - 1, use multipart response
+    response_max_length = 10239
+    result_length = len(retval)
+
+    if result_length > response_max_length:
+        MULTIPART_COUNTER += 1
+        response_split = split_by_len(retval, result_length, response_max_length)
+        MULTIPART_DICT[MULTIPART_COUNTER] = list(reversed(response_split))
+
+        # return multipart response
+        retval = str(["m", MULTIPART_COUNTER])
+
+    return retval
+
+
+def multipart(_id):
+    global MULTIPART_DICT
+
+    try:
+        entry = MULTIPART_DICT[_id]
+        response = entry.pop()
+
+        # Free memory
+        if not entry:
+            del MULTIPART_DICT[_id]
+
+    except KeyError:
+        # There is no more data to send
+        response = ""
+        #response = str(['e', 'Could not find multipart message for id {}'.format(_id)])
+
+    return response
+
 
 def continue_coroutine(_id, args):
     """Continue execution of a coroutine"""
@@ -123,6 +171,7 @@ def continue_coroutine(_id, args):
         # Function has ended with a return. Pass the value back
         return format_response_string(iteration_exception.value)
 
+
 ###############################################################################
 # Below are testing functions which exist solely to check if everything is
 # working correctly.
@@ -133,14 +182,14 @@ def continue_coroutine(_id, args):
 def test(*args):
     return "OK"
 
+
 def ping(*args):
     return list(args)
+
 
 FUNCTION_CACHE = {
     'Pythia.ping': ping,
     'Pythia.test': test,
     'Pythia.continue': continue_coroutine,
+    'Pythia.multipart': multipart,
 }
-
-# Somehow Visual Studio cannot load this if there is a newline at The
-# end of the file

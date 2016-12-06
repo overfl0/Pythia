@@ -43,9 +43,9 @@ private _returnCode = _result select [2,1];
 // -- Multipart response. This stiches multiple callExtensions to get past the 10k char limit
 if (_returnCode == "m") then {
     private _returnStiched = "";
-    private _stichID = parseNumber (_result select [6, count _result - 7]);
+    private _stitchID = parseNumber (_result select [6, count _result - 7]);
     while { (_result != "") } do {
-        _result = "Pythia" callExtension (str ["Pythia.get_multipart", _stichID]);
+        _result = "Pythia" callExtension (str ["Pythia.multipart", _stitchID]);
         _returnStiched = _returnStiched + _result;
     };
     _result = _returnStiched;
@@ -53,7 +53,7 @@ if (_returnCode == "m") then {
 };
 
 if (_returnCode == "e") exitWith {
-    (format ["An error occurred:\n %1", (_resultCompile select 1)]) call _fnc_showHint;
+    (format ["An error occurred:\n %1", (_result select [6, count _result - 7])]) call _fnc_showHint;
 	[];
 };
 
