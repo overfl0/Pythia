@@ -33,15 +33,36 @@ if (_result == "") exitWith {
 	[];
 };
 
-private _resultCompile = call compile _result;
-if !(_resultCompile isEqualType []) exitWith {
+if (_result select [0, 1] != "[") exitWith {
 	(format ["Extension output is not array"]) call _fnc_showHint;
 	[];
 };
 
-if ((_resultCompile select 0) == "e") exitWith {
+private _returnCode = _result select [2,1];
+
+// -- Multipart response. This stiches multiple callExtensions to get past the 10k char limit
+if (_returnCode == "m") then {
+    private _returnStiched = "";
+    private _stichID = parseNumber (_result select [6, count _result - 7]);
+    while { (_result != "") } do {
+        _result = "Pythia" callExtension (str ["Pythia.get_multipart", _stichID]);
+        _returnStiched = _returnStiched + _result;
+    };
+    _result = _returnStiched;
+    _returnCode = _result select [2,1];
+};
+
+if (_returnCode == "e") exitWith {
     (format ["An error occurred:\n %1", (_resultCompile select 1)]) call _fnc_showHint;
 	[];
 };
 
-(_resultCompile select 1)
+if (_returnCode == "s") then {
+    (call compile _result);
+};
+
+if (_returnCode == "r") exitWith {
+    (call compile _result) select 1;
+};
+
+[]

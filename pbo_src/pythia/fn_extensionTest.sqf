@@ -5,7 +5,7 @@
  */
 
 private _result = ["Pythia.test"] call py3_fnc_callExtension;
-if (_result != "OK") exitWith {
+if (_result isEqualTo "OK") exitWith {
 	diag_log format ["ERROR: @Pythia mod loaded, but pythia.dll not loaded!"];
 	false
 };
