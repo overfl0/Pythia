@@ -45,6 +45,7 @@ def parse_input(input_value):
 
 
 def handle_function_calling(function, args):
+    """Calls the given function with the given arguments and formats the response."""
     global COROUTINES_DICT, COROUTINES_COUNTER
 
     if function == continue_coroutine or function == multipart:
@@ -73,8 +74,9 @@ def handle_function_calling(function, args):
         return format_response_string(return_value)
 
 
-# The extension entry point in python
 def python_adapter(input_string):
+    """The extension entry point in python."""
+
     global FUNCTION_CACHE
     global MULTIPART_DICT, MULTIPART_COUNTER
 
@@ -135,6 +137,11 @@ def python_adapter(input_string):
 
 
 def multipart(_id):
+    """Retrieve a part of a multipart response.
+
+    Takes an ID of the response to return.
+    """
+
     global MULTIPART_DICT
 
     try:
@@ -154,7 +161,11 @@ def multipart(_id):
 
 
 def continue_coroutine(_id, args):
-    """Continue execution of a coroutine"""
+    """Continue execution of a coroutine.
+
+    Takes an ID of the coroutine to continue.
+    """
+
     global COROUTINES_DICT, COROUTINES_COUNTER
 
     coroutine = COROUTINES_DICT.pop(_id)
@@ -180,10 +191,12 @@ def continue_coroutine(_id, args):
 ###############################################################################
 
 def test(*args):
+    """Return the string "OK" to make sure the plugin is working correctly."""
     return "OK"
 
 
 def ping(*args):
+    """Return the arguments passed to the function."""
     return list(args)
 
 
