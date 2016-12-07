@@ -1,4 +1,6 @@
 import importlib
+import logging
+import logging.handlers
 import traceback
 import sys
 import types
@@ -12,6 +14,22 @@ COROUTINES_COUNTER = 0
 MULTIPART_DICT = {}
 MULTIPART_COUNTER = 0
 
+def create_root_logger(name):
+    file_handler = logging.handlers.RotatingFileHandler('pythia.log', maxBytes=1024*1024, backupCount=10)
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s] %(message)s')
+    file_handler.setFormatter(formatter)
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(file_handler)
+    logger.name = name
+
+    return logger
+
+logger = create_root_logger(__name__)
+logger.critical('=' * 80)
+logger.critical('Pythia is starting up...')
+logger.critical('=' * 80)
 
 def split_by_len(item, itemlen, maxlen):
     """"Requires item to be sliceable (with __getitem__ defined)."""
@@ -47,6 +65,13 @@ def parse_input(input_value):
 def handle_function_calling(function, args):
     """Calls the given function with the given arguments and formats the response."""
     global COROUTINES_DICT, COROUTINES_COUNTER
+
+    if logger.level < logging.INFO:
+        function_args = str(args)[1:-1]
+    else:
+        function_args = '...'
+
+    logger.info('Calling {}({})'.format(function.__name__, function_args))
 
     if function == continue_coroutine or function == multipart:
         # Special handling
@@ -119,10 +144,12 @@ def python_adapter(input_string):
 
     except:
         retval = format_error_string(traceback.format_exc())
+        logger.exception('An exception occurred:')
 
     # Multipart response handling
     # If the returned value is larger than 10KB - 1, use multipart response
-    response_max_length = 10239
+    # Note: Because of a lacking escaping function, we have to use shorter length strings
+    response_max_length = 8000  #10239
     result_length = len(retval)
 
     if result_length > response_max_length:
@@ -200,9 +227,15 @@ def ping(*args):
     return list(args)
 
 
+def version(*args):
+    """Return the version number of the plugin."""
+    return '1.0.0'
+
+
 FUNCTION_CACHE = {
     'Pythia.ping': ping,
     'Pythia.test': test,
     'Pythia.continue': continue_coroutine,
     'Pythia.multipart': multipart,
+    'Pythia.version': version,
 }
