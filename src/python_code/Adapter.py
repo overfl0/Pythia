@@ -158,7 +158,7 @@ def python_adapter(input_string):
         MULTIPART_DICT[MULTIPART_COUNTER] = list(reversed(response_split))
 
         # return multipart response
-        retval = str(["m", MULTIPART_COUNTER])
+        retval = str(["m", MULTIPART_COUNTER, len(response_split)])
 
     return retval
 
