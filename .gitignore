@@ -13,3 +13,6 @@ x64
 __pycache__
 .idea
 @Pythia/Pythia.dll
+@Pythia/Pythia_x64.dll
+pythia.log
+pythia.log.*

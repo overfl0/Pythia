@@ -67,13 +67,22 @@ void test_coroutines()
     std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
 }
 
+#ifdef _WIN64
+#define PYTHIA_DLL "Pythia_x64.dll"
+#define FUNCNAME "RVExtension"
+#else
+#define PYTHIA_DLL "Pythia.dll"
+#define FUNCNAME "_RVExtension@12"
+#endif
+
+
 int main()
 {
-    HINSTANCE hInstLibrary = LoadLibrary(TEXT("Pythia.dll"));
+    HINSTANCE hInstLibrary = LoadLibrary(TEXT(PYTHIA_DLL));
 
     if (hInstLibrary)
     {
-        RVExtension = (RVExtension_t)GetProcAddress(hInstLibrary, "_RVExtension@12");
+        RVExtension = (RVExtension_t)GetProcAddress(hInstLibrary, FUNCNAME);
 
         if (RVExtension)
         {
