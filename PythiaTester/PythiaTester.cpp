@@ -35,7 +35,7 @@ void test_coroutines()
     char output[10 * 1024];
     const int iterations = 10000;
     const char *command = "['python.coroutines.test_coroutines']";
-    char *response = strdup("['Pythia.continue',         , 'tralala something']");
+    char *response = _strdup("['Pythia.continue',         , 'tralala something']");
     char number[10];
 
     int continue_val;
@@ -52,7 +52,7 @@ void test_coroutines()
         while (output[2] == 's')
         {
             continue_val = atoi(output + 5);
-            sprintf(number, "%6d", continue_val);
+            sprintf_s(number, "%6d", continue_val);
             for (int j = 0; j < 6; j++)
             {
                 response[20 + j] = number[j];
