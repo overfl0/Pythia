@@ -8,7 +8,7 @@ std::string Logger::makeFilename()
 {
     CHAR buffer[MAX_PATH];
     
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, buffer)))
+    if (SUCCEEDED(SHGetFolderPathA(nullptr, CSIDL_LOCAL_APPDATA, nullptr, 0, buffer)))
     {
         // Append product-specific path
         return std::string(buffer) + "\\Arma 3\\python.log";

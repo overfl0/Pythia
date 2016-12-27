@@ -8,7 +8,7 @@
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
 
-EmbeddedPython *python = NULL;
+EmbeddedPython *python = nullptr;
 std::string pythonInitializationError = "";
 
 namespace
@@ -22,7 +22,7 @@ namespace
 
         ~PyObjectGuard()
         {
-            if (ptr != NULL)
+            if (ptr != nullptr)
             {
                 Py_DECREF(ptr);
             }
@@ -35,14 +35,14 @@ namespace
 
         explicit operator bool() const
         {
-            return ptr != NULL;
+            return ptr != nullptr;
         }
 
         /// Release ownership
         PyObject* transfer()
         {
             PyObject* tmp = ptr;
-            ptr = NULL;
+            ptr = nullptr;
             return tmp;
         }
 
@@ -60,7 +60,7 @@ namespace
         PyExceptionFetcher()
         {
             PyErr_Fetch(&pType, &pValue, &pTraceback);
-            pValueRepr = NULL;
+            pValueRepr = nullptr;
         }
 
         ~PyExceptionFetcher()
