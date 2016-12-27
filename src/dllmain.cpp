@@ -1,5 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
+#include "DelayedLoader.h"
 #include "EmbeddedPython.h"
 #include "Logger.h"
 #include <iostream>
@@ -16,6 +17,17 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     {
         case DLL_PROCESS_ATTACH:
         {
+            int retval = 0;
+            if ((retval = LoadAllImports()) != 0)
+            {
+                std::string error_message = "Failed to load python35.dll "
+                                            "(error: " + std::to_string(retval) + "). "
+                                            "Ensure Python 3.5 is correctly installed!";
+                LOG_ERROR(error_message);
+                pythonInitializationError = error_message;
+                return TRUE;
+            }
+
             try
             {
                 python = new EmbeddedPython(hModule);
@@ -37,6 +49,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             if (python)
             {
                 delete python;
+                python = nullptr;
             }
         }
         break;

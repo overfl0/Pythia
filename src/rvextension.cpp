@@ -37,6 +37,6 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         // Escape all quotes (") in the second argument. We don't care about performance
         // since this is going to happen rarely
         std::string escaped = std::regex_replace(pythonInitializationError, std::regex("\""), "\"\"");
-        strncpy_s(output, outputSize, (std::string("[\"e\", \"python not initialised. Previous error: ") + escaped + "\"]").c_str(), _TRUNCATE);
+        strncpy_s(output, outputSize, (std::string("[\"e\", \"Python not initialised: ") + escaped + "\"]").c_str(), _TRUNCATE);
     }
 }

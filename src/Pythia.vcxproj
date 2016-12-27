@@ -96,11 +96,15 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;PYTHONPOC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\Python3\include;C:\Python35\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35\libs;D:\Python3\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalOptions>/ignore:4199 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
       <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)@Pythia\$(ProjectName).dll"</Command>
@@ -120,11 +124,15 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;PYTHONPOC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Python35-x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35-x64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalOptions>/ignore:4199 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
       <Command>copy /Y "$(TargetDir)$(ProjectName)_x64.dll" "$(SolutionDir)@Pythia\$(ProjectName)_x64.dll"</Command>
@@ -146,6 +154,8 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;PYTHONPOC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>D:\Python3\include;C:\Python35\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,6 +163,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35\libs;D:\Python3\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <CustomBuildStep>
       <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)@Pythia\$(ProjectName).dll"</Command>
@@ -174,6 +185,8 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;PYTHONPOC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Python35-x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -181,6 +194,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35-x64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <CustomBuildStep>
       <Command>copy /Y "$(TargetDir)$(ProjectName)_x64.dll" "$(SolutionDir)@Pythia\$(ProjectName)_x64.dll"</Command>
@@ -193,6 +207,7 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DelayedLoader.h" />
     <ClInclude Include="EmbeddedPython.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="resource.h" />
@@ -201,6 +216,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DelayedLoader.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
