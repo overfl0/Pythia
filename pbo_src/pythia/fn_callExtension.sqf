@@ -53,7 +53,7 @@ if (_returnCode == "m") then {
 };
 
 if (_returnCode == "e") exitWith {
-    (format ["An error occurred:\n %1", (_result select [6, count _result - 7])]) call _fnc_showHint;
+    (format ["An error occurred: %1", (_result select [6, count _result - 7])]) call _fnc_showHint;
 	[];
 };
 
