@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 import traceback
 import sys
+import time
 import types
 
 # If you want the user modules to be reloaded each time the function is called, set this to True
@@ -73,31 +74,42 @@ def handle_function_calling(function, args):
 
     logger.info('Calling {}({})'.format(function.__name__, function_args))
 
-    if function == continue_coroutine or function == multipart:
-        # Special handling
-        return function(*args)
+    try:
+        timer_start = time.clock()
+        if function == continue_coroutine or function == multipart:
+            # Special handling
+            return function(*args)
 
-    # Call the requested function with the given arguments
-    return_value = function(*args)
+        # Call the requested function with the given arguments
+        return_value = function(*args)
 
-    if isinstance(return_value, types.CoroutineType):
-        # This is a coroutine and has to be handled differently
-        try:
-            # Run the coroutine and get the yielded value
-            yielded_value = return_value.send(None)
+    finally:
+        timer_stop = time.clock()
+        # Log the time
+        logger.debug('Function {} terminated in {:.7f} seconds'.format(function.__name__, timer_stop - timer_start))
 
-            COROUTINES_COUNTER += 1
-            COROUTINES_DICT[COROUTINES_COUNTER] = return_value
+    try:
+        if isinstance(return_value, types.CoroutineType):
+            # This is a coroutine and has to be handled differently
+            try:
+                # Run the coroutine and get the yielded value
+                yielded_value = return_value.send(None)
 
-            return format_response_string(yielded_value, True, COROUTINES_COUNTER)
+                COROUTINES_COUNTER += 1
+                COROUTINES_DICT[COROUTINES_COUNTER] = return_value
 
-        except StopIteration as iteration_exception:
-            # The function has ended with a "return" statement
-            return format_response_string(iteration_exception.value)
+                return format_response_string(yielded_value, True, COROUTINES_COUNTER)
 
-    else:
-        return format_response_string(return_value)
+            except StopIteration as iteration_exception:
+                # The function has ended with a "return" statement
+                return format_response_string(iteration_exception.value)
 
+        else:
+            return format_response_string(return_value)
+
+    finally:
+        time_pack = time.clock()
+        logger.debug('Function {} terminated and packed in {:.7f} seconds'.format(function.__name__, time_pack - timer_start))
 
 def python_adapter(input_string):
     """The extension entry point in python."""
