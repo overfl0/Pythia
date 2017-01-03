@@ -16,3 +16,4 @@ __pycache__
 @Pythia/Pythia_x64.dll
 pythia.log
 pythia.log.*
+tmpBuildFiles
