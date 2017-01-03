@@ -22,7 +22,7 @@ Create a junction to the @Pythia directory by opening cmd.exe and typing:
 `mklink /J <path_to_arma>\@Pythia <Project_directory>\@Pythia`
 
 If you want to Modify the Adapter.py code, create another junction:
-`mklink /J <path_to_arma>\python <Project_directory>\src\python_code`
+`mklink /J <path_to_arma>\python <Project_directory>\src\python`
 
 Visual Studio setup
 -------------------

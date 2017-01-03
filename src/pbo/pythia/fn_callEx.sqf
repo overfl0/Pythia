@@ -20,7 +20,7 @@ while {(_resultCompile select 0) == "s"} do {
     private _code = compile (_resultCompile select 2);
     private _sqf_result = call _code;
 
-    _result = "Pythia" callExtension (str(['Pythia.continue', _continue_id, _sqf_result]));
+    _result = "Pythia" callExtension (str(['pythia.continue', _continue_id, _sqf_result]));
     _resultCompile = call compile _result;
 };
 

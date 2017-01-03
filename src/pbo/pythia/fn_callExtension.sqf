@@ -45,7 +45,7 @@ if (_returnCode == "m") then {
     private _returnStiched = "";
     private _stitchID = parseNumber (_result select [6, count _result - 7]);
     while { (_result != "") } do {
-        _result = "Pythia" callExtension (str ["Pythia.multipart", _stitchID]);
+        _result = "Pythia" callExtension (str ["pythia.multipart", _stitchID]);
         _returnStiched = _returnStiched + _result;
     };
     _result = _returnStiched;

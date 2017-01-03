@@ -11,7 +11,7 @@ void test()
 {
     char output[10*1024];
     const int iterations = 10000;
-    const char *command = "['Pythia.ping', 'asd', 'ert', 3]";
+    const char *command = "['pythia.ping', 'asd', 'ert', 3]";
 
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
@@ -35,7 +35,7 @@ void test_coroutines()
     char output[10 * 1024];
     const int iterations = 10000;
     const char *command = "['python.coroutines.test_coroutines']";
-    char *response = _strdup("['Pythia.continue',         , 'tralala something']");
+    char *response = _strdup("['pythia.continue',         , 'tralala something']");
     char number[10];
 
     int continue_val;

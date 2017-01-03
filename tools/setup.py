@@ -12,7 +12,7 @@ import subprocess
 import winreg
 
 ######## GLOBALS #########
-PROJECTDIR = "@pythia"
+PROJECTDIR = "@Pythia"
 ##########################
 
 def main():

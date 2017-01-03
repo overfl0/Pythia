@@ -128,7 +128,7 @@ def python_adapter(input_string):
         try:
             # Raise dummy exception if needs force-reload
             if PYTHON_MODULE_DEVELOPMENT:
-                if not full_function_name.startswith('Pythia.'):
+                if not full_function_name.startswith('pythia.'):
                     raise KeyError('Dummy KeyError')
 
             function = FUNCTION_CACHE[full_function_name]
@@ -226,7 +226,7 @@ def continue_coroutine(_id, args):
 # Below are testing functions which exist solely to check if everything is
 # working correctly.
 # If someone wants to check if their python module works, they should Call
-# Pythia.test() and later Pythia.ping() to make sure they understand the syntax
+# pythia.test() and later pythia.ping() to make sure they understand the syntax
 ###############################################################################
 
 def test(*args):
@@ -245,9 +245,9 @@ def version(*args):
 
 
 FUNCTION_CACHE = {
-    'Pythia.ping': ping,
-    'Pythia.test': test,
-    'Pythia.continue': continue_coroutine,
-    'Pythia.multipart': multipart,
-    'Pythia.version': version,
+    'pythia.ping': ping,
+    'pythia.test': test,
+    'pythia.continue': continue_coroutine,
+    'pythia.multipart': multipart,
+    'pythia.version': version,
 }
