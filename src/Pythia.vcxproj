@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{495BFB09-85DB-4BDF-84E5-558046598748}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>pythonpoc</RootNamespace>
+    <RootNamespace>Pythia</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <ProjectName>Pythia</ProjectName>
   </PropertyGroup>
@@ -254,7 +254,7 @@
     <ResourceCompile Include="Pythia.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="python_code\Adapter.py" />
+    <None Include="python\Adapter.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

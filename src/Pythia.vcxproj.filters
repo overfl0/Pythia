@@ -66,6 +66,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="python_code\Adapter.py" />
+    <None Include="python\Adapter.py" />
   </ItemGroup>
 </Project>
