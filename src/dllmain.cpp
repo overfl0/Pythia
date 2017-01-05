@@ -18,6 +18,10 @@ BOOL APIENTRY DllMain(HMODULE hModule,
         case DLL_PROCESS_ATTACH:
         {
             int retval = 0;
+
+            // Ignore delay loading dlls for now as there are problems with loading
+            // data from those dlls - and we need that data!
+            /*
             if ((retval = LoadAllImports()) != 0)
             {
                 std::string error_message = "Failed to load python35.dll "
@@ -27,6 +31,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 pythonInitializationError = error_message;
                 return TRUE;
             }
+            */
 
             try
             {

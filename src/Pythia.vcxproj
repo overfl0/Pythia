@@ -111,7 +111,6 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35\libs;D:\Python3\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <AdditionalOptions>/ignore:4199 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
@@ -139,7 +138,6 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35-x64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <AdditionalOptions>/ignore:4199 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
@@ -171,7 +169,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35\libs;D:\Python3\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <CustomBuildStep>
       <Command>copy /Y "$(TargetDir)$(ProjectName).dll" "$(SolutionDir)@Pythia\$(ProjectName).dll"</Command>
@@ -202,7 +199,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Python35-x64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <DelayLoadDLLs>python35.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <CustomBuildStep>
       <Command>copy /Y "$(TargetDir)$(ProjectName)_x64.dll" "$(SolutionDir)@Pythia\$(ProjectName)_x64.dll"</Command>
