@@ -40,6 +40,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModsLocation.h">
+    <ClInclude Include="SQFWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExceptionFetcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -69,6 +73,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModsLocation.cpp">
+    <ClCompile Include="SQFWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExceptionFetcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
