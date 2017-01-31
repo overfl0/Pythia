@@ -22,5 +22,5 @@ std::string ResourceLoader::loadTextResource(HMODULE moduleHandle, int id, LPTST
     LPVOID dataFirstByte = ::LockResource(resourceData);
     DWORD dataSize = ::SizeofResource(moduleHandle, resourceHandle);
 
-    return {static_cast<const char*>(dataFirstByte), dataSize};
+    return std::string(static_cast<const char*>(dataFirstByte), dataSize);
 }
