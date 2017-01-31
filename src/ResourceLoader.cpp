@@ -20,6 +20,7 @@ std::string ResourceLoader::loadTextResource(HMODULE moduleHandle, int id, LPTST
 
     HGLOBAL resourceData = ::LoadResource(moduleHandle, resourceHandle);
     LPVOID dataFirstByte = ::LockResource(resourceData);
+    DWORD dataSize = ::SizeofResource(moduleHandle, resourceHandle);
 
-    return std::string(static_cast<const char*>(dataFirstByte));
+    return std::string(static_cast<const char*>(dataFirstByte), dataSize);
 }
