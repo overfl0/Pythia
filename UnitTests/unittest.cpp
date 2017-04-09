@@ -134,5 +134,19 @@ namespace UnitTests
             python_to_sqf("set([])", "[]");
         }
 
+        TEST_METHOD(StringParsing)
+        {
+            python_to_sqf("''", "\"\"");                                  // '' => ""
+            python_to_sqf("\"\"", "\"\"");                                // "" => ""
+            python_to_sqf("'test'", "\"test\"");
+            python_to_sqf("'test\\\\test'", "\"test\\test\"");            // Ignore \ escaping
+            python_to_sqf("'test\\ntest'", "\"test\ntest\"");             // Newline in string
+            python_to_sqf("'test\"test'", "\"test\"\"test\"");            // test"test => test""test
+            python_to_sqf("'test\"\"test'", "\"test\"\"\"\"test\"");      // test""test => test""""test
+            python_to_sqf("\"test'test\"", "\"test'test\"");              // test'test => test'test
+            // TODO: Do utf-8 encoding
+            //python_to_sqf("", "");
+        }
+
     };
 }

@@ -7,6 +7,9 @@
 
 #include "../src/ExceptionFetcher.h"
 
+// TODO: Improve iterables performance
+// TODO: Add null checks, just to be sure
+
 namespace SQFWriter
 {
     std::string encode(PyObject *obj)
@@ -70,7 +73,35 @@ namespace SQFWriter
         //= Unicode ============================================================
         if (PyUnicode_Check(obj))
         {
+            char *obj_utf8 = PyUnicode_AsUTF8(obj);
 
+            // Compute the output size first
+            int required_size = 2; // ""
+            for (char *p = obj_utf8; *p; ++p)
+            {
+                ++required_size;
+                if (*p == '"')
+                {
+                    ++required_size;
+                }
+            }
+
+            std::string retval;
+            retval.resize(required_size);
+            retval[0] = retval[required_size - 1] = '"';
+
+            // Fill the array
+            int i = 1;
+            for (char *p = obj_utf8; *p; ++p)
+            {
+                if (*p == '"')
+                {
+                    retval[i++] = '"';
+                }
+                retval[i++] = *p;
+            }
+
+            return retval;
         }
 
         //= Iterable objects ===================================================
