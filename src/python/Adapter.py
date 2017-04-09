@@ -6,6 +6,23 @@ import sys
 import time
 import types
 
+# Decoding and encoding to SQF
+SQF_DESCRIPTION = 'Using eval as SQF decoder and str as SQF encoder'
+SQF_DECODER = eval
+SQF_ENCODER = str
+
+try:
+    import ujson
+    SQF_DESCRIPTION = 'Using ujson.loads as SQF decoder and ujson.dumps as SQF encoder'
+    SQF_DECODER = ujson.loads
+    SQF_ENCODER = ujson.dumps
+
+except ImportError:
+    import json
+    SQF_DESCRIPTION = 'Using json.loads as SQF decoder and str as SQF encoder'
+    SQF_DECODER = json.loads
+    SQF_ENCODER = str  # str is still faster then json.dumps!
+
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
 
@@ -30,6 +47,7 @@ def create_root_logger(name):
 logger = create_root_logger(__name__)
 logger.critical('=' * 80)
 logger.critical('Pythia is starting up...')
+logger.critical(SQF_DESCRIPTION)
 logger.critical('=' * 80)
 
 def split_by_len(item, itemlen, maxlen):
@@ -48,19 +66,22 @@ def format_response_string(return_value, sql_call=False, coroutine_id=None):
     on the arguments passed. This should work as long as none of the arguments
     contain double quotes (").
     """
+    global SQF_ENCODER
 
     if sql_call:
-        return str(["s", coroutine_id, return_value])
+        return SQF_ENCODER(["s", coroutine_id, return_value])
 
-    return str(["r", return_value])
+    return SQF_ENCODER(["r", return_value])
 
 
 def parse_input(input_value):
     """Parses the input value passed directly from the RVEngine.
-    For now it just does an eval() which is INSECURE and HAS TO BE CHANGED!
+    For now it just does an [u]json.loads() which does not support full SQF and
+    could also be faster if parsed manually.
     """
+    global SQF_DECODER
 
-    return eval(input_value)
+    return SQF_DECODER(input_value)
 
 
 def handle_function_calling(function, args):
@@ -116,6 +137,7 @@ def python_adapter(input_string):
 
     global FUNCTION_CACHE
     global MULTIPART_DICT, MULTIPART_COUNTER
+    global SQF_ENCODER
 
     try:
         if input_string == "":
@@ -170,7 +192,7 @@ def python_adapter(input_string):
         MULTIPART_DICT[MULTIPART_COUNTER] = list(reversed(response_split))
 
         # return multipart response
-        retval = str(["m", MULTIPART_COUNTER, len(response_split)])
+        retval = SQF_ENCODER(["m", MULTIPART_COUNTER, len(response_split)])
 
     return retval
 
@@ -194,7 +216,7 @@ def multipart(_id):
     except KeyError:
         # There is no more data to send
         response = ""
-        #response = str(['e', 'Could not find multipart message for id {}'.format(_id)])
+        #response = SQF_ENCODER(['e', 'Could not find multipart message for id {}'.format(_id)])
 
     return response
 
