@@ -8,7 +8,6 @@
 #include "../src/ExceptionFetcher.h"
 
 // TODO: Improve iterables performance
-// TODO: Add null checks, just to be sure
 
 namespace SQFWriter
 {
@@ -16,8 +15,7 @@ namespace SQFWriter
     {
         if (obj == nullptr)
         {
-            // TODO: Probably return an exception
-            return "Null pointer! WTFBBQ!";
+            return "Null pointer! File a bug report please!!!";
         }
 
         //= None ===============================================================
@@ -53,7 +51,6 @@ namespace SQFWriter
             }
 
             return "OVERFLOW!";
-            // TODO: Check for exceptions
         }
 
         //= Floats =============================================================
@@ -61,19 +58,30 @@ namespace SQFWriter
         if (PyFloat_Check(obj))
         {
             double value = PyFloat_AsDouble(obj);
+
+            if (PyErr_Occurred())
+            {
+                PyErr_Clear();
+                return "OVERFLOW!";
+            }
+
             std::stringstream strstream;
             strstream << value;
             return strstream.str();
-
-            //return "OVERFLOW!";
-            // TODO: Check for exceptions
-            //PyErr_Occurred() 
         }
 
         //= Unicode ============================================================
         if (PyUnicode_Check(obj))
         {
             char *obj_utf8 = PyUnicode_AsUTF8(obj);
+            if (obj_utf8 == nullptr)
+            {
+                if (PyErr_Occurred())
+                {
+                    PyErr_Clear();
+                }
+                return "Error while converting the string to utf8. Report a bug!";
+            }
 
             // Compute the output size first
             int required_size = 2; // ""
@@ -129,6 +137,10 @@ namespace SQFWriter
                 Py_DECREF(item);
             }
 
+            if (PyErr_Occurred()) {
+                return "Error while iterating iterator. Report a bug!!!";
+            }
+
             retval += "]";
 
             Py_DECREF(iterator);
@@ -147,7 +159,10 @@ namespace SQFWriter
             /* propagate error */
             return PyExceptionFetcher().getError();
         }
-        
+
+        return "Unknown variable type that is not supported! Submit a pull request!";
+
+        // Note: this code is never executed and is kept for debugging purposes.
         PyObject *repr_obj = PyObject_Repr(obj);
         if (repr_obj)
         {
