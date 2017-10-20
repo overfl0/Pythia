@@ -51,7 +51,7 @@ def main():
             continue
 
         print('Generating {}.pbo'.format(node))
-        subprocess.check_call([MAKE_PBO, '-P', full_path, pbo_dest_location])
+        subprocess.check_call([MAKE_PBO, '-NUP', full_path, pbo_dest_location])
 
         if args.junction:
             junction_path = os.path.join(pbo_dest_location, node)
