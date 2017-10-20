@@ -1,3 +1,4 @@
+import argparse
 import os
 import shutil
 import subprocess
@@ -67,15 +68,16 @@ def prepare_distro(basedir, version, arch, install_pip=True):
         print('* Pip installation done!\n')
 
 
-def prepare_distros(basedir, version, architectures):
+def prepare_distros(basedir, version, architectures, do_cleanup=True):
     # Do a cleanup first
-    for arch in architectures:
-        path = os.path.join(basedir, EMBED_DIR.format(arch=arch))
+    if do_cleanup:
+        for arch in ARCHITECTURES:
+            path = os.path.join(basedir, EMBED_DIR.format(arch=arch))
 
-        try:
-            shutil.rmtree(path)
-        except FileNotFoundError:
-            pass
+            try:
+                shutil.rmtree(path)
+            except FileNotFoundError:
+                pass
 
     for arch in architectures:
         prepare_distro(basedir, version, arch)
@@ -87,4 +89,14 @@ def prepare_distros(basedir, version, architectures):
 
 
 if __name__ == '__main__':
-    prepare_distros('.', PYTHON_VERSION, ARCHITECTURES)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('base_directory', help='Directory in which the python directory will be created')
+    parser.add_argument('-a', '--arch', help='Architecture name', choices=ARCHITECTURES, action='append', default=[])
+    parser.add_argument('-n', '--noclean', help='Don\'t remove other python installations', action='store_true')
+    parser.add_argument('-v', '--version', help='Python version ("3.x.y")', default=PYTHON_VERSION)
+    args = parser.parse_args()
+
+    if not args.arch:
+        args.arch = ARCHITECTURES
+
+    prepare_distros(args.base_directory, args.version, args.arch, do_cleanup=not args.noclean)
