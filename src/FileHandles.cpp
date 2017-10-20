@@ -268,9 +268,16 @@ int getOpenFiles(WStringVector &files)
             if (!wcsncmp(objectTypeInfo->Name.Buffer, L"File", 4))
             {
                 //std::wstring fileName(objectName.Buffer, objectName.Length / 2);
-                wchar_t tmpPath[1000];
+                // https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#maxpath
+                // The value below isn't completely correct but bah... (see link above)
+
+                #define MAX_UNICODE_PATH (32767 + 1)
+                const DWORD max_unicode_path_size = MAX_UNICODE_PATH * sizeof(wchar_t);
+                wchar_t tmpPath[max_unicode_path_size];
                 DWORD max_size = (sizeof(tmpPath) / sizeof(wchar_t)) - 1;
 
+                // Naming Files, Paths, and Namespaces
+                // https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
                 DWORD retval = GetFinalPathNameByHandleW(dupHandle, tmpPath, max_size, FILE_NAME_OPENED);
                 if (retval && retval < max_size)
                 {
