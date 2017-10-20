@@ -9,7 +9,7 @@
  *  test = ([["foo"]] call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf")
  */
 
-#define SQF_DEVELOPMENT 1
+//#define SQF_DEVELOPMENT 1
 
 #ifdef SQF_DEVELOPMENT
 	if (isNil "_nest") exitWith {
