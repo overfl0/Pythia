@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pythia", "src\Pythia.vcxproj", "{495BFB09-85DB-4BDF-84E5-558046598748}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PythiaTester", "PythiaTester\PythiaTester.vcxproj", "{273E804B-1EC8-4FEE-ACCD-49B2B44839D7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{5DA4B78A-B6B0-4F26-B5D7-B615983289E9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PythiaSetPythonPath", "PythiaSetPythonPath\PythiaSetPythonPath.vcxproj", "{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{5DA4B78A-B6B0-4F26-B5D7-B615983289E9}.Release|x64.Build.0 = Release|x64
 		{5DA4B78A-B6B0-4F26-B5D7-B615983289E9}.Release|x86.ActiveCfg = Release|Win32
 		{5DA4B78A-B6B0-4F26-B5D7-B615983289E9}.Release|x86.Build.0 = Release|Win32
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Debug|x64.ActiveCfg = Debug|x64
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Debug|x64.Build.0 = Debug|x64
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Debug|x86.ActiveCfg = Debug|Win32
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Debug|x86.Build.0 = Debug|Win32
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Release|x64.ActiveCfg = Release|x64
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Release|x64.Build.0 = Release|x64
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Release|x86.ActiveCfg = Release|Win32
+		{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

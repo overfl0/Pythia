@@ -12,8 +12,11 @@ x64
 *.opendb
 __pycache__
 .idea
-@Pythia/Pythia.dll
-@Pythia/Pythia_x64.dll
 pythia.log
 pythia.log.*
 tmpBuildFiles
+@Pythia/Pythia.dll
+@Pythia/Pythia_x64.dll
+@Pythia/PythiaSetPythonPath.dll
+@Pythia/PythiaSetPythonPath_x64.dll
+@Pythia/python-embed-*
