@@ -30,7 +30,8 @@ void test()
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
-    const char *command = "['pythia.ping', 'asd', 'ert', 3]";
+    const char *command = "[\"pythia.ping\", \"asd\", \"ert\", 3]";
+    //const char *command = "[\"pythia.test\"]";
 
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
@@ -195,15 +196,23 @@ void test_coroutines()
 
 #ifdef _WIN64
 #define PYTHIA_DLL "Pythia_x64.dll"
+#define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.dll"
 #define FUNCNAME "RVExtension"
 #else
 #define PYTHIA_DLL "Pythia.dll"
+#define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.dll"
 #define FUNCNAME "_RVExtension@12"
 #endif
 
 
 int main()
 {
+    HINSTANCE hInstSetPath = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
+    if (!hInstSetPath)
+    {
+        std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
+    }
+
     HINSTANCE hInstLibrary = LoadLibrary(TEXT(PYTHIA_DLL));
 
     if (hInstLibrary)
