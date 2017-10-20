@@ -4,6 +4,13 @@
  *	Tests if the pythia extension works as expected
  */
 
+// Set custom dll search path to resolve our embedded python executable
+private _result = "PythiaSetPythonPath" callExtension "";
+if (_result isEqualTo "") exitWith {
+	diag_log format ["ERROR: @Pythia mod loaded, but PythiaSetPythonPath retured an error or could not be loaded!"];
+	[false, "ERROR: @Pythia mod loaded, but PythiaSetPythonPath retured an error or could not be loaded!"];
+};
+
 private _result = ["pythia.test"] call py3_fnc_callExtension;
 if !(_result isEqualTo "OK") exitWith {
 	diag_log format ["ERROR: @Pythia mod loaded, but Pythia.dll not loaded!"];
