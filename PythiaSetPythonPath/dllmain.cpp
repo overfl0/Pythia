@@ -41,6 +41,8 @@ void setDLLPath()
         // TODO: Error checking
         int b = 6;
     }
+
+    _wputenv_s(L"PYTHONHOME", pythonPath.c_str());
 }
 
 extern "C"
