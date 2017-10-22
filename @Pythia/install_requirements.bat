@@ -16,7 +16,7 @@ echo [1/2] Installing requirements for python 32bit from %requirements_file%...
 echo ===============================================================================
 echo.
 
-%~dp0\python-embed-win32\python.exe -m pip install --upgrade -r %requirements_file%
+"%~dp0"\python-embed-win32\python.exe -m pip install --upgrade -r %requirements_file%
 if %ERRORLEVEL% GEQ 1 GOTO END_PIP_ERROR
 
 echo.
@@ -25,7 +25,7 @@ echo [2/2] Installing requirements for python 64bit from %requirements_file%...
 echo ===============================================================================
 echo.
 
-%~dp0\python-embed-amd64\python.exe -m pip install --upgrade -r %requirements_file%
+"%~dp0"\python-embed-amd64\python.exe -m pip install --upgrade -r %requirements_file%
 if %ERRORLEVEL% GEQ 1 GOTO END_PIP_ERROR
 
 echo.
