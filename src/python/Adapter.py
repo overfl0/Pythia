@@ -197,6 +197,10 @@ def python_adapter(input_string):
     return retval
 
 
+def init_modules(modules_dict):
+    logger.debug('Modules initialized with the following data: {}'.format(modules_dict))
+
+
 def multipart(_id):
     """Retrieve a part of a multipart response.
 

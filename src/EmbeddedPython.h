@@ -3,6 +3,7 @@
 // Forward declarations
 #include <Python.h>
 #include <string>
+#include "ModsLocation.h" // TODO: Remove me
 
 class EmbeddedPython
 {
@@ -11,6 +12,7 @@ public:
     virtual ~EmbeddedPython();
     
     void initialize();
+    void initModules(modules_t mods);
     void deinitialize();
     void reload();
     std::string execute(const char* input);

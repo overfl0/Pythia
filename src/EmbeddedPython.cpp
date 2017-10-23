@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "EmbeddedPython.h"
+#include "ModsLocation.h"
 #include "ResourceLoader.h"
 #include <iostream>
 #include "resource.h"
@@ -181,6 +182,59 @@ void EmbeddedPython::initialize()
 
     pModule = module.transfer();
     pFunc = function.transfer();
+}
+
+void EmbeddedPython::initModules(modules_t mods)
+{
+    /**
+    Initialize python sources for modules.
+    The sources passed here will be used to import `pythia.modulename`.
+    */
+
+    if (!pModule)
+    {
+        // TODO: Error handling
+        return;
+    }
+    PyObjectGuard pDict(PyDict_New());
+    if (!pDict)
+    {
+        // TODO: Error handling
+        return;
+    }
+
+    // Fill the dict with the items in the unordered_map
+    for (const auto& entry: mods)
+    {
+        PyObjectGuard pString(PyUnicode_FromWideChar(entry.second.c_str(), -1));
+        if (!pString)
+        {
+            continue;
+        }
+
+        int retval = PyDict_SetItemString(pDict.get(), entry.first.c_str(), pString.get());
+        if (retval == -1)
+        {
+            // TODO: Error handling
+        }
+    }
+
+    // Perform the call adding the mods sources
+    PyObjectGuard function(PyObject_GetAttrString(pModule, "init_modules"));
+    if (!function || !PyCallable_Check(function.get()))
+    {
+        THROW_PYEXCEPTION("Failed to reference python function 'init_modules'");
+    }
+
+    PyObjectGuard pResult(PyObject_CallFunctionObjArgs(function.get(), pDict.get(), NULL));
+    if (pResult)
+    {
+        return; // Yay!
+    }
+    else
+    {
+        THROW_PYEXCEPTION("Failed to execute python init_modules function");
+    }
 }
 
 void EmbeddedPython::deinitialize()
