@@ -1,34 +1,101 @@
 #include "stdafx.h"
+#include "ModsLocation.h"
 #include "FileHandles.h"
 
 #include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
-using namespace std::tr2::sys;
+typedef std::unordered_set<std::wstring> dlist;
 
-inline bool ends_with(std::wstring const & value, std::wstring const & ending)
+std::wstring getPathDirectory(std::wstring path)
 {
-    if (ending.size() > value.size()) return false;
-    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+    // Returns the whole string if no backslash is present
+    return path.substr(0, path.find_last_of(L"/\\"));
 }
 
-void getDirectories(std::wstring const & fileEndingFilter=L"")
+bool hasEnding(std::wstring const &fullString, std::wstring const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else {
+        return false;
+    }
+}
+
+dlist getDirectories(std::wstring const & fileExtension=L"")
 {
     WStringVector files;
-    std::unordered_set<std::wstring> directories;
+    dlist directories;
     int retval = getOpenFiles(files);
+    if (!retval)
+        return directories;
 
     for (auto &file : files)
     {
-        path filePath(file);
-        /*if (ends_with(file, fileEndingFilter))
+        if (hasEnding(file, fileExtension))
         {
-            directories.insert(file);
-        }*/
-        std::wstring parent = filePath.parent_path();
-        std::wstring extension = filePath.extension();
-        int a = 5;
+            directories.insert(getPathDirectory(file));
+        }
     }
 
+    return directories;
+}
 
+static bool validPythiaModuleName(std::string name)
+{
+    for (char &c : name)
+    {
+        if (!isalnum(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
+static std::string getPythiaModuleName(std::ifstream &stream)
+{
+    std::stringstream strStream;
+    strStream << stream.rdbuf();
+    std::string pythiaModuleName = strStream.str();
+    return pythiaModuleName;
+}
+
+// TODO: Clean all this code up!
+
+modules_t getPythiaModulesSources()
+{
+    modules_t modules;
+
+    dlist directoriesList = getDirectories(L".pbo");
+    for (auto &directory : directoriesList)
+    {
+        auto parent = getPathDirectory(directory);
+        auto pythiaFile = parent + L"\\$PYTHIA$";
+
+        std::ifstream pythiaFileHandle;
+        pythiaFileHandle.open(pythiaFile, std::ios::binary);
+        if (!pythiaFileHandle.good())
+        {
+            // File probably doesn't exist
+            continue;
+        }
+
+        std::string pythiaModuleName = getPythiaModuleName(pythiaFileHandle);
+        if (!validPythiaModuleName(pythiaModuleName))
+        {
+            continue;
+        }
+
+        auto codeDirectory = parent + L"\\pythia";
+        if (std::experimental::filesystem::is_directory(codeDirectory)) {
+            if (std::experimental::filesystem::exists(codeDirectory)) {
+                modules[pythiaModuleName] = codeDirectory;
+            }
+        }
+    }
+
+    return modules;
 }
