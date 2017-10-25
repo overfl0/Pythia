@@ -1,10 +1,14 @@
 import importlib
+import importlib.abc
+import importlib.machinery
 import logging
 import logging.handlers
-import traceback
+import os
 import sys
 import time
+import traceback
 import types
+
 
 # Decoding and encoding to SQF
 SQF_DESCRIPTION = 'Using eval as SQF decoder and str as SQF encoder'
@@ -199,6 +203,7 @@ def python_adapter(input_string):
 
 def init_modules(modules_dict):
     logger.debug('Modules initialized with the following data: {}'.format(modules_dict))
+    PythiaModuleWrapper.init_modules(modules_dict)
 
 
 def multipart(_id):
@@ -277,3 +282,123 @@ FUNCTION_CACHE = {
     'pythia.multipart': multipart,
     'pythia.version': version,
 }
+
+###############################################################################
+# TODO: Move this to a separate file as soon as the C++ code permits
+###############################################################################
+
+# TODO: Check if it's possible to cram everything into one non-static class
+class PythiaModuleWrapper(object):
+    initialized = False
+    modules = {}
+
+    @staticmethod
+    def _get_node(fullname):
+        print('_get_node({})'.format(fullname))
+        if not fullname.startswith('pythia.') and not fullname.endswith('.'):
+            return False
+
+        # TODO: check wrong module
+        bits = fullname.split('.')[1:]
+        print(bits)
+        bits[0] = PythiaModuleWrapper.modules[bits[0]]
+        node_path = os.path.join(*bits)
+
+        print('Returning:', node_path)
+        return node_path
+
+
+    @staticmethod
+    def is_handled(fullname):
+        if fullname == 'pythia':
+            return True
+
+        if not fullname.startswith('pythia.') or fullname.endswith('.'):
+            return False
+
+        return True
+
+    @staticmethod
+    def get_filename(fullname):
+        if fullname == 'pythia':
+            return 'pythia'
+
+        if PythiaModuleWrapper.is_package(fullname):
+            filename = os.path.join(PythiaModuleWrapper._get_node(fullname), '__init__.py')
+        else:
+            filename = PythiaModuleWrapper._get_node(fullname) + '.py'
+
+        return filename
+
+    @staticmethod
+    def get_data(filename):
+        if filename == 'pythia':
+            return ''
+
+        with open(filename, 'rb') as f:
+            return f.read()
+
+    @staticmethod
+    def is_package(fullname):
+        if fullname == 'pythia':
+            return True
+
+        if fullname.startswith('pythia') and not fullname.endswith('.') and len(fullname.split('.')) == 2:
+            # TODO: handle pythia..asd
+            return True
+
+        path = os.path.join(PythiaModuleWrapper._get_node(fullname), '__init__.py')
+        return os.path.isfile(path)
+
+    @staticmethod
+    def init_modules(modules_dict):
+        if not PythiaModuleWrapper.initialized:
+            print('Initializing module finder')
+            sys.meta_path.insert(0, PythiaModuleFinder())
+            PythiaModuleWrapper.initialized = True
+
+        PythiaModuleWrapper.modules = modules_dict
+
+
+class PythiaModuleFinder(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path, target = None):
+        print('PythiaModuleFinder: Trying to load: {}'.format(name))
+
+        if not PythiaModuleWrapper.is_handled(name):
+            return None
+
+        is_package = PythiaModuleWrapper.is_package(name)
+        return importlib.machinery.ModuleSpec(name, PythiaLoader(), is_package=is_package)
+
+
+class PythiaLoader(importlib.abc.SourceLoader):
+    def get_filename(self, fullname):
+        print('PythiaLoader: Requesting filename for {}'.format(fullname))
+        return PythiaModuleWrapper.get_filename(fullname)
+
+    def get_data(self, filename):
+        print('PythiaLoader: Fetching {} from pbo file'.format(filename))
+        return PythiaModuleWrapper.get_data(filename)
+
+
+if __name__ == '__main__':
+    base_dir = os.path.dirname(__file__)
+    modules = {
+        'm_one': os.path.join(base_dir, 'testfolder', 'module_one'),
+        'm_two': os.path.join(base_dir, 'testfolder', 'module_two'),
+    }
+
+    PythiaModuleWrapper.init_modules(modules)
+
+    #import pythia.m_one
+    import pythia.m_one.file_one
+    pythia.m_one.file_one.fun()
+
+    # import pythia.m_two
+    # import pythia.m_two.file_two
+    #
+    # pythia.m_two.file_two.fun()
+
+
+    from pythia.m_two import file_two
+    file_two.fun()
