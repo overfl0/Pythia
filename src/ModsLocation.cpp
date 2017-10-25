@@ -47,7 +47,7 @@ static bool validPythiaModuleName(std::string name)
 {
     for (char &c : name)
     {
-        if (!isalnum(c))
+        if (!isalnum(c) && c != '_')
         {
             return false;
         }

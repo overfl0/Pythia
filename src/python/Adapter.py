@@ -154,7 +154,7 @@ def python_adapter(input_string):
         try:
             # Raise dummy exception if needs force-reload
             if PYTHON_MODULE_DEVELOPMENT:
-                if not full_function_name.startswith('pythia.'):
+                if full_function_name not in PYTHIA_INTERNAL_FUNCTIONS:
                     raise KeyError('Dummy KeyError')
 
             function = FUNCTION_CACHE[full_function_name]
@@ -274,14 +274,16 @@ def version(*args):
     """Return the version number of the plugin."""
     return '1.0.0'
 
-
-FUNCTION_CACHE = {
+# Keep a separate dict of those functions for reloading purposes
+PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.ping': ping,
     'pythia.test': test,
     'pythia.continue': continue_coroutine,
     'pythia.multipart': multipart,
     'pythia.version': version,
 }
+
+FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
 
 ###############################################################################
 # TODO: Move this to a separate file as soon as the C++ code permits
