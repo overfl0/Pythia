@@ -367,8 +367,20 @@ class PythiaModuleFinder(importlib.abc.MetaPathFinder):
         if not PythiaModuleWrapper.is_handled(name):
             return None
 
+        loader = PythiaLoader()
         is_package = PythiaModuleWrapper.is_package(name)
-        return importlib.machinery.ModuleSpec(name, PythiaLoader(), is_package=is_package)
+        real_path = os.path.realpath(loader.get_filename(name))
+        module_spec = importlib.machinery.ModuleSpec(
+            name,
+            loader,
+            origin=real_path,
+            is_package=is_package)
+
+        if os.path.isfile(real_path):
+            # This sets __file__ for the loaded module (if `origin` is set)
+            module_spec.has_location = True
+
+        return module_spec
 
 
 class PythiaLoader(importlib.abc.SourceLoader):
