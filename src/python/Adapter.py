@@ -187,7 +187,7 @@ def python_adapter(input_string):
     # Multipart response handling
     # If the returned value is larger than 10KB - 1, use multipart response
     # Note: Because of a lacking escaping function, we have to use shorter length strings
-    response_max_length = 8000  #10239
+    response_max_length = 8000  #10239  # FIXME!!! Implement proper escaping!
     result_length = len(retval)
 
     if result_length > response_max_length:
@@ -297,11 +297,8 @@ class PythiaModuleWrapper(object):
     @staticmethod
     def _get_node(fullname):
         print('_get_node({})'.format(fullname))
-        if not fullname.startswith('pythia.') and not fullname.endswith('.'):
-            return False
 
-        # TODO: check wrong module
-        bits = fullname.split('.')[1:]
+        bits = fullname.split('.')
         print(bits)
         bits[0] = PythiaModuleWrapper.modules[bits[0]]
         node_path = os.path.join(*bits)
@@ -312,19 +309,24 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def is_handled(fullname):
-        if fullname == 'pythia':
-            return True
+        name_split = fullname.split('.')
 
-        if not fullname.startswith('pythia.') or fullname.endswith('.'):
+        # Protecting the `python` namespace (it's not used by this loader)
+        if name_split[0] == 'python':
+            return False
+
+        # TODO: Check how it works for from ..something import somethingelse
+        if '' in name_split:
+            # some..path, some.path.
+            return False
+
+        if name_split[0] not in PythiaModuleWrapper.modules:
             return False
 
         return True
 
     @staticmethod
     def get_filename(fullname):
-        if fullname == 'pythia':
-            return 'pythia'
-
         if PythiaModuleWrapper.is_package(fullname):
             filename = os.path.join(PythiaModuleWrapper._get_node(fullname), '__init__.py')
         else:
@@ -334,19 +336,15 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def get_data(filename):
-        if filename == 'pythia':
-            return ''
-
         with open(filename, 'rb') as f:
             return f.read()
 
     @staticmethod
     def is_package(fullname):
-        if fullname == 'pythia':
-            return True
+        name_split = fullname.split('.')
 
-        if fullname.startswith('pythia') and not fullname.endswith('.') and len(fullname.split('.')) == 2:
-            # TODO: handle pythia..asd
+        # Base module should always be a module
+        if len(name_split) == 1:
             return True
 
         path = os.path.join(PythiaModuleWrapper._get_node(fullname), '__init__.py')
@@ -379,7 +377,7 @@ class PythiaLoader(importlib.abc.SourceLoader):
         return PythiaModuleWrapper.get_filename(fullname)
 
     def get_data(self, filename):
-        print('PythiaLoader: Fetching {} from pbo file'.format(filename))
+        print('PythiaLoader: Fetching {}'.format(filename))
         return PythiaModuleWrapper.get_data(filename)
 
 
@@ -393,14 +391,14 @@ if __name__ == '__main__':
     PythiaModuleWrapper.init_modules(modules)
 
     #import pythia.m_one
-    import pythia.m_one.file_one
-    pythia.m_one.file_one.fun()
+    import m_one.file_one
+    m_one.file_one.fun()
 
-    # import pythia.m_two
-    # import pythia.m_two.file_two
+    # import m_two
+    # import m_two.file_two
     #
-    # pythia.m_two.file_two.fun()
+    # m_two.file_two.fun()
 
 
-    from pythia.m_two import file_two
+    from m_two import file_two
     file_two.fun()
