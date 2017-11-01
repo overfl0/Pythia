@@ -23,7 +23,6 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     {
         try
         {
-            //getDirectories();
             static bool sources_initialized = false;
             if (!sources_initialized)
             {

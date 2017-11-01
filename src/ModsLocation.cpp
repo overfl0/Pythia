@@ -45,6 +45,11 @@ dlist getDirectories(std::wstring const & fileExtension=L"")
 
 static bool validPythiaModuleName(std::string name)
 {
+    if (name.length() < 1)
+    {
+        return false;
+    }
+
     for (char &c : name)
     {
         if (!isalnum(c) && c != '_')
@@ -57,14 +62,21 @@ static bool validPythiaModuleName(std::string name)
 
 static std::string getPythiaModuleName(std::ifstream &stream)
 {
-    std::stringstream strStream;
-    strStream << stream.rdbuf();
-    std::string pythiaModuleName = strStream.str();
+    std::string pythiaModuleName;
+    stream >> pythiaModuleName;
     return pythiaModuleName;
 }
 
-// TODO: Clean all this code up!
 
+/**
+   Get loaded python mods.
+   Scan all the open file handles for .pbo files.
+   Then go one directory above those files and check if there is a $PYTHIA$
+   file. If so, load it and read the python module name from the pythia dir.
+
+   Return the list of module names along with paths to those modules.
+   (string -> wstring)
+ */
 modules_t getPythiaModulesSources()
 {
     modules_t modules;
