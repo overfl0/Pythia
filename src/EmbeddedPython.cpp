@@ -193,14 +193,13 @@ void EmbeddedPython::initModules(modules_t mods)
 
     if (!pModule)
     {
-        // TODO: Error handling
-        return;
+        THROW_PYEXCEPTION("Pythia adapter not loaded correctly. Not initializing python modules.")
     }
+
     PyObjectGuard pDict(PyDict_New());
     if (!pDict)
     {
-        // TODO: Error handling
-        return;
+        THROW_PYEXCEPTION("Could not create a new python dict.")
     }
 
     // Fill the dict with the items in the unordered_map
@@ -215,7 +214,7 @@ void EmbeddedPython::initModules(modules_t mods)
         int retval = PyDict_SetItemString(pDict.get(), entry.first.c_str(), pString.get());
         if (retval == -1)
         {
-            // TODO: Error handling
+            THROW_PYEXCEPTION("Error while running PyDict_SetItemString.")
         }
     }
 
