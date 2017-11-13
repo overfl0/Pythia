@@ -36,6 +36,12 @@
     <ClInclude Include="DelayedLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FileHandles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ModsLocation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -57,6 +63,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DelayedLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileHandles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ModsLocation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

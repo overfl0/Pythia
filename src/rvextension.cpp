@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "EmbeddedPython.h"
 #include <regex>
+#include "ModsLocation.h"
 
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
@@ -22,6 +23,14 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     {
         try
         {
+            static bool sources_initialized = false;
+            if (!sources_initialized)
+            {
+                auto sources = getPythiaModulesSources();
+                python->initModules(sources);
+                sources_initialized = true;
+            }
+
             strncpy_s(output, outputSize, python->execute(input).c_str(), _TRUNCATE);
         }
         catch (const std::exception& ex)
