@@ -426,21 +426,30 @@ class PythiaExtensionLoader(PythiaLoader, importlib.machinery.ExtensionFileLoade
 if __name__ == '__main__':
     base_dir = os.path.dirname(__file__)
     modules = {
-        'm_one': os.path.join(base_dir, 'testfolder', 'module_one'),
-        'm_two': os.path.join(base_dir, 'testfolder', 'module_two'),
+        'm_one': os.path.join(base_dir, 'adapter_import_test', 'module_one'),
+        'm_two': os.path.join(base_dir, 'adapter_import_test', 'module_two'),
     }
 
     PythiaModuleWrapper.init_modules(modules)
 
-    #import pythia.m_one
-    import m_one.file_one
-    m_one.file_one.fun()
-
-    # import m_two
-    # import m_two.file_two
+    # #import pythia.m_one
+    # import m_one.file_one
+    # m_one.file_one.fun()
     #
-    # m_two.file_two.fun()
+    # # import m_two
+    # # import m_two.file_two
+    # #
+    # # m_two.file_two.fun()
+    #
+    #
+    # from m_two import file_two
+    # file_two.fun()
 
+    import m_one.submodule.subfile as sub
+    print(sub.fun())
+    print(sub.fun2())
+    print(sub.fun3())
 
-    from m_two import file_two
-    file_two.fun()
+    import m_one.hello
+    print(m_one.hello)
+    print(m_one.hello.fun())
