@@ -289,17 +289,16 @@ FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
 # TODO: Move this to a separate file as soon as the C++ code permits
 ###############################################################################
 
-# TODO: Check if it's possible to cram everything into one non-static class
 class PythiaModuleWrapper(object):
     initialized = False
     modules = {}
 
     @staticmethod
     def _get_node(fullname):
+        """Translate pythia dot-separated module name to the path on the disk (without file extension)."""
         print('_get_node({})'.format(fullname))
 
         bits = fullname.split('.')
-        print(bits)
         bits[0] = PythiaModuleWrapper.modules[bits[0]]
         node_path = os.path.join(*bits)
 
@@ -315,7 +314,6 @@ class PythiaModuleWrapper(object):
         if name_split[0] == 'python':
             return False
 
-        # TODO: Check how it works for from ..something import somethingelse
         if '' in name_split:
             # some..path, some.path.
             return False
@@ -327,12 +325,18 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def get_filename(fullname):
+        node_path = PythiaModuleWrapper._get_node(fullname)
         if PythiaModuleWrapper.is_package(fullname):
-            filename = os.path.join(PythiaModuleWrapper._get_node(fullname), '__init__.py')
+            filename = os.path.join(node_path, '__init__.py')
+            return filename
         else:
-            filename = PythiaModuleWrapper._get_node(fullname) + '.py'
+            for suffix in importlib.machinery.all_suffixes():
+                filename = node_path + suffix
+                print('Checking: {}'.format(filename))
+                if os.path.isfile(filename):
+                    return filename
 
-        return filename
+        raise ImportError('Can\'t get filename for {}'.format(fullname))
 
     @staticmethod
     def get_data(filename):
@@ -367,9 +371,18 @@ class PythiaModuleFinder(importlib.abc.MetaPathFinder):
         if not PythiaModuleWrapper.is_handled(name):
             return None
 
-        loader = PythiaLoader()
+        real_path = os.path.realpath(PythiaModuleWrapper.get_filename(name))
+
+        # Determine if we're dealing with a source modules or an extension (C/C++/Cython) module
+        for extension_suffix in importlib.machinery.EXTENSION_SUFFIXES:
+            if real_path.endswith(extension_suffix):
+                loader = PythiaExtensionLoader(name, real_path)
+                break
+        else:
+            loader = PythiaSourceLoader(name, real_path)
+
         is_package = PythiaModuleWrapper.is_package(name)
-        real_path = os.path.realpath(loader.get_filename(name))
+
         module_spec = importlib.machinery.ModuleSpec(
             name,
             loader,
@@ -383,14 +396,31 @@ class PythiaModuleFinder(importlib.abc.MetaPathFinder):
         return module_spec
 
 
-class PythiaLoader(importlib.abc.SourceLoader):
+class PythiaLoader(object):
+    def __init__(self, name, path):
+        self.name = name
+        self.path = path
+
     def get_filename(self, fullname):
         print('PythiaLoader: Requesting filename for {}'.format(fullname))
-        return PythiaModuleWrapper.get_filename(fullname)
+        return self.path
 
     def get_data(self, filename):
         print('PythiaLoader: Fetching {}'.format(filename))
         return PythiaModuleWrapper.get_data(filename)
+
+
+class PythiaSourceLoader(PythiaLoader, importlib.abc.SourceLoader):
+    """Class that loads python code from custom locations."""
+    pass
+
+
+class PythiaExtensionLoader(PythiaLoader, importlib.machinery.ExtensionFileLoader):
+    """
+    Class that loads python extensions from custom locations.
+    Only create_module and exec_module seem to really be needed from ExtensionFileLoader.
+    """
+    pass
 
 
 if __name__ == '__main__':
