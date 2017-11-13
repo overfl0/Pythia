@@ -308,6 +308,7 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def is_handled(fullname):
+        """Check if the module can be loaded by Pythia."""
         name_split = fullname.split('.')
 
         # Protecting the `python` namespace (it's not used by this loader)
@@ -325,6 +326,7 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def get_filename(fullname):
+        """Map the full module name to a file on disk that Pythia will load"""
         node_path = PythiaModuleWrapper._get_node(fullname)
         if PythiaModuleWrapper.is_package(fullname):
             filename = os.path.join(node_path, '__init__.py')
@@ -340,14 +342,19 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def get_data(filename):
+        """Actually read the module/extension data.
+        This is the function that will probably have to be rewritten if we handle in-pbo
+        loading, in the future.
+        """
         with open(filename, 'rb') as f:
             return f.read()
 
     @staticmethod
     def is_package(fullname):
+        """Return True if this module name is actually a package."""
         name_split = fullname.split('.')
 
-        # Base module should always be a module
+        # Base module should always be a package
         if len(name_split) == 1:
             return True
 
@@ -356,6 +363,7 @@ class PythiaModuleWrapper(object):
 
     @staticmethod
     def init_modules(modules_dict):
+        """Register the whole import mechanism and set the supported Pythia modules."""
         if not PythiaModuleWrapper.initialized:
             print('Initializing module finder')
             sys.meta_path.insert(0, PythiaModuleFinder())
@@ -373,16 +381,13 @@ class PythiaModuleFinder(importlib.abc.MetaPathFinder):
 
         real_path = os.path.realpath(PythiaModuleWrapper.get_filename(name))
 
-        # Determine if we're dealing with a source modules or an extension (C/C++/Cython) module
-        for extension_suffix in importlib.machinery.EXTENSION_SUFFIXES:
-            if real_path.endswith(extension_suffix):
-                loader = PythiaExtensionLoader(name, real_path)
-                break
+        # Determine if we're dealing with a source module or an extension (C/C++/Cython) module
+        if any(map(real_path.endswith, importlib.machinery.EXTENSION_SUFFIXES)):
+            loader = PythiaExtensionLoader(name, real_path)
         else:
             loader = PythiaSourceLoader(name, real_path)
 
         is_package = PythiaModuleWrapper.is_package(name)
-
         module_spec = importlib.machinery.ModuleSpec(
             name,
             loader,
