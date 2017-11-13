@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iostream>
 
+namespace fs = std::experimental::filesystem;
+
 typedef std::unordered_set<std::wstring> dlist;
 
 std::wstring getPathDirectory(std::wstring path)
@@ -67,12 +69,37 @@ static std::string getPythiaModuleName(std::ifstream &stream)
     return pythiaModuleName;
 }
 
+/**
+   Check if the given directory contains python code usable by Pythia.
+ */
+static void tryAddingPythiaModule(modules_t &modules, const std::wstring path)
+{
+    auto pythiaFile = path + L"\\$PYTHIA$";
+
+    std::ifstream pythiaFileHandle;
+    pythiaFileHandle.open(pythiaFile, std::ios::binary);
+    if (!pythiaFileHandle.good())
+    {
+        // File probably doesn't exist
+        return;
+    }
+
+    std::string pythiaModuleName = getPythiaModuleName(pythiaFileHandle);
+    if (!validPythiaModuleName(pythiaModuleName))
+    {
+        return;
+    }
+
+    // Add the current directory to the mods list
+    modules[pythiaModuleName] = path;
+}
 
 /**
    Get loaded python mods.
-   Scan all the open file handles for .pbo files.
-   Then go one directory above those files and check if there is a $PYTHIA$
-   file. If so, load it and read the python module name from the pythia dir.
+   Scan all the open file handles for .pbo files and open the parent directory.
+   Those are hopefully mod dirs. Then, iterate all the directories inside.
+   Check if there is a $PYTHIA$ file in each of those directories.
+   If so, load it and read the python module name from that directory.
 
    Return the list of module names along with paths to those modules.
    (string -> wstring)
@@ -85,26 +112,13 @@ modules_t getPythiaModulesSources()
     for (auto &directory : directoriesList)
     {
         auto parent = getPathDirectory(directory);
-        auto pythiaFile = parent + L"\\$PYTHIA$";
+        std::error_code ec;
 
-        std::ifstream pythiaFileHandle;
-        pythiaFileHandle.open(pythiaFile, std::ios::binary);
-        if (!pythiaFileHandle.good())
+        for (auto& entry : fs::directory_iterator(parent, ec))
         {
-            // File probably doesn't exist
-            continue;
-        }
-
-        std::string pythiaModuleName = getPythiaModuleName(pythiaFileHandle);
-        if (!validPythiaModuleName(pythiaModuleName))
-        {
-            continue;
-        }
-
-        auto codeDirectory = parent + L"\\pythia";
-        if (std::experimental::filesystem::is_directory(codeDirectory)) {
-            if (std::experimental::filesystem::exists(codeDirectory)) {
-                modules[pythiaModuleName] = codeDirectory;
+            if (fs::is_directory(entry))
+            {
+                tryAddingPythiaModule(modules, entry.path());
             }
         }
     }
