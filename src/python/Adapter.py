@@ -25,7 +25,7 @@ except ImportError:
     import json
     SQF_DESCRIPTION = 'Using json.loads as SQF decoder and str as SQF encoder'
     SQF_DECODER = json.loads
-    SQF_ENCODER = str  # str is still faster then json.dumps!
+    SQF_ENCODER = str  # str is still faster than json.dumps!
 
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
@@ -88,6 +88,10 @@ def parse_input(input_value):
     return SQF_DECODER(input_value)
 
 
+class PythiaImportException(Exception):
+    pass
+
+
 def handle_function_calling(function, args):
     """Calls the given function with the given arguments and formats the response."""
     global COROUTINES_DICT, COROUTINES_COUNTER
@@ -136,6 +140,59 @@ def handle_function_calling(function, args):
         time_pack = time.clock()
         logger.debug('Function {} terminated and packed in {:.7f} seconds'.format(function.__name__, time_pack - timer_start))
 
+
+def import_and_strip_traceback(full_module_name):
+    """
+    Suppress unneeded traceback that the user doesn't even care about.
+
+    Import the module and in case of an error remove traceback entries that
+    don't pertain to user-controlled code. In other words: delete all the
+    frames that pertain to internal module loading processes.
+    Do this by fetching the file name of the loaded module and only print
+    traceback frames that show AFTER the file is shown in the traceback.
+
+    Also because the import issue may come from a parent module that has not
+    yet been imported and would automatically be imported during importing of
+    the child module, we're importing all the parent modules first to ensure
+    that we will catch the right exception.
+
+    This may hide errors in the loading process so this functionality may have
+    to be disabled to debug module loading issues.
+    """
+    # Based on https://stackoverflow.com/a/45771867
+
+    try:
+        # Import all the parent modules first to catch all the errors therein
+        names = full_module_name.split('.')
+        if not len(names) == 1:
+            for i in range(1, len(names)):
+                module_name = '.'.join(names[:i])
+                # FIXME: A sys.modules entry can contain None in which case import_module will raise ImportError
+                importlib.import_module(module_name)
+
+        # All the parent modules have been imported. Now import the actual module
+        module_name = full_module_name
+        return importlib.import_module(module_name)
+
+    except Exception as ex:
+        spec = importlib.util.find_spec(module_name)
+        if spec is None:
+            # if the module is not found, then do not print traceback at all
+            count = 0
+
+        else:
+            fileName = spec.loader.get_filename(module_name)
+            extracts = traceback.extract_tb(sys.exc_info()[2])
+            count = len(extracts)
+            # find the first occurrence of the module file name
+            for i, extract in enumerate(extracts):
+                if extract[0] == fileName:
+                    break
+                count -= 1
+
+        raise PythiaImportException(traceback.format_exc(limit=-count, chain=False))
+
+
 def python_adapter(input_string):
     """The extension entry point in python."""
 
@@ -168,17 +225,22 @@ def python_adapter(input_string):
             except KeyError:
                 # Module not imported yet, import it
                 # print("Module not imported")
-                module = importlib.import_module(function_path)
+                module = import_and_strip_traceback(function_path)
 
             # Force reloading the module if we're developing
             if PYTHON_MODULE_DEVELOPMENT:
                 importlib.reload(module)
 
             # Get the requested function
+            # FIXME: Prettify the error in case the module does not have the requested function
             function = getattr(module, function_name)
             FUNCTION_CACHE[full_function_name] = function
 
         retval = handle_function_calling(function, function_args)
+
+    except PythiaImportException as ex:
+        retval = format_error_string(ex.args[0])
+        logger.error('Exception while importing function:\n{}'.format(ex.args[0]))
 
     except:
         retval = format_error_string(traceback.format_exc())
