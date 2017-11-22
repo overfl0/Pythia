@@ -4,5 +4,5 @@
 
 namespace SQFReader
 {
-    PyObject *decode(const char *sqf);
+    PyObject *decode(const char **sqf);
 }

@@ -159,36 +159,74 @@ namespace SQFReader
         return nullptr;
     }
 
-    PyObject *decode(const char *start)
+    inline PyObject *try_parse_array(const char **start)
+    {
+        (*start)++;
+        // TODO: Reference counting
+        PyObject* list = PyList_New(0);
+
+        while(true)
+        {
+            if (**start == ']')
+            {
+                return list;
+            }
+
+            PyObject *obj = decode(start);
+            if (obj == nullptr)
+            {
+                // TODO: Fix this!
+                return nullptr;
+            }
+
+            // TODO: Return value check
+            int retval = PyList_Append(list, obj);
+
+            while (**start == ' ')
+                (*start)++;
+
+            if (**start == ',')
+            {
+                (*start)++;
+            }
+            else if (**start != ']')
+            {
+                // TODO: Error handling!
+                return nullptr;
+            }
+        }
+    }
+
+    PyObject *decode(const char **start)
     {
         // Drop whitespaces
-        while (*start == ' ')
-            start++;
+        while (**start == ' ')
+            (*start)++;
 
         // If number
-        if ((*start >= '0' && *start <= '9') || *start == '-')
+        if ((**start >= '0' && **start <= '9') || **start == '-')
         {
-            return try_parse_number(&start);
+            return try_parse_number(start);
         }
-        else if (*start == '[')
+        else if (**start == '[')
         {
-            // parse array
+            return try_parse_array(start);
         }
-        else if (*start == '"')
+        else if (**start == '"')
         {
-            return try_parse_string_escape(&start);
+            return try_parse_string_escape(start);
         }
-        else if (*start == '\'')
+        else if (**start == '\'')
         {
-            return try_parse_string_noescape(&start);
+            return try_parse_string_noescape(start);
         }
-        else if (*start == 'T' || *start == 't')
+        else if (**start == 'T' || **start == 't')
         {
-            return try_parse_true(&start);
+            return try_parse_true(start);
         }
-        else if (*start == 'F' || *start == 'f')
+        else if (**start == 'F' || **start == 'f')
         {
-            return try_parse_false(&start);
+            return try_parse_false(start);
         }
 
         // TODO: check that the buffer is empty

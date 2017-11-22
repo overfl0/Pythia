@@ -33,7 +33,7 @@ namespace SQF_Reading_Test
 
     void sqf_to_python(const char *sqf, const char *python)
     {
-        PyObject *obj = SQFReader::decode(sqf);
+        PyObject *obj = SQFReader::decode(&sqf);
         Assert::IsNotNull(obj);
         std::string output = python_str(obj);
         Assert::AreEqual(python, output.c_str());
@@ -83,7 +83,7 @@ namespace SQF_Reading_Test
         {
             sqf_to_python("[]", "[]");
             sqf_to_python("[True]", "[True]");
-            sqf_to_python("[True, False]", "[True,False]");
+            sqf_to_python("[True, False]", "[True, False]");
             sqf_to_python("[[[]]]", "[[[]]]");
             sqf_to_python("[[0, 0], [0, 1], [0, 2]]", "[[0, 0], [0, 1], [0, 2]]");
         }
