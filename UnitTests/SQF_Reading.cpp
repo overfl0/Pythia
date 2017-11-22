@@ -22,11 +22,13 @@ namespace SQF_Reading_Test
             {
                 return value_utf8;
             }
-            else {
+            else
+            {
                 return "Could not convert to unicode";
             }
         }
-        else {
+        else
+        {
             return "Could not call repr()";
         }
     }
@@ -104,8 +106,11 @@ namespace SQF_Reading_Test
             sqf_to_python("\"test\"\"\"\"test\"", "'test\"\"test'");    // test""""test => test""test
             sqf_to_python("\"test\"\"test\"", "'test\"test'");          // test""test => test"test
             sqf_to_python("\"\"\"test'test\"\"\"", "'\"test\\'test\"'");// ""test'test"" => "test\'test"
-                                                                        // TODO: Do utf-8 encoding
-                                                                        //sqf_to_python("", "");
+        }
+
+        TEST_METHOD(SQFStringUTF)
+        {
+            sqf_to_python("'\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87'", "'\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87'");
         }
 
         TEST_METHOD(SQFStrangeWhitespace)
