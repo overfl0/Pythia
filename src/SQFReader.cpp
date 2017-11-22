@@ -45,15 +45,16 @@ namespace SQFReader
             end++;
         }
 
+        std::string tmp_value(*start, end - *start);
         // TODO: reference counting
         PyObject *number;
         if (!isFloat)
         {
-            number = PyLong_FromString(*start, nullptr, 10);
+            number = PyLong_FromString(tmp_value.c_str(), nullptr, 10);
         }
         else
         {
-            double cDouble = atof(*start);
+            double cDouble = atof(tmp_value.c_str());
             number = PyFloat_FromDouble(cDouble);
         }
 
@@ -169,6 +170,7 @@ namespace SQFReader
         {
             if (**start == ']')
             {
+                (*start)++;
                 return list;
             }
 

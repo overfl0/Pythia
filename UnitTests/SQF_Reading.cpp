@@ -55,11 +55,11 @@ namespace SQF_Reading_Test
         TEST_METHOD(SQFBooleanParsing)
         {
             sqf_to_python("True", "True");
-            sqf_to_python("true", "True");
-            sqf_to_python("TrUe", "True");
+            sqf_to_python("tRue", "True");
+            sqf_to_python("TrUE", "True");
             sqf_to_python("False", "False");
-            sqf_to_python("false", "False");
-            sqf_to_python("FaLse", "False");
+            sqf_to_python("fAlSe", "False");
+            sqf_to_python("FaLsE", "False");
         }
 
         TEST_METHOD(SQFIntegerParsing)
@@ -86,6 +86,7 @@ namespace SQF_Reading_Test
             sqf_to_python("[True, False]", "[True, False]");
             sqf_to_python("[[[]]]", "[[[]]]");
             sqf_to_python("[[0, 0], [0, 1], [0, 2]]", "[[0, 0], [0, 1], [0, 2]]");
+            sqf_to_python("[[0.25, 'as'], [TRUE, FALSE], [150, -2]]", "[[0.25, 'as'], [True, False], [150, -2]]");
         }
 
         TEST_METHOD(SQFStringParsing)
@@ -105,6 +106,14 @@ namespace SQF_Reading_Test
             sqf_to_python("\"\"\"test'test\"\"\"", "'\"test\\'test\"'");// ""test'test"" => "test\'test"
                                                                         // TODO: Do utf-8 encoding
                                                                         //sqf_to_python("", "");
+        }
+
+        TEST_METHOD(SQFStrangeWhitespace)
+        {
+            sqf_to_python("   15   ", "15");
+            sqf_to_python(" [ 23  ,   19  ]  ", "[23, 19]");
+            sqf_to_python("  [  [  [  ' asd, ert ' ]  ,  False ]  ]", "[[[' asd, ert '], False]]");
+            sqf_to_python("[[[' asd, ert '],False]]", "[[[' asd, ert '], False]]");
         }
     };
 }
