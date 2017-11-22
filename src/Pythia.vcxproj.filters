@@ -48,6 +48,9 @@
     <ClInclude Include="ExceptionFetcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SQFReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -81,6 +84,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExceptionFetcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SQFReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

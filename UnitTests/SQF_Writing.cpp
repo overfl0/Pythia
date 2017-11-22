@@ -10,7 +10,7 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace UnitTests
+namespace SQF_Writing_Test
 {
     PyObject *python_eval(const char *str)
     {
