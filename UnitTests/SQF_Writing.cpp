@@ -144,9 +144,13 @@ namespace SQF_Writing_Test
             python_to_sqf("'test\"test'", "\"test\"\"test\"");            // test"test => test""test
             python_to_sqf("'test\"\"test'", "\"test\"\"\"\"test\"");      // test""test => test""""test
             python_to_sqf("\"test'test\"", "\"test'test\"");              // test'test => test'test
-            // TODO: Do utf-8 encoding
-            //python_to_sqf("", "");
         }
 
+        TEST_METHOD(StringUTFParsing)
+        {
+            // Testing with '¿ó³æ'
+            python_to_sqf("u'\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87'", "\"\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87\"");
+            python_to_sqf("b'\\xc5\\xbc\\xc3\\xb3\\xc5\\x82\\xc4\\x87'.decode('utf-8')", "\"\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87\"");
+        }
     };
 }
