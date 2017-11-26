@@ -33,12 +33,37 @@ namespace SQF_Reading_Test
         }
     }
 
-    void sqf_to_python(const char *sqf, const char *python)
+    std::string sqf_to_python_string(const char *sqf)
     {
+        // Yes, this is leaking memory.
         PyObject *obj = SQFReader::decode(&sqf);
         Assert::IsNotNull(obj);
         std::string output = python_str(obj);
-        Assert::AreEqual(python, output.c_str());
+        return output;
+    }
+
+    void sqf_to_python(const char *sqf, const char *python)
+    {
+        Assert::AreEqual(python, sqf_to_python_string(sqf).c_str());
+    }
+
+    void sqf_raises(const char *sqf, int at_position)
+    {
+        bool raised = false;
+        int error_position = -1;
+
+        try
+        {
+            sqf_to_python_string(sqf).c_str();
+        }
+        catch (SQFReader::ParseException& ex)
+        {
+            raised = true;
+            error_position = ex.where_error - sqf;
+            Logger::WriteMessage(ex.what());
+        }
+        Assert::IsTrue(raised);
+        Assert::AreEqual(at_position, error_position);
     }
 
     TEST_CLASS(SQFGeneratorUnitTest)
@@ -53,6 +78,8 @@ namespace SQF_Reading_Test
         {
             Py_Finalize();
         }
+
+        //=====================================================================
 
         TEST_METHOD(SQFBooleanParsing)
         {
@@ -110,6 +137,7 @@ namespace SQF_Reading_Test
 
         TEST_METHOD(SQFStringUTF)
         {
+            // ¿ó³æ
             sqf_to_python("'\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87'", "'\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87'");
         }
 
@@ -119,6 +147,60 @@ namespace SQF_Reading_Test
             sqf_to_python(" [ 23  ,   19  ]  ", "[23, 19]");
             sqf_to_python("  [  [  [  ' asd, ert ' ]  ,  False ]  ]", "[[[' asd, ert '], False]]");
             sqf_to_python("[[[' asd, ert '],False]]", "[[[' asd, ert '], False]]");
+        }
+
+        //=====================================================================
+
+        TEST_METHOD(SQFBadSQF)
+        {
+            sqf_raises("", 0);
+            sqf_raises("asd", 0);
+        }
+
+        TEST_METHOD(SQFBadSQFTrailingStrings)
+        {
+            sqf_raises("''asd", 2);
+            sqf_raises("\"\"asd", 2);
+            sqf_raises("1234abc", 4);
+            sqf_raises("12.0abc", 4);
+            sqf_raises("Trueabc", 4);
+            sqf_raises("TRUEabc", 4);
+            sqf_raises("trueabc", 4);
+            sqf_raises("Falseabc", 5);
+            sqf_raises("FALSEabc", 5);
+            sqf_raises("falseabc", 5);
+            sqf_raises("[1234abc]", 5);
+            sqf_raises("'abc'asd", 5);
+        }
+
+        TEST_METHOD(SQFBadSQFNumbers)
+        {
+            sqf_raises("--15", 0); // The position here is 0 because of some quirks in the parser
+            sqf_raises("1.56.34", 0); // The position here is 0 because of some quirks in the parser
+            sqf_raises("0x15", 1);
+        }
+
+        TEST_METHOD(SQFBadSQFArrays)
+        {
+            // Arrays not closed correctly
+            sqf_raises("[", 1);
+            sqf_raises("[15", 3);
+            sqf_raises("[15, ['asd']", 12);
+
+            sqf_raises("[15,,56]", 4);
+            sqf_raises("]", 0);
+        }
+
+        //=====================================================================
+
+        TEST_METHOD(SQFPerformance)
+        {
+            const char *parsed = "[[0.25, 'as'], [TRUE, FALSE], [150, -2]]";
+            for (int i = 0; i < 10000; i++)
+            {
+                const char *p = parsed;
+                SQFReader::decode(&p);
+            }
         }
     };
 }

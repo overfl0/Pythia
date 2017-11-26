@@ -2,13 +2,26 @@
 #include "Python.h"
 #include "SQFReader.h"
 
-//#include "../src/ExceptionFetcher.h"
-
 using namespace std;
+
+#define THROW_PARSEERROR(_msg_) \
+{\
+    throw ParseException(_msg_ + std::string(" near: ") + std::string(*start), *start);\
+}
 
 namespace SQFReader
 {
-    // Returns a new PyObject reference or NULL on error
+    /*
+    Note on reference counting in this parser:
+    Because you can have arrays containing other python objects (which may
+    themselves also be arrays, etc...), and the resulting object will be
+    directly passed to Python code, these functions are operating on Python
+    objects that have to have the reference counting handled manually instead
+    of wrapping them into refcounting classes.
+    */
+    PyObject *decode_part(const char **start);
+
+    // Returns a new PyObject reference
     inline PyObject *try_parse_number(const char **start)
     {
         const char *end = *start;
@@ -17,8 +30,12 @@ namespace SQFReader
         if (*end == '-')
         {
             end++;
+            if (*end == '-')
+            {
+                // Uhhh... "--5"?
+                THROW_PARSEERROR("Error when parsing number");
+            }
         }
-        // TODO: Check if '-' is present only once
 
         while ((*end >= '0' && *end <= '9') || *end == '.')
         {
@@ -27,7 +44,7 @@ namespace SQFReader
                 if (isFloat)
                 {
                     // '.' is present twice!
-                    // TODO: Raise exception
+                    THROW_PARSEERROR("Error when parsing number");
                 }
                 isFloat = true;
             }
@@ -35,7 +52,6 @@ namespace SQFReader
         }
 
         std::string tmp_value(*start, end - *start);
-        // TODO: reference counting
         PyObject *number;
         if (!isFloat)
         {
@@ -47,11 +63,16 @@ namespace SQFReader
             number = PyFloat_FromDouble(cDouble);
         }
 
+        if (number == nullptr)
+        {
+            THROW_PARSEERROR("Error when parsing number");
+        }
+
         *start = end;
         return number;
     }
 
-    // Returns a new PyObject reference or NULL on error
+    // Returns a new PyObject reference
     inline PyObject *try_parse_string_noescape(const char **start)
     {
         (*start)++;
@@ -60,13 +81,17 @@ namespace SQFReader
         while (*end != '\'')
             end++;
 
-        // TODO: reference counting
         PyObject *retval = PyUnicode_FromStringAndSize(*start, end - *start);
+        if (retval == nullptr)
+        {
+            THROW_PARSEERROR("Error when parsing single-quoted string");
+        }
+
         *start = end + 1;
         return retval;
     }
 
-    // Returns a new PyObject reference or NULL on error
+    // Returns a new PyObject reference
     inline PyObject *try_parse_string_escape(const char **start)
     {
         (*start)++;
@@ -78,8 +103,7 @@ namespace SQFReader
         {
             if (*end == '\0')
             {
-                // TODO: END OF C-STRING! Raise exception!!!
-                return nullptr;
+                THROW_PARSEERROR("Error when parsing double-quoted string: premature end");
             }
 
             if (*end == '"')
@@ -115,13 +139,18 @@ namespace SQFReader
 
         int len = rp - realString;
         PyObject *retval = PyUnicode_FromStringAndSize(realString, rp - realString);
-        *start = end + 1;
+        delete[] realString;
 
-        delete [] realString;
+        if (retval == nullptr)
+        {
+            THROW_PARSEERROR("Error when parsing double-quoted string");
+        }
+
+        *start = end + 1;
         return retval;
     }
 
-    // Returns a new PyObject reference or NULL on error
+    // Returns a new PyObject reference
     inline PyObject *try_parse_true(const char **start)
     {
         if (((*start)[1] == 'R' || (*start)[1] == 'r') &&
@@ -131,7 +160,8 @@ namespace SQFReader
             *start += 4;
             Py_RETURN_TRUE;
         }
-        return nullptr;
+
+        THROW_PARSEERROR("Error when parsing boolean");
     }
 
     // Returns a new PyObject reference or NULL on error
@@ -145,7 +175,8 @@ namespace SQFReader
             *start += 5;
             Py_RETURN_FALSE;
         }
-        return nullptr;
+
+        THROW_PARSEERROR("Error when parsing boolean");
     }
 
     // Returns a new PyObject reference or NULL on error
@@ -156,8 +187,7 @@ namespace SQFReader
         PyObject* list = PyList_New(0);
         if (list == nullptr)
         {
-            // TODO: Log the error
-            return nullptr;
+            THROW_PARSEERROR("Internal error when creating a list");
         }
 
         while(true)
@@ -168,24 +198,25 @@ namespace SQFReader
                 return list;
             }
 
-            PyObject *obj = decode(start);
-            if (obj == nullptr)
+            PyObject *obj;
+            try
             {
-                // TODO: Return some message
+                obj = decode_part(start);
+            }
+            catch (...)
+            {
                 Py_DECREF(list); // garbage-collect the list and its contents
-                return nullptr;
+                throw;
             }
 
-            // TODO: Return value check
             int retval = PyList_Append(list, obj); // Increases obj's refcount
             Py_DECREF(obj);
             if (retval != 0)
             {
-                // TODO: Return some message
-                // The docs say that this raises an exception
+                // The docs say that this raises a Python exception
                 // Not sure how to act here
                 Py_DECREF(list); // garbage-collect the list and its contents
-                return nullptr;
+                THROW_PARSEERROR("Internal error when appending to list");
             }
 
             while (**start == ' ')
@@ -197,16 +228,13 @@ namespace SQFReader
             }
             else if (**start != ']')
             {
-                // TODO: Return some message
                 Py_DECREF(list); // garbage-collect the list and its contents
-                return nullptr;
+                THROW_PARSEERROR("Expected end of array");
             }
         }
     }
 
-    // Returns a new PyObject reference or NULL on error
-    // IMPORTANT: The object MUST be Py_DECREF'ed after use to prevent leakage
-    PyObject *decode(const char **start)
+    PyObject *decode_part(const char **start)
     {
         // Drop whitespaces
         while (**start == ' ')
@@ -237,8 +265,36 @@ namespace SQFReader
             return try_parse_false(start);
         }
 
-        // TODO: check that the buffer is empty
+        THROW_PARSEERROR("Unexpected character");
+    }
 
-        return nullptr;
+    // Returns a new PyObject reference
+    // IMPORTANT: The object MUST be Py_DECREF'ed after use to prevent leakage
+    // Throws std::runtime_error on parse error with an explanation
+    PyObject *decode(const char **start)
+    {
+        try
+        {
+            PyObject *obj = decode_part(start);
+
+            // Check that the buffer is empty
+            while (**start == ' ')
+                (*start)++;
+
+            if (**start != '\0')
+            {
+                Py_DECREF(obj);
+                THROW_PARSEERROR("Unexpected character");
+            }
+            return obj;
+        }
+        catch (ParseException ex)
+        {
+            throw; // Rethrow. Prevents from being caught by (...) below
+        }
+        catch (...)
+        {
+            THROW_PARSEERROR("Unknown parse error");
+        }
     }
 }
