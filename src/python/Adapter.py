@@ -30,9 +30,6 @@ PYTHON_MODULE_DEVELOPMENT = False
 COROUTINES_DICT = {}
 COROUTINES_COUNTER = 0
 
-MULTIPART_DICT = {}
-MULTIPART_COUNTER = 0
-
 def create_root_logger(name):
     file_handler = logging.handlers.RotatingFileHandler('pythia.log', maxBytes=1024*1024, backupCount=10)
     formatter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s] %(message)s')
@@ -58,7 +55,8 @@ def split_by_len(item, itemlen, maxlen):
 
 def format_error_string(stacktrace_str):
     """Return a formatted exception."""
-    return '["e", "{}"]'.format(stacktrace_str.replace('"', '""'))
+    # return '["e", "{}"]'.format(stacktrace_str.replace('"', '""'))
+    return ("e", stacktrace_str)
 
 
 def format_response_string(return_value, sql_call=False, coroutine_id=None):
@@ -67,12 +65,14 @@ def format_response_string(return_value, sql_call=False, coroutine_id=None):
     on the arguments passed. This should work as long as none of the arguments
     contain double quotes (").
     """
-    global SQF_ENCODER
+    # global SQF_ENCODER
 
     if sql_call:
-        return SQF_ENCODER(["s", coroutine_id, return_value])
+        # return SQF_ENCODER(["s", coroutine_id, return_value])
+        return ("s", coroutine_id, return_value)
 
-    return SQF_ENCODER(["r", return_value])
+    # return SQF_ENCODER(["r", return_value])
+    return ("r", return_value)
 
 
 class PythiaImportException(Exception):
@@ -92,7 +92,7 @@ def handle_function_calling(function, args):
 
     try:
         timer_start = time.clock()
-        if function == continue_coroutine or function == multipart:
+        if function == continue_coroutine:
             # Special handling
             return function(*args)
 
@@ -184,7 +184,6 @@ def python_adapter(sqf_args):
     """The extension entry point in python."""
 
     global FUNCTION_CACHE
-    global MULTIPART_DICT, MULTIPART_COUNTER
     global SQF_ENCODER
 
     try:
@@ -229,50 +228,12 @@ def python_adapter(sqf_args):
         retval = format_error_string(traceback.format_exc())
         logger.exception('An exception occurred:')
 
-    # Multipart response handling
-    # If the returned value is larger than 10KB - 1, use multipart response
-    # Note: Because of a lacking escaping function, we have to use shorter length strings
-    response_max_length = 8000  #10239  # FIXME!!! Implement proper escaping!
-    result_length = len(retval)
-
-    if result_length > response_max_length:
-        MULTIPART_COUNTER += 1
-        response_split = split_by_len(retval, result_length, response_max_length)
-        MULTIPART_DICT[MULTIPART_COUNTER] = list(reversed(response_split))
-
-        # return multipart response
-        retval = SQF_ENCODER(["m", MULTIPART_COUNTER, len(response_split)])
-
     return retval
 
 
 def init_modules(modules_dict):
     logger.debug('Modules initialized with the following data: {}'.format(modules_dict))
     PythiaModuleWrapper.init_modules(modules_dict)
-
-
-def multipart(_id):
-    """Retrieve a part of a multipart response.
-
-    Takes an ID of the response to return.
-    """
-
-    global MULTIPART_DICT
-
-    try:
-        entry = MULTIPART_DICT[_id]
-        response = entry.pop()
-
-        # Free memory
-        if not entry:
-            del MULTIPART_DICT[_id]
-
-    except KeyError:
-        # There is no more data to send
-        response = ""
-        #response = SQF_ENCODER(['e', 'Could not find multipart message for id {}'.format(_id)])
-
-    return response
 
 
 def continue_coroutine(_id, args):
@@ -324,7 +285,6 @@ PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.ping': ping,
     'pythia.test': test,
     'pythia.continue': continue_coroutine,
-    'pythia.multipart': multipart,
     'pythia.version': version,
 }
 

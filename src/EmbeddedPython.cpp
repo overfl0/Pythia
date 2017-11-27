@@ -7,6 +7,7 @@
 #include "resource.h"
 #include "Logger.h"
 #include "SQFReader.h"
+#include "SQFWriter.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -209,6 +210,70 @@ EmbeddedPython::~EmbeddedPython()
     Py_Finalize();
 }
 
+unsigned long multipartCounter = 0;
+typedef std::vector<std::string> multipartEntry_t;
+std::unordered_map<unsigned long long int, multipartEntry_t> multiparts;
+
+std::vector<std::string> splitString(const std::string str, int splitLength)
+{
+    size_t NumSubstrings = str.length() / splitLength;
+    std::vector<std::string> ret;
+
+    for (auto i = 0; i < NumSubstrings; i++)
+    {
+        ret.push_back(str.substr(i * splitLength, splitLength));
+    }
+
+    // If there are leftover characters, create a shorter item at the end.
+    if (str.length() % splitLength != 0)
+    {
+        ret.push_back(str.substr(splitLength * NumSubstrings));
+    }
+
+    return ret;
+}
+
+std::string handleMultipart(const std::string originalResponse)
+{
+    const int maxLen = 1000;
+    if (originalResponse.length() <= maxLen)
+    {
+        return originalResponse;
+    }
+
+    // Need to handle multipart here
+    auto entry = splitString(originalResponse, maxLen);
+    multiparts[multipartCounter] = entry;
+
+    //["m", MULTIPART_COUNTER, len(response_split)]
+    char buff[100];
+    snprintf(buff, sizeof(buff), "[\"m\", %lu, %lu]", multipartCounter++, (unsigned long)entry.size());
+    return buff;
+}
+
+std::string returnMultipart(unsigned long multipartID)
+{
+    try
+    {
+        auto &entry = multiparts.at(multipartID);
+        auto retval = entry.front();
+
+        // TODO: Make this more efficient!
+        entry.erase(entry.begin());
+
+        if (entry.size() == 0)
+        {
+            multiparts.erase(multipartID);
+        }
+
+        return retval;
+    }
+    catch (std::out_of_range)
+    {
+        return "";
+    }
+}
+
 std::string EmbeddedPython::execute(const char * input)
 {
     #ifdef EXTENSION_DEVELOPMENT
@@ -234,11 +299,46 @@ std::string EmbeddedPython::execute(const char * input)
         throw std::runtime_error("Failed to convert argument string to tuple");
     }
 
+    // TODO: Discover multipart request
+    PyObject* PyFunction = PyList_GetItem(pArgs.get(), 0); // Borrows reference
+    if (PyFunction)
+    {
+        // TODO: Do a Python string comparison
+        if (PyUnicode_CompareWithASCIIString(PyFunction, "pythia.multipart") == 0)
+        {
+            PyObject* PyMultipartID = PyList_GetItem(pArgs.get(), 1); // Borrows reference
+            if (PyMultipartID)
+            {
+                int overflow;
+                long multipartID = PyLong_AsLongAndOverflow(PyMultipartID, &overflow);
+                if (overflow == 0 && multipartID >= 0)
+                {
+                    return returnMultipart(multipartID);
+                }
+                else
+                {
+                    throw std::runtime_error("TODO: Error3");
+                }
+            }
+            else
+            {
+                throw std::runtime_error("TODO: Error2");
+            }
+        }
+    }
+    else
+    {
+        throw std::runtime_error("TODO: Error1");
+    }
+
+
     PyObjectGuard pResult(PyObject_CallObject(pFunc, pTuple.get()));
     if (pResult)
     {
+        return handleMultipart(SQFWriter::encode(pResult.get()));
+
         // Hopefully RVO applies here
-        return std::string(PyUnicode_AsUTF8(pResult.get()));
+        //return std::string(PyUnicode_AsUTF8(pResult.get()));
     }
     else
     {
