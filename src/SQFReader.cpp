@@ -271,8 +271,9 @@ namespace SQFReader
     // Returns a new PyObject reference
     // IMPORTANT: The object MUST be Py_DECREF'ed after use to prevent leakage
     // Throws std::runtime_error on parse error with an explanation
-    PyObject *decode(const char **start)
+    PyObject *decode(const char *sqf)
     {
+        const char **start = &sqf;
         try
         {
             PyObject *obj = decode_part(start);

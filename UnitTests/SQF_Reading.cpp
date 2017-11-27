@@ -36,7 +36,7 @@ namespace SQF_Reading_Test
     std::string sqf_to_python_string(const char *sqf)
     {
         // Yes, this is leaking memory.
-        PyObject *obj = SQFReader::decode(&sqf);
+        PyObject *obj = SQFReader::decode(sqf);
         Assert::IsNotNull(obj);
         std::string output = python_str(obj);
         return output;
@@ -195,11 +195,9 @@ namespace SQF_Reading_Test
 
         TEST_METHOD(SQFPerformance)
         {
-            const char *parsed = "[[0.25, 'as'], [TRUE, FALSE], [150, -2]]";
             for (int i = 0; i < 100000; i++)
             {
-                const char *p = parsed;
-                PyObject *pyo = SQFReader::decode(&p);
+                PyObject *pyo = SQFReader::decode("[[0.25, 'as'], [TRUE, FALSE], [150, -2]]");
                 Py_XDECREF(pyo);
             }
         }
