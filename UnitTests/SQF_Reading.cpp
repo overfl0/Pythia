@@ -196,10 +196,11 @@ namespace SQF_Reading_Test
         TEST_METHOD(SQFPerformance)
         {
             const char *parsed = "[[0.25, 'as'], [TRUE, FALSE], [150, -2]]";
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 const char *p = parsed;
-                SQFReader::decode(&p);
+                PyObject *pyo = SQFReader::decode(&p);
+                Py_XDECREF(pyo);
             }
         }
     };
