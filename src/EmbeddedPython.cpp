@@ -6,6 +6,7 @@
 #include <iostream>
 #include "resource.h"
 #include "Logger.h"
+#include "SQFReader.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -206,11 +207,13 @@ std::string EmbeddedPython::execute(const char * input)
         throw std::runtime_error("No bootstrapping function. Additional error: " + pythonInitializationError);
     }
 
-    PyObjectGuard pArgs(PyUnicode_FromString(input));
+    PyObjectGuard pArgs(SQFReader::decode(input));
+
+    /*PyObjectGuard pArgs(PyUnicode_FromString(input));
     if (!pArgs)
     {
         throw std::runtime_error("Failed to transform given input to unicode");
-    }
+    }*/
 
     PyObjectGuard pTuple(PyTuple_Pack(1, pArgs.get()));
     if (!pTuple)

@@ -12,19 +12,16 @@ import types
 
 # Decoding and encoding to SQF
 SQF_DESCRIPTION = 'Using eval as SQF decoder and str as SQF encoder'
-SQF_DECODER = eval
 SQF_ENCODER = str
 
 try:
     import ujson
-    SQF_DESCRIPTION = 'Using ujson.loads as SQF decoder and ujson.dumps as SQF encoder'
-    SQF_DECODER = ujson.loads
+    SQF_DESCRIPTION = 'Using internal SQF decoder and ujson.dumps as SQF encoder'
     SQF_ENCODER = ujson.dumps
 
 except ImportError:
     import json
-    SQF_DESCRIPTION = 'Using json.loads as SQF decoder and str as SQF encoder'
-    SQF_DECODER = json.loads
+    SQF_DESCRIPTION = 'Using internal SQF decoder and str as SQF encoder'
     SQF_ENCODER = str  # str is still faster than json.dumps!
 
 # If you want the user modules to be reloaded each time the function is called, set this to True
@@ -76,16 +73,6 @@ def format_response_string(return_value, sql_call=False, coroutine_id=None):
         return SQF_ENCODER(["s", coroutine_id, return_value])
 
     return SQF_ENCODER(["r", return_value])
-
-
-def parse_input(input_value):
-    """Parses the input value passed directly from the RVEngine.
-    For now it just does an [u]json.loads() which does not support full SQF and
-    could also be faster if parsed manually.
-    """
-    global SQF_DECODER
-
-    return SQF_DECODER(input_value)
 
 
 class PythiaImportException(Exception):
@@ -193,7 +180,7 @@ def import_and_strip_traceback(full_module_name):
         raise PythiaImportException(traceback.format_exc(limit=-count, chain=False))
 
 
-def python_adapter(input_string):
+def python_adapter(sqf_args):
     """The extension entry point in python."""
 
     global FUNCTION_CACHE
@@ -201,12 +188,8 @@ def python_adapter(input_string):
     global SQF_ENCODER
 
     try:
-        if input_string == "":
-            return format_error_string("Input string cannot be empty")
-
-        real_input = parse_input(input_string)
-        full_function_name = real_input[0]
-        function_args = real_input[1:]
+        full_function_name = sqf_args[0]
+        function_args = sqf_args[1:]
 
         try:
             # Raise dummy exception if needs force-reload
