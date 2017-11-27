@@ -115,7 +115,7 @@ def handle_function_calling(function, args):
     finally:
         timer_stop = time.clock()
         # Log the time
-        logger.debug('Function {} terminated in {:.7f} seconds'.format(function.__name__, timer_stop - timer_start))
+        logger.debug('Function {} terminated in {:.7f} ms'.format(function.__name__, (timer_stop - timer_start) * 1000))
 
     try:
         if isinstance(return_value, types.CoroutineType):
@@ -138,7 +138,7 @@ def handle_function_calling(function, args):
 
     finally:
         time_pack = time.clock()
-        logger.debug('Function {} terminated and packed in {:.7f} seconds'.format(function.__name__, time_pack - timer_start))
+        logger.debug('Function {} terminated and packed in {:.7f} ms'.format(function.__name__, (time_pack - timer_start) * 1000))
 
 
 def import_and_strip_traceback(full_module_name):

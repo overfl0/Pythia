@@ -164,7 +164,7 @@ namespace SQFReader
         THROW_PARSEERROR("Error when parsing boolean");
     }
 
-    // Returns a new PyObject reference or NULL on error
+    // Returns a new PyObject reference
     inline PyObject *try_parse_false(const char **start)
     {
         if (((*start)[1] == 'A' || (*start)[1] == 'a') &&
@@ -179,7 +179,7 @@ namespace SQFReader
         THROW_PARSEERROR("Error when parsing boolean");
     }
 
-    // Returns a new PyObject reference or NULL on error
+    // Returns a new PyObject reference
     inline PyObject *try_parse_array(const char **start)
     {
         (*start)++;
@@ -234,6 +234,7 @@ namespace SQFReader
         }
     }
 
+    // Returns a new PyObject reference
     PyObject *decode_part(const char **start)
     {
         // Drop whitespaces
