@@ -118,7 +118,7 @@ namespace SQFReader
             }
         }
 
-        int realStringLength = end - *start - escapedCount;
+        std::ptrdiff_t realStringLength = end - *start - escapedCount;
         char *realString = new char[realStringLength + 1];
         char* rp = realString;
 
@@ -137,7 +137,7 @@ namespace SQFReader
         }
         realString[realStringLength] = '\0';
 
-        int len = rp - realString;
+        std::ptrdiff_t len = rp - realString;
         PyObject *retval = PyUnicode_FromStringAndSize(realString, rp - realString);
         delete[] realString;
 

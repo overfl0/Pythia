@@ -50,7 +50,7 @@ namespace SQF_Reading_Test
     void sqf_raises(const char *sqf, int at_position)
     {
         bool raised = false;
-        int error_position = -1;
+        std::ptrdiff_t error_position = -1;
 
         try
         {
@@ -63,7 +63,7 @@ namespace SQF_Reading_Test
             Logger::WriteMessage(ex.what());
         }
         Assert::IsTrue(raised);
-        Assert::AreEqual(at_position, error_position);
+        Assert::AreEqual(at_position, (int)error_position);
     }
 
     TEST_CLASS(SQFGeneratorUnitTest)
