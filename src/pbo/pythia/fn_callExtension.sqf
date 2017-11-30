@@ -1,15 +1,10 @@
 /*
- *	File: fn_callExtension.sqf
- *	Author: Adanteh
- *	Describe your function
- *
- *	Example:
- *	[["foo"]] call py3_fnc_callExtension;
+    Function:       PY3_fnc_callExtension
+    Author:         Adanteh
+    Description:    Call exntesion function for pythia. Handles parsing input and output and giving proper error codes
+    Example:        [["foo"]] call py3_fnc_callExtension;
 
- *  test = ([["foo"]] call compile preprocessFileLineNumbers "\@pythia\addons\pythia\fn_callExtension.sqf")
- */
-
-//#define SQF_DEVELOPMENT 1
+*/
 
 #ifdef SQF_DEVELOPMENT
 	if (isNil "_nest") exitWith {
@@ -43,10 +38,13 @@ private _returnCode = _result select [2,1];
 // -- Multipart response. This stiches multiple callExtensions to get past the 10k char limit
 if (_returnCode == "m") then {
     private _returnStiched = "";
-    private _stitchID = parseNumber (_result select [5, count _result - 7]);
-    while { (_result != "") } do {
+    private _multipartString = call compile _result;
+    private _stitchID = _multipartString param [1, 1, [1]];
+    private _numberOfMessages = _multipartString param [2, 1, [1]];
+
+    for "_i" from 1 to _numberOfMessages do {
         _result = "Pythia" callExtension (str ["pythia.multipart", _stitchID]);
-        _returnStiched = _returnStiched + _result;
+        _returnStiched = _returnStiched + _result
     };
     _result = _returnStiched;
     _returnCode = _result select [2,1];
