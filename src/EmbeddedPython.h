@@ -16,6 +16,8 @@ public:
     void deinitialize();
     void reload();
     std::string execute(const char* input);
+    void enterPythonThread();
+    void leavePythonThread();
 
 private:
     EmbeddedPython(const EmbeddedPython&) = delete;
@@ -24,6 +26,7 @@ private:
 private:
     PyObject *pModule;
     PyObject *pFunc;
+    PyThreadState *pThreadState;
     HMODULE dllModuleHandle;
 };
 

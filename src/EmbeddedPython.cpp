@@ -61,7 +61,19 @@ namespace
 EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
 {
     Py_Initialize();
+    PyEval_InitThreads(); // Initialize and acquire GIL
     initialize();
+    leavePythonThread();
+}
+
+void EmbeddedPython::enterPythonThread()
+{
+    PyEval_RestoreThread(pThreadState);
+}
+
+void EmbeddedPython::leavePythonThread()
+{
+    pThreadState = PyEval_SaveThread();
 }
 
 void EmbeddedPython::initialize()
@@ -192,6 +204,7 @@ void EmbeddedPython::reload()
 
 EmbeddedPython::~EmbeddedPython()
 {
+    enterPythonThread();
     deinitialize();
     Py_Finalize();
 }

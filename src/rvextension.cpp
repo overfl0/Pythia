@@ -21,6 +21,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
 
     if (python != nullptr)
     {
+        python->enterPythonThread();
         try
         {
             static bool sources_initialized = false;
@@ -40,6 +41,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
             std::string escaped = std::regex_replace(ex.what(), std::regex("\""), "\"\"");
             strncpy_s(output, outputSize, (std::string("[\"e\", \"") + escaped + "\"]").c_str(), _TRUNCATE);
         }
+        python->leavePythonThread();
     }
     else
     {
