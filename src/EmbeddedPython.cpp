@@ -219,7 +219,7 @@ std::vector<std::string> splitString(const std::string str, int splitLength)
     size_t NumSubstrings = str.length() / splitLength;
     std::vector<std::string> ret;
 
-    for (auto i = 0; i < NumSubstrings; i++)
+    for (size_t i = 0; i < NumSubstrings; i++)
     {
         ret.push_back(str.substr(i * splitLength, splitLength));
     }
