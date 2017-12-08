@@ -472,6 +472,34 @@ class PythiaExtensionLoader(PythiaLoader, importlib.machinery.ExtensionFileLoade
     """
     pass
 
+###############################################################################
+# Monkey patching routines
+# TODO: Move this to a separate file as soon as the C++ code permits
+###############################################################################
+
+import threading
+
+threading.OriginalThreadConstructor = threading.Thread.__init__
+
+def DaemonThreadConstructor(self, *args, **kwargs):
+    """
+    Start daemon threads by default.
+    Such threads will get automatically terminated when the main thread (and
+    all non-deamon threads) is terminated.
+
+    Pros: Arma will not keep on running indefinitely after terminating the main
+    C++ thread.
+
+    Cons: Your threads may terminate unexpectedly when closing Arma.
+    To prevent this set t.daemon = False explicitly for your threads.
+    You're responsible for ensuring they will terminate, otherwise arma.exe
+    will hang.
+    """
+    threading.OriginalThreadConstructor(self, *args, **kwargs)
+    self.daemon = True
+
+threading.Thread.__init__ = DaemonThreadConstructor
+
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(__file__)
