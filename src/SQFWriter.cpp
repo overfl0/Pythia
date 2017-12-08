@@ -66,8 +66,29 @@ namespace SQFWriter
             }
 
             std::stringstream strstream;
-            strstream << value;
-            return strstream.str();
+            strstream.precision(6);
+            strstream << std::fixed << value;
+            // Seriously? i need to find a way to fix thix, definitely!
+            std::string output = strstream.str();
+            // Cut the trailing zeroes... -_-
+            int i;
+            for (i = output.size() - 1; i; i--)
+            {
+                if (output[i] != '0')
+                {
+                    break;
+                }
+            }
+            if (output[i] == '.')
+            {
+                i--;
+            }
+            if (i != output.size() - 1)
+            {
+                output.resize(i + 1);
+            }
+
+            return output;
         }
 
         //= Unicode ============================================================

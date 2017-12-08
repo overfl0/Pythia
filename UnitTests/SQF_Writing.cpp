@@ -83,6 +83,8 @@ namespace SQF_Writing_Test
             python_to_sqf("-1.5", "-1.5");
             python_to_sqf("1234.0", "1234");
             python_to_sqf("12345.6", "12345.6");
+            python_to_sqf("22937.2", "22937.2");
+            python_to_sqf("229371.268934", "229371.268934");
         }
 
         TEST_METHOD(ListParsing)
