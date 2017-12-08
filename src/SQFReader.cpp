@@ -209,8 +209,7 @@ namespace SQFReader
                 throw;
             }
 
-            int retval = PyList_Append(list, obj); // Increases obj's refcount
-            Py_DECREF(obj);
+            int retval = PyList_Append(list, obj); // Increases obj's refcount (only if successful!)
             if (retval != 0)
             {
                 // The docs say that this raises a Python exception
@@ -218,6 +217,7 @@ namespace SQFReader
                 Py_DECREF(list); // garbage-collect the list and its contents
                 THROW_PARSEERROR("Internal error when appending to list");
             }
+            Py_DECREF(obj);
 
             while (**start == ' ')
                 (*start)++;
