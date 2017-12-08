@@ -60,7 +60,7 @@ namespace SQF_Reading_Test
         {
             raised = true;
             error_position = ex.where_error - sqf;
-            Logger::WriteMessage(ex.what());
+            //Logger::WriteMessage(ex.what());
         }
         Assert::IsTrue(raised);
         Assert::AreEqual(at_position, (int)error_position);

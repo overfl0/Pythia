@@ -71,7 +71,7 @@ namespace SQFWriter
             // Seriously? i need to find a way to fix thix, definitely!
             std::string output = strstream.str();
             // Cut the trailing zeroes... -_-
-            int i;
+            size_t i;
             for (i = output.size() - 1; i; i--)
             {
                 if (output[i] != '0')

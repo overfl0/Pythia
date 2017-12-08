@@ -32,5 +32,8 @@
     <ClCompile Include="SQF_Reading.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SQF_Fuzzing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

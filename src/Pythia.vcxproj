@@ -219,6 +219,7 @@
     <ClInclude Include="ModsLocation.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceLoader.h" />
+    <ClInclude Include="SQFGenerator.h" />
     <ClInclude Include="SQFReader.h" />
     <ClInclude Include="SQFWriter.h" />
     <ClInclude Include="stdafx.h" />
@@ -247,6 +248,7 @@
     <ClCompile Include="ModsLocation.cpp" />
     <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
+    <ClCompile Include="SQFGenerator.cpp" />
     <ClCompile Include="SQFReader.cpp" />
     <ClCompile Include="SQFWriter.cpp" />
     <ClCompile Include="stdafx.cpp">
