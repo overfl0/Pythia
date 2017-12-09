@@ -76,7 +76,6 @@ std::string SQFGenerator::generateString()
 
 std::string SQFGenerator::generateStringEscaped()
 {
-    // TODO: Add escaped ""
     static const char alphanum[] =
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -95,6 +94,12 @@ std::string SQFGenerator::generateStringEscaped()
         output[i] = alphanum[letter(gen)];
     }
     output[stringLength + 1] = '"';
+
+    for (int i = 1; i <= stringLength - 1; i += 10)
+    {
+        output[i] = '"';
+        output[i+1] = '"';
+    }
 
     return output;
 }
