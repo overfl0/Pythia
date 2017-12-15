@@ -7,25 +7,40 @@
 #include "../src/SQFGenerator.h"
 #include "../src/SQFGenerator.cpp"
 
+#define ARMA_EXTENSION_BUFFER_SIZE (10*1024)
+
 typedef void (__stdcall *RVExtension_t)(char *output, int outputSize, const char *function);
 
 RVExtension_t RVExtension;
 
+void RVExtensionCheck(char *output, int outputSize, const char *function)
+{
+    output[outputSize - 1] = '\0';
+    RVExtension(output, outputSize, function);
+    if (output[outputSize - 1] != '\0')
+    {
+        std::cout << "BUFFER OVERFLOW!!!" << std::endl;
+        std::cout << "Press enter to continue...";
+        std::cin.get();
+        exit(1);
+    }
+}
+
 void test()
 {
-    char output[10*1024];
+    char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
     const char *command = "['pythia.ping', 'asd', 'ert', 3]";
 
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
     // First call to initialize everything (in case it is needed)
-    RVExtension(output, sizeof(output), command);
+    RVExtensionCheck(output, sizeof(output), command);
 
     auto start = std::chrono::system_clock::now();
     for (int i = iterations; i > 0; i--)
     {
-        RVExtension(output, sizeof(output), command);
+        RVExtensionCheck(output, sizeof(output), command);
     }
     auto end = std::chrono::system_clock::now();
     auto elapsed = end - start;
@@ -76,7 +91,7 @@ int compareRegularResponse(const char *response, std::string &expected)
             }
         }
 
-        std::cout << "Expected: " << response << expected << "]" << std::endl;
+        std::cout << "Expected: " << responseTemplate << expected << "]" << std::endl;
         std::cout << "Got:      " << response << std::endl;
         return 1;
     }
@@ -86,14 +101,14 @@ int compareRegularResponse(const char *response, std::string &expected)
 
 std::string handleMultipart(int id, int count)
 {
-    char output[10 * 1024];
+    char output[ARMA_EXTENSION_BUFFER_SIZE];
     std::string multipartRequest = std::string("['pythia.multipart',") + std::to_string(id) + ']';
     std::string fullOutput;
 
     for (int i = 0; i < count; i++)
     {
         output[0] = '\0';
-        RVExtension(output, sizeof(output), multipartRequest.c_str());
+        RVExtensionCheck(output, sizeof(output), multipartRequest.c_str());
         fullOutput += output;
     }
     //std::cout << fullOutput << std::endl;
@@ -102,7 +117,7 @@ std::string handleMultipart(int id, int count)
 
 int test_fuzzing_single()
 {
-    char output[10 * 1024];
+    char output[ARMA_EXTENSION_BUFFER_SIZE];
 
     const char multipartTemplate[] = "[\"m\",";
     const int payloadOffset = sizeof(multipartTemplate) - 1;
@@ -111,7 +126,7 @@ int test_fuzzing_single()
     std::string sqf = builder.generate(2);
     std::string request = createPingRequest(sqf);
 
-    RVExtension(output, sizeof(output), request.c_str());
+    RVExtensionCheck(output, sizeof(output), request.c_str());
 
     // Check for regular response
     int regularResponse = compareRegularResponse(output, sqf);
@@ -126,16 +141,11 @@ int test_fuzzing_single()
         std::string multipartOutput = handleMultipart(id, count);
 
         int multipartResponse = compareRegularResponse(multipartOutput.c_str(), sqf);
-        if (multipartResponse == 0)
-        {
-            //std::cout << "OK :)" << std::endl;
-            return 0;
-        }
-        else
+        if (multipartResponse == -1)
         {
             std::cout << "Got unknown response: " << multipartOutput << std::endl;
-            return 1;
         }
+        return multipartResponse;
     }
     else
     {
@@ -165,7 +175,7 @@ void test_fuzzing_multiple()
 
 void test_coroutines()
 {
-    char output[10 * 1024];
+    char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
     const char *command = "['python.coroutines.test_coroutines']";
     char *response = _strdup("['pythia.continue',         , 'tralala something']");
@@ -176,12 +186,12 @@ void test_coroutines()
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
     // First call to initialize everything (in case it is needed)
-    RVExtension(output, sizeof(output), command);
+    RVExtensionCheck(output, sizeof(output), command);
 
     auto start = std::chrono::system_clock::now();
     for (int i = iterations; i > 0; i--)
     {
-        RVExtension(output, sizeof(output), command);
+        RVExtensionCheck(output, sizeof(output), command);
         while (output[2] == 's')
         {
             continue_val = atoi(output + 5);
@@ -190,7 +200,7 @@ void test_coroutines()
             {
                 response[20 + j] = number[j];
             }
-            RVExtension(output, sizeof(output), response);
+            RVExtensionCheck(output, sizeof(output), response);
         }
     }
     auto end = std::chrono::system_clock::now();
