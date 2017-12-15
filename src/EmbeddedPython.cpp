@@ -333,6 +333,7 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
     if (pResult)
     {
         MultipartResponseWriter writer(output, outputSize);
+        writer.initialize();
         SQFWriter::encode(pResult.get(), &writer);
         writer.finalize();
 

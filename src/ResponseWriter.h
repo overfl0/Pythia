@@ -5,6 +5,7 @@ class ResponseWriter
 {
 public:
     virtual void writeBytes(const char*) = 0;
+    virtual void initialize() = 0;
     virtual void finalize() = 0;
 };
 
@@ -20,18 +21,20 @@ class MultipartResponseWriter: public ResponseWriter
 
 public:
     MultipartResponseWriter(char *outputBuffer_, int outputSize_);
-    ~MultipartResponseWriter();
+    virtual void initialize();
     virtual void writeBytes(const char*);
     virtual void finalize();
     virtual std::vector<std::vector<char>> getMultipart();
 };
 
-class TestResponseWriter : public ResponseWriter
+constexpr int tempBufSize = 10240;
+class TestResponseWriter : public MultipartResponseWriter
 {
-    std::string output;
+    char tempBuf[tempBufSize + 1];
 
 public:
-    virtual void writeBytes(const char*);
+    TestResponseWriter::TestResponseWriter();
+    virtual void initialize();
     virtual void finalize();
     std::string getResponse();
 };

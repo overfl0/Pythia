@@ -7,11 +7,16 @@ MultipartResponseWriter::MultipartResponseWriter(char *outputBuffer_, int output
     outputSize(0),
     outputAvailableSize(outputSize_)
 {
+}
+
+void MultipartResponseWriter::initialize()
+{
     writeBytes("[\"r\",");
 }
 
-MultipartResponseWriter::~MultipartResponseWriter()
+void MultipartResponseWriter::finalize()
 {
+    writeBytes("]");
 }
 
 void MultipartResponseWriter::createNewPage(const char *begin = nullptr, const char *end = nullptr)
@@ -51,11 +56,6 @@ void MultipartResponseWriter::writeBytes(const char* bytes)
     outputBuffer[outputSize] = '\0'; // Maybe that's not needed?
 }
 
-void MultipartResponseWriter::finalize()
-{
-    writeBytes("]");
-}
-
 std::vector<std::vector<char>> MultipartResponseWriter::getMultipart()
 {
     return multipartVector;
@@ -63,9 +63,13 @@ std::vector<std::vector<char>> MultipartResponseWriter::getMultipart()
 
 // ===================================
 
-void TestResponseWriter::writeBytes(const char* bytes)
+TestResponseWriter::TestResponseWriter(): MultipartResponseWriter(tempBuf, tempBufSize)
 {
-    output += bytes;
+    tempBuf[tempBufSize] = '\0';
+}
+
+void TestResponseWriter::initialize()
+{
 }
 
 void TestResponseWriter::finalize()
@@ -74,5 +78,15 @@ void TestResponseWriter::finalize()
 
 std::string TestResponseWriter::getResponse()
 {
-    return output;
+    auto multipartResponse = getMultipart();
+    if (multipartResponse.size() == 0)
+        return tempBuf;
+
+    std::string retval;
+    retval.reserve(tempBufSize * multipartResponse.size() + 1);
+    for (auto &v : multipartResponse)
+    {
+        retval.append(v.data(), tempBufSize);
+    }
+    return retval;
 }
