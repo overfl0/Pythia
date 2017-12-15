@@ -6,6 +6,8 @@
 #include "../src/SQFWriter.h"
 #include "../src/SQFGenerator.h"
 #include "../src/SQFGenerator.cpp"
+#include "../src/ResponseWriter.h"
+#include "../src/ResponseWriter.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace SQF_Fuzzing_Test
@@ -17,7 +19,9 @@ namespace SQF_Fuzzing_Test
     {
         PyObject *obj = SQFReader::decode(sqf);
         Assert::IsNotNull(obj);
-        std::string output = SQFWriter::encode(obj);
+        TestResponseWriter writer;
+        SQFWriter::encode(obj, &writer);
+        std::string output = writer.getResponse();
         Py_DECREF(obj);
         return output;
     }

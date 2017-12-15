@@ -1,8 +1,9 @@
 #pragma once
 
 #include "stdafx.h"
+#include "ResponseWriter.h"
 
 namespace SQFWriter
 {
-    std::string encode(PyObject *obj);
+    void encode(PyObject *obj, ResponseWriter *writer);
 }

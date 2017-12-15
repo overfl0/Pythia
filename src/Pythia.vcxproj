@@ -217,6 +217,7 @@
     <ClInclude Include="ExceptionFetcher.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="ModsLocation.h" />
+    <ClInclude Include="ResponseWriter.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceLoader.h" />
     <ClInclude Include="SQFGenerator.h" />
@@ -246,6 +247,7 @@
     <ClCompile Include="ExceptionFetcher.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ModsLocation.cpp" />
+    <ClCompile Include="ResponseWriter.cpp" />
     <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
     <ClCompile Include="SQFGenerator.cpp" />

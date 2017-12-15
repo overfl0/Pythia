@@ -15,7 +15,7 @@ public:
     void initModules(modules_t mods);
     void deinitialize();
     void reload();
-    std::string execute(const char* input);
+    void execute(char *output, int outputSize, const char* input);
     void enterPythonThread();
     void leavePythonThread();
 

@@ -32,7 +32,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
                 sources_initialized = true;
             }
 
-            strncpy_s(output, outputSize, python->execute(input).c_str(), _TRUNCATE);
+            python->execute(output, outputSize, input);
         }
         catch (const std::exception& ex)
         {

@@ -54,6 +54,9 @@
     <ClInclude Include="SQFGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ResponseWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -93,6 +96,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SQFGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResponseWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

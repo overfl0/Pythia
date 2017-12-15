@@ -6,6 +6,7 @@
 #include <iostream>
 #include "resource.h"
 #include "Logger.h"
+#include "ResponseWriter.h"
 #include "SQFReader.h"
 #include "SQFWriter.h"
 
@@ -211,7 +212,7 @@ EmbeddedPython::~EmbeddedPython()
 }
 
 unsigned long multipartCounter = 0;
-typedef std::vector<std::string> multipartEntry_t;
+typedef std::vector<std::vector<char>> multipartEntry_t;
 std::unordered_map<unsigned long long int, multipartEntry_t> multiparts;
 
 std::vector<std::string> splitString(const std::string str, int splitLength)
@@ -233,30 +234,28 @@ std::vector<std::string> splitString(const std::string str, int splitLength)
     return ret;
 }
 
-std::string handleMultipart(const std::string originalResponse)
+void handleMultipart(char *output, int outputSize, multipartEntry_t entry)
 {
-    const int maxLen = 1000;
-    if (originalResponse.length() <= maxLen)
+    if (entry.size() == 0)
     {
-        return originalResponse;
+        return;
     }
 
-    // Need to handle multipart here
-    auto entry = splitString(originalResponse, maxLen);
     multiparts[multipartCounter] = entry;
 
-    //["m", MULTIPART_COUNTER, len(response_split)]
-    char buff[100];
-    snprintf(buff, sizeof(buff), "[\"m\", %lu, %lu]", multipartCounter++, (unsigned long)entry.size());
-    return buff;
+    //["m", MULTIPART_COUNTER, len(responses)]
+    snprintf(output, outputSize, "[\"m\", %lu, %lu]", multipartCounter++, (unsigned long)entry.size());
 }
 
-std::string returnMultipart(unsigned long multipartID)
+void returnMultipart(unsigned long multipartID, char *output, int outputSize)
 {
     try
     {
         auto &entry = multiparts.at(multipartID);
-        auto retval = entry.front();
+        auto &retval = entry.front();
+
+        // FIXME: Don't always copy everything!!!
+        strncpy_s(output, outputSize, retval.data(), _TRUNCATE);
 
         // TODO: Make this more efficient!
         entry.erase(entry.begin());
@@ -265,16 +264,14 @@ std::string returnMultipart(unsigned long multipartID)
         {
             multiparts.erase(multipartID);
         }
-
-        return retval;
     }
     catch (std::out_of_range)
     {
-        return "";
+        output[0] = '\0';
     }
 }
 
-std::string EmbeddedPython::execute(const char * input)
+void EmbeddedPython::execute(char *output, int outputSize, const char *input)
 {
     #ifdef EXTENSION_DEVELOPMENT
         reload();
@@ -299,10 +296,10 @@ std::string EmbeddedPython::execute(const char * input)
         throw std::runtime_error("Failed to convert argument string to tuple");
     }
 
-    // TODO: Discover multipart request
     PyObject* PyFunction = PyList_GetItem(pArgs.get(), 0); // Borrows reference
     if (PyFunction)
     {
+        // Multipart
         // TODO: Do a Python string comparison
         if (PyUnicode_CompareWithASCIIString(PyFunction, "pythia.multipart") == 0)
         {
@@ -313,7 +310,8 @@ std::string EmbeddedPython::execute(const char * input)
                 long multipartID = PyLong_AsLongAndOverflow(PyMultipartID, &overflow);
                 if (overflow == 0 && multipartID >= 0)
                 {
-                    return returnMultipart(multipartID);
+                    returnMultipart(multipartID, output, outputSize);
+                    return;
                 }
                 else
                 {
@@ -331,14 +329,16 @@ std::string EmbeddedPython::execute(const char * input)
         throw std::runtime_error("TODO: Error1");
     }
 
-
     PyObjectGuard pResult(PyObject_CallObject(pFunc, pTuple.get()));
     if (pResult)
     {
-        return handleMultipart(SQFWriter::encode(pResult.get()));
+        MultipartResponseWriter writer(output, outputSize);
+        SQFWriter::encode(pResult.get(), &writer);
+        writer.finalize();
 
-        // Hopefully RVO applies here
-        //return std::string(PyUnicode_AsUTF8(pResult.get()));
+        auto multipartResponse = writer.getMultipart();
+        handleMultipart(output, outputSize, multipartResponse);
+        return;
     }
     else
     {

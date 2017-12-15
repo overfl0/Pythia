@@ -11,30 +11,34 @@
 
 namespace SQFWriter
 {
-    std::string encode(PyObject *obj)
+    void encode(PyObject *obj, ResponseWriter *writer)
     {
         if (obj == nullptr)
         {
-            return "Null pointer! File a bug report please!!!";
+            writer->writeBytes("Null pointer! File a bug report please!!!");
+            return;
         }
 
         //= None ===============================================================
         //Py_BuildValue("");
         if (obj == Py_None)
         {
-            return "nil";
+            writer->writeBytes("nil");
+            return;
         }
 
         //= Boolean values =====================================================
         //PyObject* PyBool_FromLong(long v)
         if (obj == Py_True)
         {
-            return "True";
+            writer->writeBytes("True");
+            return;
         }
         
         if (obj == Py_False)
         {
-            return "False";
+            writer->writeBytes("False");
+            return;
         }
 
         //= Integers ===========================================================
@@ -47,10 +51,12 @@ namespace SQFWriter
             value = PyLong_AsLongLongAndOverflow(obj, &overflow);
             if (!overflow)
             {
-                return std::to_string(value);
+                writer->writeBytes(std::to_string(value).c_str());
+                return;
             }
 
-            return "OVERFLOW!";
+            writer->writeBytes("OVERFLOW!");
+            return;
         }
 
         //= Floats =============================================================
@@ -62,7 +68,8 @@ namespace SQFWriter
             if (PyErr_Occurred())
             {
                 PyErr_Clear();
-                return "OVERFLOW!";
+                writer->writeBytes("OVERFLOW!");
+                return;
             }
 
             std::stringstream strstream;
@@ -88,7 +95,8 @@ namespace SQFWriter
                 output.resize(i + 1);
             }
 
-            return output;
+            writer->writeBytes(output.c_str());
+            return;
         }
 
         //= Unicode ============================================================
@@ -101,7 +109,8 @@ namespace SQFWriter
                 {
                     PyErr_Clear();
                 }
-                return "Error while converting the string to utf8. Report a bug!";
+                writer->writeBytes("Error while converting the string to utf8. Report a bug!");
+                return;
             }
 
             // Compute the output size first
@@ -130,14 +139,15 @@ namespace SQFWriter
                 retval[i++] = *p;
             }
 
-            return retval;
+            writer->writeBytes(retval.c_str());
+            return;
         }
 
         //= Iterable objects ===================================================
         PyObject *iterator = PyObject_GetIter(obj);
         if (iterator)
         {
-            std::string retval = "[";
+            writer->writeBytes("[");
             bool first = true;
             PyObject *item = nullptr;
 
@@ -150,23 +160,22 @@ namespace SQFWriter
                 }
                 else
                 {
-                    retval += ',';
+                    writer->writeBytes(",");
                 }
 
-                retval += encode(item);
+                encode(item, writer);
                 /* release reference when done */
                 Py_DECREF(item);
             }
 
             if (PyErr_Occurred()) {
-                return "Error while iterating iterator. Report a bug!!!";
+                writer->writeBytes("Error while iterating iterator. Report a bug!!!");
+                return;
             }
 
-            retval += "]";
-
+            writer->writeBytes("]");
             Py_DECREF(iterator);
-
-            return retval;
+            return;
         }
         else
         {
@@ -178,10 +187,12 @@ namespace SQFWriter
 
         if (PyErr_Occurred()) {
             /* propagate error */
-            return PyExceptionFetcher().getError();
+            writer->writeBytes(PyExceptionFetcher().getError().c_str());
+            return;
         }
 
-        return "Unknown variable type that is not supported! Submit a pull request!";
+        writer->writeBytes("Unknown variable type that is not supported! Submit a pull request!");
+        return;
 
         // Note: this code is never executed and is kept for debugging purposes.
         PyObject *repr_obj = PyObject_Repr(obj);
@@ -190,16 +201,20 @@ namespace SQFWriter
             char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
             if (value_utf8)
             {
-                return std::string("Str() gave: ") + value_utf8;
+                writer->writeBytes((std::string("Str() gave: ") + value_utf8).c_str());
+                return;
             }
             else {
-                return "Could not convert to unicode";
+                writer->writeBytes("Could not convert to unicode");
+                return;
             }
         }
         else {
-            return "Could not call repr()";
+            writer->writeBytes("Could not call repr()");
+            return;
         }
 
-        return "";
+        writer->writeBytes("");
+        return;
     }
 }

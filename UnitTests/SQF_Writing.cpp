@@ -7,6 +7,7 @@
 #include "../src/SQFWriter.cpp"  // I don't know why I cannot make VS use pythia.lib :(
 #include "../src/ExceptionFetcher.h"
 #include "../src/ExceptionFetcher.cpp"
+#include "../src/ResponseWriter.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -33,7 +34,9 @@ namespace SQF_Writing_Test
     void python_to_sqf(const char *python, const char *sqf)
     {
         PyObject *obj = python_eval(python);
-        std::string output = SQFWriter::encode(obj);
+        TestResponseWriter writer;
+        SQFWriter::encode(obj, &writer);
+        std::string output = writer.getResponse();
         Assert::AreEqual(sqf, output.c_str());
     }
 
