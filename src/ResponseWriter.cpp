@@ -11,12 +11,12 @@ MultipartResponseWriter::MultipartResponseWriter(char *outputBuffer_, int output
 
 void MultipartResponseWriter::initialize()
 {
-    writeBytes("[\"r\",");
+    //writeBytes("[\"r\",");
 }
 
 void MultipartResponseWriter::finalize()
 {
-    writeBytes("]");
+    //writeBytes("]");
 }
 
 void MultipartResponseWriter::createNewPage(const char *begin = nullptr, const char *end = nullptr)
