@@ -146,7 +146,10 @@ int test_fuzzing_single()
 
 void test_fuzzing_multiple()
 {
-    for (int i = 0; i < 10000; i++)
+    int iterations = 10000;
+
+    auto start = std::chrono::system_clock::now();
+    for (int i = 0; i < iterations; i++)
     {
         if (i % 10 == 0)
             std::cout << "Test: " << std::to_string(i) << std::endl;
@@ -154,7 +157,10 @@ void test_fuzzing_multiple()
         if (test_fuzzing_single() != 0)
             return;
     }
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = end - start;
     std::cout << "Tests OK!" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
 }
 
 void test_coroutines()
