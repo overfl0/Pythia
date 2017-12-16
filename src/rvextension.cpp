@@ -36,7 +36,9 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
             // Escape all quotes (") in the second argument. We don't care about performance
             // since this is going to happen rarely
             std::string escaped = std::regex_replace(ex.what(), std::regex("\""), "\"\"");
-            strncpy_s(output, outputSize, (std::string("[\"e\", \"") + escaped + "\"]").c_str(), _TRUNCATE);
+            std::string toPrint = std::string("[\"e\", \"") + escaped + "\"]";
+            size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
+            strncpy_s(output, minSize, toPrint.c_str(), _TRUNCATE);
         }
         python->leavePythonThread();
     }
@@ -45,6 +47,8 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         // Escape all quotes (") in the second argument. We don't care about performance
         // since this is going to happen rarely
         std::string escaped = std::regex_replace(pythonInitializationError, std::regex("\""), "\"\"");
-        strncpy_s(output, outputSize, (std::string("[\"e\", \"Python not initialised: ") + escaped + "\"]").c_str(), _TRUNCATE);
+        std::string toPrint = std::string("[\"e\", \"Python not initialised: ") + escaped + "\"]";
+        size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
+        strncpy_s(output, outputSize, toPrint.c_str(), _TRUNCATE);
     }
 }
