@@ -20,7 +20,9 @@ namespace SQF_Fuzzing_Test
         PyObject *obj = SQFReader::decode(sqf);
         Assert::IsNotNull(obj);
         TestResponseWriter writer;
+        writer.initialize();
         SQFWriter::encode(obj, &writer);
+        writer.finalize();
         std::string output = writer.getResponse();
         Py_DECREF(obj);
         return output;
@@ -28,7 +30,8 @@ namespace SQF_Fuzzing_Test
 
     void sqf_to_python_to_sqf_check(const char *sqf)
     {
-        Assert::AreEqual(sqf, sqf_to_python_to_sqf(sqf).c_str());
+        std::string output = sqf_to_python_to_sqf(sqf);
+        Assert::AreEqual(sqf, output.c_str());
     }
 
     TEST_CLASS(SQFGeneratorUnitTest)

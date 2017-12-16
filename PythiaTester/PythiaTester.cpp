@@ -229,7 +229,8 @@ int main()
 
         if (RVExtension)
         {
-            test();
+            //test();
+            test_fuzzing_multiple();
         }
         else
         {

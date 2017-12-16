@@ -30,11 +30,9 @@ public:
 constexpr int tempBufSize = 10240;
 class TestResponseWriter : public MultipartResponseWriter
 {
-    char tempBuf[tempBufSize + 1];
+    char tempBuf[tempBufSize];
 
 public:
     TestResponseWriter::TestResponseWriter();
-    virtual void initialize();
-    virtual void finalize();
     std::string getResponse();
 };

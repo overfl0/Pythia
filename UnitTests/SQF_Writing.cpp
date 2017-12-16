@@ -35,7 +35,9 @@ namespace SQF_Writing_Test
     {
         PyObject *obj = python_eval(python);
         TestResponseWriter writer;
+        writer.initialize();
         SQFWriter::encode(obj, &writer);
+        writer.finalize();
         std::string output = writer.getResponse();
         Assert::AreEqual(sqf, output.c_str());
     }

@@ -234,6 +234,7 @@ std::vector<std::string> splitString(const std::string str, int splitLength)
     return ret;
 }
 
+// Note: outputSize is the size CONTAINING the null terminator
 void handleMultipart(char *output, int outputSize, multipartEntry_t entry)
 {
     if (entry.size() == 0)
@@ -244,9 +245,10 @@ void handleMultipart(char *output, int outputSize, multipartEntry_t entry)
     multiparts[multipartCounter] = entry;
 
     //["m", MULTIPART_COUNTER, len(responses)]
-    snprintf(output, outputSize, "[\"m\", %lu, %lu]", multipartCounter++, (unsigned long)entry.size());
+    snprintf(output, outputSize - 1, "[\"m\", %lu, %lu]", multipartCounter++, (unsigned long)entry.size());
 }
 
+// Note: outputSize is the size CONTAINING the null terminator
 void returnMultipart(unsigned long multipartID, char *output, int outputSize)
 {
     try
@@ -254,8 +256,8 @@ void returnMultipart(unsigned long multipartID, char *output, int outputSize)
         auto &entry = multiparts.at(multipartID);
         auto &retval = entry.front();
 
-        // FIXME: Don't always copy everything!!!
-        strncpy_s(output, outputSize, retval.data(), _TRUNCATE);
+        size_t minSize = min((size_t)outputSize, retval.size() + 1);
+        strncpy_s(output, minSize, retval.data(), _TRUNCATE);
 
         // TODO: Make this more efficient!
         entry.erase(entry.begin());
@@ -271,6 +273,8 @@ void returnMultipart(unsigned long multipartID, char *output, int outputSize)
     }
 }
 
+// Note: outputSize is the size CONTAINING the null terminator
+// A value of 10240 means that you can have 10239 characters + '\0' there
 void EmbeddedPython::execute(char *output, int outputSize, const char *input)
 {
     #ifdef EXTENSION_DEVELOPMENT

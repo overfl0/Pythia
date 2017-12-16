@@ -16,9 +16,6 @@ extern "C"
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
 {
-    outputSize -= 1;
-    output[outputSize] = '\0';
-
     if (python != nullptr)
     {
         python->enterPythonThread();

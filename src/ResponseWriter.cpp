@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ResponseWriter.h"
 
+// Note: outputSize is the size CONTAINING the null terminator
 MultipartResponseWriter::MultipartResponseWriter(char *outputBuffer_, int outputSize_):
     outputBuffer(outputBuffer_),
     realOutputBuffer(outputBuffer_),
@@ -11,12 +12,18 @@ MultipartResponseWriter::MultipartResponseWriter(char *outputBuffer_, int output
 
 void MultipartResponseWriter::initialize()
 {
-    //writeBytes("[\"r\",");
 }
 
 void MultipartResponseWriter::finalize()
 {
-    //writeBytes("]");
+    if (multipartVector.size() > 0)
+    {
+        multipartVector.back().resize(outputSize);
+    }
+    else
+    {
+        outputBuffer[outputSize] = '\0';
+    }
 }
 
 void MultipartResponseWriter::createNewPage(const char *begin = nullptr, const char *end = nullptr)
@@ -28,8 +35,7 @@ void MultipartResponseWriter::createNewPage(const char *begin = nullptr, const c
     else
     {
         multipartVector.emplace_back();
-        multipartVector.back().resize(outputAvailableSize + 1);
-        multipartVector.back()[0] = '\0';
+        multipartVector.back().resize(outputAvailableSize - 1);
     }
 }
 
@@ -37,7 +43,7 @@ void MultipartResponseWriter::writeBytes(const char* bytes)
 {
     for(auto p = bytes; *p; p++)
     {
-        if (outputSize == outputAvailableSize)
+        if (outputSize == outputAvailableSize - 1)
         {
             // The page is full, create a new one
             if (multipartVector.size() == 0)
@@ -53,7 +59,6 @@ void MultipartResponseWriter::writeBytes(const char* bytes)
 
         outputBuffer[outputSize++] = *p;
     }
-    outputBuffer[outputSize] = '\0'; // Maybe that's not needed?
 }
 
 std::vector<std::vector<char>> MultipartResponseWriter::getMultipart()
@@ -65,15 +70,7 @@ std::vector<std::vector<char>> MultipartResponseWriter::getMultipart()
 
 TestResponseWriter::TestResponseWriter(): MultipartResponseWriter(tempBuf, tempBufSize)
 {
-    tempBuf[tempBufSize] = '\0';
-}
-
-void TestResponseWriter::initialize()
-{
-}
-
-void TestResponseWriter::finalize()
-{
+    tempBuf[tempBufSize - 1] = '\0';
 }
 
 std::string TestResponseWriter::getResponse()
@@ -86,7 +83,7 @@ std::string TestResponseWriter::getResponse()
     retval.reserve(tempBufSize * multipartResponse.size() + 1);
     for (auto &v : multipartResponse)
     {
-        retval.append(v.data(), tempBufSize);
+        retval.append(v.data(), v.size());
     }
     return retval;
 }
