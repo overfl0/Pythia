@@ -9,21 +9,6 @@ import time
 import traceback
 import types
 
-
-# Decoding and encoding to SQF
-SQF_DESCRIPTION = 'Using eval as SQF decoder and str as SQF encoder'
-SQF_ENCODER = str
-
-try:
-    import ujson
-    SQF_DESCRIPTION = 'Using internal SQF decoder and ujson.dumps as SQF encoder'
-    SQF_ENCODER = ujson.dumps
-
-except ImportError:
-    import json
-    SQF_DESCRIPTION = 'Using internal SQF decoder and str as SQF encoder'
-    SQF_ENCODER = str  # str is still faster than json.dumps!
-
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
 
@@ -45,7 +30,6 @@ def create_root_logger(name):
 logger = create_root_logger(__name__)
 logger.critical('=' * 80)
 logger.critical('Pythia is starting up...')
-logger.critical(SQF_DESCRIPTION)
 logger.critical('=' * 80)
 
 def split_by_len(item, itemlen, maxlen):
@@ -65,13 +49,9 @@ def format_response_string(return_value, sql_call=False, coroutine_id=None):
     on the arguments passed. This should work as long as none of the arguments
     contain double quotes (").
     """
-    # global SQF_ENCODER
-
     if sql_call:
-        # return SQF_ENCODER(["s", coroutine_id, return_value])
         return ("s", coroutine_id, return_value)
 
-    # return SQF_ENCODER(["r", return_value])
     return ("r", return_value)
 
 
@@ -184,7 +164,6 @@ def python_adapter(sqf_args):
     """The extension entry point in python."""
 
     global FUNCTION_CACHE
-    global SQF_ENCODER
 
     try:
         full_function_name = sqf_args[0]

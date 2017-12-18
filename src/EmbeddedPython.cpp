@@ -15,6 +15,8 @@
 
 EmbeddedPython *python = nullptr;
 std::string pythonInitializationError = "";
+unsigned long multipartCounter = 0;
+std::unordered_map<unsigned long long int, multipart_t> multiparts;
 
 namespace
 {
@@ -209,28 +211,6 @@ EmbeddedPython::~EmbeddedPython()
     enterPythonThread();
     deinitialize();
     Py_Finalize();
-}
-
-unsigned long multipartCounter = 0;
-std::unordered_map<unsigned long long int, multipart_t> multiparts;
-
-std::vector<std::string> splitString(const std::string str, int splitLength)
-{
-    size_t NumSubstrings = str.length() / splitLength;
-    std::vector<std::string> ret;
-
-    for (size_t i = 0; i < NumSubstrings; i++)
-    {
-        ret.push_back(str.substr(i * splitLength, splitLength));
-    }
-
-    // If there are leftover characters, create a shorter item at the end.
-    if (str.length() % splitLength != 0)
-    {
-        ret.push_back(str.substr(splitLength * NumSubstrings));
-    }
-
-    return ret;
 }
 
 // Note: outputSize is the size CONTAINING the null terminator

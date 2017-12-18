@@ -61,19 +61,19 @@ namespace SQF_Writing_Test
             Py_Finalize();
         }
 
-        TEST_METHOD(NoneParsing)
+        TEST_METHOD(PythonNoneParsing)
         {
             python_to_sqf("None", "nil");
         }
 
-        TEST_METHOD(BooleanParsing)
+        TEST_METHOD(PythonBooleanParsing)
         {
 
             python_to_sqf("True", "True");
             python_to_sqf("False", "False");
         }
 
-        TEST_METHOD(IntegerParsing)
+        TEST_METHOD(PythonIntegerParsing)
         {
             python_to_sqf("0", "0");
             python_to_sqf("250", "250");
@@ -81,7 +81,7 @@ namespace SQF_Writing_Test
             python_to_sqf("-5", "-5");
         }
 
-        TEST_METHOD(FloatParsing)
+        TEST_METHOD(PythonFloatParsing)
         {
             python_to_sqf("0.0", "0");
             python_to_sqf("-0.0", "0");
@@ -94,7 +94,7 @@ namespace SQF_Writing_Test
             python_to_sqf("695619.606753", "695619.606753");
         }
 
-        TEST_METHOD(ListParsing)
+        TEST_METHOD(PythonListParsing)
         {
             python_to_sqf("[]", "[]");
             python_to_sqf("[True]", "[True]");
@@ -110,7 +110,7 @@ namespace SQF_Writing_Test
             python_to_sqf("[i for i in range(5)]", "[0,1,2,3,4]");
         }
 
-        TEST_METHOD(TupleParsing)
+        TEST_METHOD(PythonTupleParsing)
         {
             python_to_sqf("()", "[]");
             python_to_sqf("(True,)", "[True]");
@@ -125,25 +125,25 @@ namespace SQF_Writing_Test
             python_to_sqf("1, 2, 3", "[1,2,3]");
         }
 
-        TEST_METHOD(GeneratorParsing)
+        TEST_METHOD(PythonGeneratorParsing)
         {
             python_to_sqf("(i for i in [True, True, False])", "[True,True,False]");
             python_to_sqf("(i for i in range(5))", "[0,1,2,3,4]");
             python_to_sqf("(i for i in [])", "[]"); // Empty generator
         }
 
-        TEST_METHOD(RangeParsing)
+        TEST_METHOD(PythonRangeParsing)
         {
             python_to_sqf("range(5)", "[0,1,2,3,4]");
         }
 
-        TEST_METHOD(SetParsing)
+        TEST_METHOD(PythonSetParsing)
         {
             python_to_sqf("set([5])", "[5]");
             python_to_sqf("set([])", "[]");
         }
 
-        TEST_METHOD(StringParsing)
+        TEST_METHOD(PythonStringParsing)
         {
             python_to_sqf("''", "\"\"");                                  // '' => ""
             python_to_sqf("\"\"", "\"\"");                                // "" => ""
@@ -155,7 +155,7 @@ namespace SQF_Writing_Test
             python_to_sqf("\"test'test\"", "\"test'test\"");              // test'test => test'test
         }
 
-        TEST_METHOD(StringUTFParsing)
+        TEST_METHOD(PythonStringUTFParsing)
         {
             // Testing with '¿ó³æ'
             python_to_sqf("u'\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87'", "\"\xc5\xbc\xc3\xb3\xc5\x82\xc4\x87\"");
