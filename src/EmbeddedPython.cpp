@@ -212,8 +212,7 @@ EmbeddedPython::~EmbeddedPython()
 }
 
 unsigned long multipartCounter = 0;
-typedef std::vector<std::vector<char>> multipartEntry_t;
-std::unordered_map<unsigned long long int, multipartEntry_t> multiparts;
+std::unordered_map<unsigned long long int, multipart_t> multiparts;
 
 std::vector<std::string> splitString(const std::string str, int splitLength)
 {
@@ -235,9 +234,9 @@ std::vector<std::string> splitString(const std::string str, int splitLength)
 }
 
 // Note: outputSize is the size CONTAINING the null terminator
-void handleMultipart(char *output, int outputSize, multipartEntry_t entry)
+void handleMultipart(char *output, int outputSize, multipart_t entry)
 {
-    if (entry.size() == 0)
+    if (entry.empty())
     {
         return;
     }
@@ -259,10 +258,8 @@ void returnMultipart(unsigned long multipartID, char *output, int outputSize)
         size_t minSize = min((size_t)outputSize, retval.size() + 1);
         strncpy_s(output, minSize, retval.data(), _TRUNCATE);
 
-        // TODO: Make this more efficient!
-        entry.erase(entry.begin());
-
-        if (entry.size() == 0)
+        entry.pop();
+        if (entry.empty())
         {
             multiparts.erase(multipartID);
         }

@@ -9,9 +9,11 @@ public:
     virtual void finalize() = 0;
 };
 
+typedef std::queue<std::vector<char>> multipart_t;
+
 class MultipartResponseWriter: public ResponseWriter
 {
-    std::vector<std::vector<char>> multipartVector;
+    multipart_t multipart;
     char *realOutputBuffer;
     char *outputBuffer;
     int outputSize;
@@ -24,7 +26,7 @@ public:
     virtual void initialize();
     virtual void writeBytes(const char*);
     virtual void finalize();
-    virtual std::vector<std::vector<char>> getMultipart();
+    virtual multipart_t getMultipart();
 };
 
 constexpr int tempBufSize = 10240;
