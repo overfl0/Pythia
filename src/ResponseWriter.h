@@ -1,17 +1,9 @@
 #pragma once
 #include "stdafx.h"
 
-class ResponseWriter
-{
-public:
-    virtual void writeBytes(const char*) = 0;
-    virtual void initialize() = 0;
-    virtual void finalize() = 0;
-};
-
 typedef std::queue<std::vector<char>> multipart_t;
 
-class MultipartResponseWriter: public ResponseWriter
+class MultipartResponseWriter
 {
     multipart_t multipart;
     char *realOutputBuffer;
@@ -23,10 +15,10 @@ class MultipartResponseWriter: public ResponseWriter
 
 public:
     MultipartResponseWriter(char *outputBuffer_, int outputSize_);
-    virtual void initialize();
-    virtual void writeBytes(const char*);
-    virtual void finalize();
-    virtual multipart_t getMultipart();
+    void initialize();
+    void writeBytes(const char*);
+    void finalize();
+    multipart_t getMultipart();
 };
 
 constexpr int tempBufSize = 10240;

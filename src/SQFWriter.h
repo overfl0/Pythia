@@ -5,5 +5,5 @@
 
 namespace SQFWriter
 {
-    void encode(PyObject *obj, ResponseWriter *writer);
+    void encode(PyObject *obj, MultipartResponseWriter *writer);
 }
