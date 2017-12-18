@@ -84,12 +84,14 @@ namespace SQF_Writing_Test
         TEST_METHOD(FloatParsing)
         {
             python_to_sqf("0.0", "0");
+            python_to_sqf("-0.0", "0");
             python_to_sqf("1.5", "1.5");
             python_to_sqf("-1.5", "-1.5");
             python_to_sqf("1234.0", "1234");
             python_to_sqf("12345.6", "12345.6");
             python_to_sqf("22937.2", "22937.2");
             python_to_sqf("229371.268934", "229371.268934");
+            python_to_sqf("695619.606753", "695619.606753");
         }
 
         TEST_METHOD(ListParsing)
