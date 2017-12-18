@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\third_party">
+      <UniqueIdentifier>{67b4abc3-6613-44cd-8fc4-8c89e16b043d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\third_party\double-conversion">
+      <UniqueIdentifier>{df4b2976-cf0e-4f87-8436-e3b5aaf16e06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -20,6 +26,36 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\bignum.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\bignum-dtoa.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\cached-powers.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\diy-fp.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\double-conversion.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\fast-dtoa.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\fixed-dtoa.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\ieee.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\strtod.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\third_party\double-conversion\utils.h">
+      <Filter>Source Files\third_party\double-conversion</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +70,30 @@
     </ClCompile>
     <ClCompile Include="SQF_Fuzzing.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\bignum.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\bignum-dtoa.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\cached-powers.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\diy-fp.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\double-conversion.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\fast-dtoa.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\fixed-dtoa.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\third_party\double-conversion\strtod.cc">
+      <Filter>Source Files\third_party\double-conversion</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -225,6 +225,16 @@
     <ClInclude Include="SQFWriter.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="third_party\double-conversion\bignum-dtoa.h" />
+    <ClInclude Include="third_party\double-conversion\bignum.h" />
+    <ClInclude Include="third_party\double-conversion\cached-powers.h" />
+    <ClInclude Include="third_party\double-conversion\diy-fp.h" />
+    <ClInclude Include="third_party\double-conversion\double-conversion.h" />
+    <ClInclude Include="third_party\double-conversion\fast-dtoa.h" />
+    <ClInclude Include="third_party\double-conversion\fixed-dtoa.h" />
+    <ClInclude Include="third_party\double-conversion\ieee.h" />
+    <ClInclude Include="third_party\double-conversion\strtod.h" />
+    <ClInclude Include="third_party\double-conversion\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DelayedLoader.cpp" />
@@ -259,12 +269,21 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="third_party\double-conversion\bignum-dtoa.cc" />
+    <ClCompile Include="third_party\double-conversion\bignum.cc" />
+    <ClCompile Include="third_party\double-conversion\cached-powers.cc" />
+    <ClCompile Include="third_party\double-conversion\diy-fp.cc" />
+    <ClCompile Include="third_party\double-conversion\double-conversion.cc" />
+    <ClCompile Include="third_party\double-conversion\fast-dtoa.cc" />
+    <ClCompile Include="third_party\double-conversion\fixed-dtoa.cc" />
+    <ClCompile Include="third_party\double-conversion\strtod.cc" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Pythia.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="python\Adapter.py" />
+    <None Include="third_party\double-conversion\LICENSE" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

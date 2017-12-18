@@ -6,8 +6,7 @@
 #include <sstream>
 
 #include "../src/ExceptionFetcher.h"
-
-// TODO: Improve iterables performance
+#include "third_party/double-conversion/double-conversion.h"
 
 namespace SQFWriter
 {
@@ -72,30 +71,11 @@ namespace SQFWriter
                 return;
             }
 
-            std::stringstream strstream;
-            strstream.precision(6);
-            strstream << std::fixed << value;
-            // Seriously? i need to find a way to fix thix, definitely!
-            std::string output = strstream.str();
-            // Cut the trailing zeroes... -_-
-            size_t i;
-            for (i = output.size() - 1; i; i--)
-            {
-                if (output[i] != '0')
-                {
-                    break;
-                }
-            }
-            if (output[i] == '.')
-            {
-                i--;
-            }
-            if (i != output.size() - 1)
-            {
-                output.resize(i + 1);
-            }
-
-            writer->writeBytes(output.c_str());
+            char sValue[_CVTBUFSIZE];
+            double_conversion::StringBuilder sb(sValue, 26);
+            double_conversion::DoubleToStringConverter::EcmaScriptConverter().ToShortest(value, &sb);
+            sb.Finalize();
+            writer->writeBytes(sValue);
             return;
         }
 
