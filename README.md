@@ -3,6 +3,15 @@ Pythia
 
 An Arma 3 extension that allows you to write python extensions
 
+Status
+------
+
+Current status: Finishing touches before 1.0
+
+Note: Pythia is currently undergoing heavy changes in a final push to releasing a usable, non-alpha, 1.0 version, and some parts are subject to change in the near future because of that. The readme below is slightly out of date and some features and accessibility improvementes already implemented are not described below yet.
+
+Basically, see [the issues page](https://github.com/overfl0/Pythia/issues) and especially [this one](https://github.com/overfl0/Pythia/issues/9). If you plan on using Pythia better contact me to ask for planned changes, on [Frontline's Discord channel](http://discord.frontline.frl). I don't bite :).
+
 Building requirements
 ---------------------
 
