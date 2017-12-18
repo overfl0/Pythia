@@ -319,18 +319,18 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
                 }
                 else
                 {
-                    throw std::runtime_error("TODO: Error3");
+                    throw std::runtime_error("Could not read the multipart ID");
                 }
             }
             else
             {
-                throw std::runtime_error("TODO: Error2");
+                throw std::runtime_error("Could not get the multipart ID from the request");
             }
         }
     }
     else
     {
-        throw std::runtime_error("TODO: Error1");
+        throw std::runtime_error("Failed to get the function name from the request");
     }
 
     PyObjectGuard pResult(PyObject_CallObject(pFunc, pTuple.get()));
