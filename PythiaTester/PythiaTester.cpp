@@ -63,17 +63,7 @@ std::string createPingRequest(std::string sqf)
 
 void parseMultipart(const char *output, int &id, int &count)
 {
-    // Poor man's parsing :)
-    std::stringstream ss(output);
-    std::string start;
-    std::string comma;
-    std::string count_s;
-
-    ss >> start;
-    ss >> id;
-    ss >> comma;
-    ss >> count_s;
-    count = atoi(count_s.c_str());
+    sscanf(output, "[\"m\",%d,%d]", &id, &count);
 }
 
 int compareRegularResponse(const char *response, std::string &expected)
