@@ -192,9 +192,11 @@ def python_adapter(sqf_args):
             if PYTHON_MODULE_DEVELOPMENT:
                 importlib.reload(module)
 
-            # Get the requested function
-            # FIXME: Prettify the error in case the module does not have the requested function
-            function = getattr(module, function_name)
+            try:
+                # Get the requested function
+                function = getattr(module, function_name)
+            except AttributeError as ex:
+                raise PythiaImportException(str(ex))
             FUNCTION_CACHE[full_function_name] = function
 
         retval = handle_function_calling(function, function_args)
