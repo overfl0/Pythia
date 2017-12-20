@@ -2,7 +2,7 @@
     Function:       PY3_fnc_callExtension
     Author:         Adanteh
     Description:    Call extension function for pythia. Handles parsing input and output and giving proper error codes
-    Example:        ["module.submodule.function_name", ["arg1", "arg2"]] call py3_fnc_callExtension;
+    Example:        ["module.submodule.function_name", ["arg1", "arg2", 3]] call py3_fnc_callExtension;
 
 */
 
