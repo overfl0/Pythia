@@ -55,6 +55,10 @@ def format_response_string(return_value, sql_call=False, coroutine_id=None):
     return ("r", return_value)
 
 
+class PythiaExecuteException(Exception):
+    pass
+
+
 class PythiaImportException(Exception):
     pass
 
@@ -166,8 +170,13 @@ def python_adapter(sqf_args):
     global FUNCTION_CACHE
 
     try:
-        full_function_name = sqf_args[0]
-        function_args = sqf_args[1:]
+        try:
+            full_function_name, function_args = sqf_args
+        except ValueError:
+            raise PythiaExecuteException('The syntax for calling a function is: [function_name, [args]]')
+
+        if not isinstance(function_args, list):
+            raise PythiaExecuteException('The arguments of a function need to be passed in an array')
 
         try:
             # Raise dummy exception if needs force-reload
@@ -211,6 +220,10 @@ def python_adapter(sqf_args):
     except PythiaImportException as ex:
         retval = format_error_string(ex.args[0])
         logger.error('Exception while importing function:\n{}'.format(ex.args[0]))
+
+    except PythiaExecuteException as ex:
+        retval = format_error_string(ex.args[0])
+        logger.error('Exception while calling function:\n{}'.format(ex.args[0]))
 
     except:
         retval = format_error_string(traceback.format_exc())

@@ -37,16 +37,16 @@ Running
 
 Run Arma 3 with `-mod=@Pythia`.
 
-In SQF, execute:
+In SQF (debug console), execute:
 
 ```
-hint str(["pythia.test"] call py3_fnc_callExtension)
+["pythia.test"] call py3_fnc_callExtension
 ```
 
 This should reply with a `OK` hint message, if Pythia is working correctly. If it doesn't, ensure you've installed the right version of Python (currently 3.5 is supported) and that you're using 64-bit Python if you're using 64-bit Arma and 32-bit Python otherwise. You can install both Python versions to be safe.
 
 ```
-hint str(["pythia.ping", "first", "second", 3] call py3_fnc_callExtension)
+["pythia.ping", ["first", "second", 3]] call py3_fnc_callExtension
 ```
 
 This should echo back all the arguments you're passing to the function.
@@ -54,7 +54,7 @@ This should echo back all the arguments you're passing to the function.
 In general, to call a custom (non-internal function), do the following:
 
 ```
-["python.samplemodule.sample_function", "first", "second", 3] call py3_fnc_callExtension)
+["python.samplemodule.sample_function", ["first", "second", 3]] call py3_fnc_callExtension)
 ```
 
 This will open the directory `Arma 3\python`, load the file `samplemodule.py`,
@@ -74,7 +74,7 @@ def print_args(*args):
 
 In SQF:
 ```
-["python.samplemodule.print_args", "First", "Second", 3] call py3_fnc_callExtension
+["python.samplemodule.print_args", ["First", "Second", 3]] call py3_fnc_callExtension
 ```
 
 Result: `"Received args: ('First', 'Second', 3)"`
@@ -89,7 +89,7 @@ def get_multiples(multiplier, count):
 
 In SQF:
 ```
-["python.samplemodule.get_multiples", 3, 6] call py3_fnc_callExtension
+["python.samplemodule.get_multiples", [3, 6]] call py3_fnc_callExtension
 ```
 
 Result: `[0, 3, 6, 9, 12, 15]`
