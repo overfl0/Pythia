@@ -10,7 +10,7 @@ if !(_result isEqualTo "OK") exitWith {
 	[false, "ERROR: @Pythia mod loaded, but Pythia.dll not loaded!"];
 };
 
-private _result = ["pythia.ping", "pong"] call py3_fnc_callExtension;
+private _result = ["pythia.ping", ["pong"]] call py3_fnc_callExtension;
 if !(_result isEqualTo ["pong"]) exitWith {
 	diag_log format ["ERROR: @Pythia mod loaded, but error in Pythia.dll: '%1'", _result];
 	[false, "ERROR: @Pythia mod loaded, but error in Pythia.dll"];

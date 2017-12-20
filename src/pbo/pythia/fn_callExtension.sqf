@@ -1,8 +1,8 @@
 /*
     Function:       PY3_fnc_callExtension
     Author:         Adanteh
-    Description:    Call exntesion function for pythia. Handles parsing input and output and giving proper error codes
-    Example:        [["foo"]] call py3_fnc_callExtension;
+    Description:    Call extension function for pythia. Handles parsing input and output and giving proper error codes
+    Example:        ["module.submodule.function_name", ["arg1", "arg2"]] call py3_fnc_callExtension;
 
 */
 
@@ -24,7 +24,7 @@ private _fnc_showHint = {
 
 private _result = "Pythia" callExtension (str _this);
 if (_result == "") exitWith {
-	(format ["Extension output is empty"]) call _fnc_showHint;
+	(format ["Extension output is empty. One possible cause is BattlEye blocking the extension."]) call _fnc_showHint;
 	[];
 };
 
