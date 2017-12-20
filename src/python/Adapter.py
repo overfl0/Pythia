@@ -180,12 +180,19 @@ def python_adapter(sqf_args):
         except KeyError:  # Function not cached, load the module
             function_path, function_name = full_function_name.rsplit('.', 1)
 
+            # Prevent calling arbitrary python functions
+            base_module = function_path.split('.')[0]
+            if(base_module != 'python' and
+               base_module != 'pythia' and
+               base_module not in PythiaModuleWrapper.modules):
+                message = 'Pythia module \'{}\' not recognized! Have you loaded the right Arma mods?'
+                raise PythiaImportException(message.format(base_module))
+
             try:
                 module = sys.modules[function_path]
 
             except KeyError:
                 # Module not imported yet, import it
-                # print("Module not imported")
                 module = import_and_strip_traceback(function_path)
 
             # Force reloading the module if we're developing
