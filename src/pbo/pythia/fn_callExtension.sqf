@@ -22,7 +22,8 @@ private _fnc_showHint = {
 	};
 };
 
-private _result = "Pythia" callExtension (str _this);
+params ["_functionName", ["_args", []]];
+private _result = "Pythia" callExtension (str [_functionName, _args]);
 if (_result == "") exitWith {
 	(format ["Extension output is empty"]) call _fnc_showHint;
 	[];
