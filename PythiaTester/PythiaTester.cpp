@@ -51,14 +51,7 @@ void test()
 
 std::string createPingRequest(std::string sqf)
 {
-    if (sqf == "[]")
-    {
-        return std::string("['pythia.ping']");
-    }
-    else
-    {
-        return std::string("['pythia.ping', ") + (sqf.c_str()+1);
-    }
+    return std::string("['pythia.ping', ") + sqf.c_str() + "]";
 }
 
 void parseMultipart(const char *output, int &id, int &count)
