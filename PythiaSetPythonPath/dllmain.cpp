@@ -4,45 +4,37 @@
 #include <stdlib.h> 
 #include <tchar.h>
 #include <string>
-
-#ifdef _WIN64
-#define PYTHONPATH L"python-embed-amd64"
-#else
-#define PYTHONPATH L"python-embed-win32"
-#endif
-
-EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-
+#include <locale> // wstring_convert
+#define LOGGER_FILENAME "PythiaSetPythonPath.log"
+#include "../src/Logger.h"
+#include "../src/PythonPath.h"
 
 std::wstring pythonPath = L"<Not set>";
 
+std::string w2s(const std::wstring &var)
+{
+    static std::locale loc("");
+    auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+    return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
+}
+
+std::wstring s2w(const std::string &var)
+{
+    static std::locale loc("");
+    auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+    return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
+}
+
 void setDLLPath()
 {
-    // https://stackoverflow.com/questions/6924195/get-dll-path-at-runtime
+    LOG_INFO("Setting DLL path");
+    std::wstring pythonPath = getPythonPath();
 
-    WCHAR   DllPath[MAX_PATH] = { 0 };
-    if (GetModuleFileNameW((HINSTANCE)&__ImageBase, DllPath, _countof(DllPath)) == 0)
-    {
-        // TODO: Error checking
-        int a = 5;
-    }
-    std::wstring DllPath_s = DllPath;
-
-    std::wstring directory;
-    const size_t last_slash_idx = DllPath_s.rfind(L'\\');
-    if (std::string::npos != last_slash_idx)
-    {
-        directory = DllPath_s.substr(0, last_slash_idx);
-    }
-
-    pythonPath = directory + L"\\" + PYTHONPATH;
+    LOG_INFO(std::string("Setting DLL path to: ") + w2s(pythonPath));
     if (SetDllDirectory(pythonPath.c_str()) == 0)
     {
-        // TODO: Error checking
-        int b = 6;
+        LOG_ERROR("Failed to call SetDllDirectory");
     }
-
-    _wputenv_s(L"PYTHONHOME", pythonPath.c_str());
 }
 
 extern "C"

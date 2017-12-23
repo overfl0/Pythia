@@ -221,6 +221,7 @@
     <ClInclude Include="ExceptionFetcher.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="ModsLocation.h" />
+    <ClInclude Include="PythonPath.h" />
     <ClInclude Include="ResponseWriter.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceLoader.h" />
@@ -261,6 +262,7 @@
     <ClCompile Include="ExceptionFetcher.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ModsLocation.cpp" />
+    <ClCompile Include="PythonPath.cpp" />
     <ClCompile Include="ResponseWriter.cpp" />
     <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
