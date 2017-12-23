@@ -9,6 +9,7 @@
 #include "ResponseWriter.h"
 #include "SQFReader.h"
 #include "SQFWriter.h"
+#include "PythonPath.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -62,8 +63,48 @@ namespace
     };
 }
 
+void EmbeddedPython::DoPythonMagic(std::wstring path)
+{
+    // Python pre-initialization magic
+
+    // Clear the env variables, just in case
+    _wputenv_s(L"PYTHONHOME", L"");
+    _wputenv_s(L"PYTHONPATH", L"");
+
+    // TODO: Check if the user site path also has to be removed here
+
+    //Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
+    pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
+    pythonHomeString.push_back(0);
+    Py_SetPythonHome(pythonHomeString.data());
+
+    ////Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
+    std::wstring programName = path + L"\\python.exe"; // Not sure if that should be the value here
+    programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
+    programNameString.push_back(0);
+    Py_SetProgramName(programNameString.data());
+
+    /*
+    Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
+        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\DLLs;"
+        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\lib;"
+        L"D:\\Steam\\SteamApps\\common\\Arma 3");
+    */
+    std::wstring allPaths =
+        path + L"\\python35.zip" + L";" +
+        path + L"\\DLLs" + L";" +
+        path + L"\\lib" + L";" +
+        L""; // Local directory for `python/` directory
+        // TODO: Change this to GetExecutableDirectory();
+    pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
+    pathString.push_back(0);
+    // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
+    Py_SetPath(pathString.data());
+}
+
 EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
 {
+    DoPythonMagic(getPythonPath());
     Py_Initialize();
     PyEval_InitThreads(); // Initialize and acquire GIL
     initialize();

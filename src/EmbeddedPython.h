@@ -22,11 +22,17 @@ public:
 private:
     EmbeddedPython(const EmbeddedPython&) = delete;
     void operator=(const EmbeddedPython&) = delete;
+    void DoPythonMagic(std::wstring path);
 
 private:
     PyObject *pModule;
     PyObject *pFunc;
     PyThreadState *pThreadState;
     HMODULE dllModuleHandle;
+
+    // Python magic
+    std::vector<wchar_t> pythonHomeString;
+    std::vector<wchar_t> programNameString;
+    std::vector<wchar_t> pathString;
 };
 
