@@ -282,13 +282,25 @@ def version(*args):
     """Return the version number of the plugin."""
     return '1.0.0'
 
+
+def interactive(port):
+    from remote_pdb import RemotePdb
+    RemotePdb('127.0.0.1', port).set_trace()
+
+    # To connect, do:
+    # import telnetlib; telnetlib.Telnet('127.0.0.1', 4444).interact()
+
 # Keep a separate dict of those functions for reloading purposes
 PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.ping': ping,
     'pythia.test': test,
     'pythia.continue': continue_coroutine,
     'pythia.version': version,
+    'pythia.interactive': interactive,
 }
+# Comment the following lines out to enable remote interactive debugging
+def interactive(port): raise NotImplementedError
+PYTHIA_INTERNAL_FUNCTIONS['pythia.interactive'] = interactive
 
 FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
 
