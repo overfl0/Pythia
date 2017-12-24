@@ -19,16 +19,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     {
         case DLL_PROCESS_ATTACH:
         {
-            try
-            {
-                //spdlog::set_async_mode(4096);
-                Logger::logfile = spdlog::rotating_logger_mt("PythiaLogger", "pythia_c.log", 1024 * 1024 * 5, 3);
-            }
-            catch (const spdlog::spdlog_ex& ex)
-            {
-                LOG_ERROR(std::string("Could not create the logfile!") + ex.what());
-            }
-
             // Ignore delay loading dlls for now as there are problems with loading
             // data from those dlls - and we need that data!
             /*
@@ -67,7 +57,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 delete python;
                 python = nullptr;
             }
-            Logger::logfile->flush();
+            //Logger::logfile->flush();
             spdlog::drop_all();
         }
         break;

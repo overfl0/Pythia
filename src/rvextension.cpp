@@ -6,6 +6,7 @@
 #include <regex>
 #include "ModsLocation.h"
 #include "common.h"
+#include "Logger.h"
 
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
@@ -18,6 +19,23 @@ extern "C"
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
 {
+    static bool logger_initialized = false;
+    if (!logger_initialized)
+    {
+        try
+        {
+            //spdlog::set_async_mode(4096);
+            spdlog::set_async_mode(4096, spdlog::async_overflow_policy::block_retry,
+                nullptr,
+                std::chrono::milliseconds(500));
+            Logger::logfile = spdlog::rotating_logger_st("PythiaLogger", "pythia_c.log", 1024 * 1024 * 5, 3);
+        }
+        catch (const spdlog::spdlog_ex& ex)
+        {
+            LOG_ERROR(std::string("Could not create the logfile!") + ex.what());
+        }
+        logger_initialized = true;
+    }
     if (python != nullptr)
     {
         python->enterPythonThread();
