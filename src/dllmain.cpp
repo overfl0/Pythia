@@ -8,6 +8,8 @@
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
 
+std::shared_ptr<spdlog::logger> Logger::logfile = spdlog::stderr_logger_mt("Dummy_stderr");
+
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
     LPVOID lpReserved
@@ -17,11 +19,20 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     {
         case DLL_PROCESS_ATTACH:
         {
-            int retval = 0;
+            try
+            {
+                //spdlog::set_async_mode(4096);
+                Logger::logfile = spdlog::rotating_logger_mt("PythiaLogger", "pythia_c.log", 1024 * 1024 * 5, 3);
+            }
+            catch (const spdlog::spdlog_ex& ex)
+            {
+                LOG_ERROR(std::string("Could not create the logfile!") + ex.what());
+            }
 
             // Ignore delay loading dlls for now as there are problems with loading
             // data from those dlls - and we need that data!
             /*
+            int retval = 0;
             if ((retval = LoadAllImports()) != 0)
             {
                 std::string error_message = "Failed to load python35.dll "
@@ -40,7 +51,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             }
             catch (const std::exception& ex)
             {
-                LOG_ERROR("Caught error when creating the embedded python: " << ex.what());
+                LOG_ERROR(std::string("Caught error when creating the embedded python: ") + ex.what());
                 pythonInitializationError = ex.what();
             }
         }
@@ -56,6 +67,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 delete python;
                 python = nullptr;
             }
+            Logger::logfile->flush();
+            spdlog::drop_all();
         }
         break;
     }

@@ -242,7 +242,7 @@ void EmbeddedPython::reload()
     }
     catch (const std::exception& ex)
     {
-        LOG_ERROR("Caught error when reloading the extension: " << ex.what());
+        LOG_ERROR(std::string("Caught error when reloading the extension: ") + ex.what());
         pythonInitializationError = ex.what();
     }
 }

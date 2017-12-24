@@ -18,6 +18,7 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include "third_party/spdlog/spdlog.h"
 
 
 // TODO: reference additional headers your program requires here

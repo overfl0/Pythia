@@ -10,6 +10,7 @@
 #include "../src/PythonPath.h"
 #include "../src/common.h"
 
+std::shared_ptr<spdlog::logger> Logger::logfile = spdlog::stderr_logger_mt("Dummy_stderr");
 std::wstring pythonPath = L"<Not set>";
 
 std::string w2s(const std::wstring &var)
@@ -61,18 +62,28 @@ void __stdcall RVExtensionVersion(char *output, int outputSize)
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
-					 )
+                     )
 {
-	switch (ul_reason_for_call)
-	{
-	case DLL_PROCESS_ATTACH:
+    switch (ul_reason_for_call)
+    {
+    case DLL_PROCESS_ATTACH:
+        try
+        {
+            Logger::logfile = spdlog::rotating_logger_mt("PythiaLogger", "pythiaSetPythonPath.log", 1024 * 1024, 3);
+        }
+        catch (const spdlog::spdlog_ex& ex)
+        {
+            LOG_ERROR(std::string("Could not create the logfile!") + ex.what());
+        }
+
         setDLLPath();
         break;
-	case DLL_THREAD_ATTACH:
-	case DLL_THREAD_DETACH:
-	case DLL_PROCESS_DETACH:
-		break;
-	}
-	return TRUE;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        Logger::logfile->flush();
+        spdlog::drop_all();
+        break;
+    }
+    return TRUE;
 }
-

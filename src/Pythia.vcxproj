@@ -262,7 +262,6 @@
     <ClCompile Include="EmbeddedPython.cpp" />
     <ClCompile Include="FileHandles.cpp" />
     <ClCompile Include="ExceptionFetcher.cpp" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ModsLocation.cpp" />
     <ClCompile Include="Modules\pythiainternal.cpp" />
     <ClCompile Include="PythonPath.cpp" />
