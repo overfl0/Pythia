@@ -10,6 +10,7 @@
 #include "SQFReader.h"
 #include "SQFWriter.h"
 #include "PythonPath.h"
+#include "Modules/pythiainternal.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -103,6 +104,7 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
 EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
 {
     DoPythonMagic(getPythonPath());
+    PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
     Py_Initialize();
     PyEval_InitThreads(); // Initialize and acquire GIL
     initialize();

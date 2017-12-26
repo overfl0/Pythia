@@ -10,6 +10,8 @@ import time
 import traceback
 import types
 
+import pythiainternal
+
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
 
@@ -280,7 +282,7 @@ def ping(*args):
 
 def version(*args):
     """Return the version number of the plugin."""
-    return '1.0.0'
+    return pythiainternal.version()
 
 
 def interactive(port):

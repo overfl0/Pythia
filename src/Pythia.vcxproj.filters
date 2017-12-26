@@ -90,6 +90,12 @@
     <ClInclude Include="PythonPath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\pythiainternal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -159,6 +165,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PythonPath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\pythiainternal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,6 +5,7 @@
 #include "EmbeddedPython.h"
 #include <regex>
 #include "ModsLocation.h"
+#include "common.h"
 
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
@@ -12,6 +13,7 @@ extern std::string pythonInitializationError;
 extern "C"
 {
     __declspec (dllexport) void __stdcall RVExtension(char *output, int outputSize, const char *input);
+    __declspec (dllexport) void __stdcall RVExtensionVersion(char *output, int outputSize);
 }
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
@@ -51,4 +53,11 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
         strncpy_s(output, outputSize, toPrint.c_str(), _TRUNCATE);
     }
+}
+
+void __stdcall RVExtensionVersion(char *output, int outputSize)
+{
+    std::string versionInfo(PYTHIA_VERSION);
+    size_t minSize = min((size_t)outputSize, versionInfo.size() + 1);
+    strncpy_s(output, minSize, versionInfo.c_str(), _TRUNCATE);
 }

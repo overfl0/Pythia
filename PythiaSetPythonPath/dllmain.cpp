@@ -8,6 +8,7 @@
 #define LOGGER_FILENAME "PythiaSetPythonPath.log"
 #include "../src/Logger.h"
 #include "../src/PythonPath.h"
+#include "../src/common.h"
 
 std::wstring pythonPath = L"<Not set>";
 
@@ -40,6 +41,7 @@ void setDLLPath()
 extern "C"
 {
     __declspec (dllexport) void __stdcall RVExtension(char *output, int outputSize, const char *input);
+    __declspec (dllexport) void __stdcall RVExtensionVersion(char *output, int outputSize);
 }
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
@@ -47,6 +49,13 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     std::string str(pythonPath.begin(), pythonPath.end());
     size_t minSize = min((size_t)outputSize, str.size() + 1);
     strncpy_s(output, minSize, str.c_str(), _TRUNCATE);
+}
+
+void __stdcall RVExtensionVersion(char *output, int outputSize)
+{
+    std::string versionInfo(PYTHIA_VERSION);
+    size_t minSize = min((size_t)outputSize, versionInfo.size() + 1);
+    strncpy_s(output, minSize, versionInfo.c_str(), _TRUNCATE);
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
