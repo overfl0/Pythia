@@ -11,7 +11,7 @@
 #include "SQFWriter.h"
 #include "PythonPath.h"
 #include "Modules/pythiainternal.h"
-#include "pythialogger.h"
+#include "Modules/pythialogger.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1

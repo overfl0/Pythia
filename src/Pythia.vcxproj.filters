@@ -96,7 +96,7 @@
     <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pythialogger.h">
+    <ClInclude Include="Modules\pythialogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -170,7 +170,7 @@
     <ClCompile Include="Modules\pythiainternal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pythialogger.cpp">
+    <ClCompile Include="Modules\pythialogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

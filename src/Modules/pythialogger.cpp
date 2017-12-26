@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Logger.h"
+#include "../Logger.h"
 
 static PyObject *pythialogger_log(PyObject *self, PyObject *args)
 {
