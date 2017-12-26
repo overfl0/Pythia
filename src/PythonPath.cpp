@@ -3,9 +3,9 @@
 #include "Logger.h"
 
 #ifdef _WIN64
-#define PYTHONPATH L"python-embed-amd64"
+#define EMBEDDEDPYTHONPATH L"python-embed-amd64"
 #else
-#define PYTHONPATH L"python-embed-win32"
+#define EMBEDDEDPYTHONPATH L"python-embed-win32"
 #endif
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
@@ -28,6 +28,6 @@ std::wstring getPythonPath()
         directory = DllPath_s.substr(0, last_slash_idx);
     }
 
-    std::wstring pythonPath = directory + L"\\" + PYTHONPATH;
+    std::wstring pythonPath = directory + L"\\" + EMBEDDEDPYTHONPATH;
     return pythonPath;
 }
