@@ -94,6 +94,7 @@ namespace SQF_Reading_Test
         TEST_METHOD(SQFIntegerParsing)
         {
             sqf_to_python("0", "0");
+            sqf_to_python("-0", "0");
             sqf_to_python("250", "250");
             sqf_to_python("1000", "1000");
             sqf_to_python("-5", "-5");
@@ -106,6 +107,9 @@ namespace SQF_Reading_Test
             sqf_to_python("-1.5", "-1.5");
             sqf_to_python("1234.0", "1234.0");
             sqf_to_python("12345.6", "12345.6");
+            sqf_to_python("229371.268934", "229371.268934");
+            sqf_to_python("695619.606753", "695619.606753");
+            sqf_to_python("-1.23456789012e-08", "-1.23456789012e-08");
         }
 
         TEST_METHOD(SQFListParsing)
@@ -155,6 +159,14 @@ namespace SQF_Reading_Test
         {
             sqf_raises("", 0);
             sqf_raises("asd", 0);
+        }
+
+        TEST_METHOD(SQFBadScientificFloat)
+        {
+            sqf_raises("-1.-23456789012e-08", 0);
+            sqf_raises("-1.23456789012e--08", 0);
+            sqf_raises("-1.23456789012e0e8", 0);
+            sqf_raises("-1.23456789012e0.8", 0);
         }
 
         TEST_METHOD(SQFBadSQFTrailingStrings)

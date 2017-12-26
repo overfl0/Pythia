@@ -26,6 +26,8 @@ namespace SQFReader
     {
         const char *end = *start;
         char isFloat = false;
+        char isScientific = false;
+        char negativeExponent = false;
 
         if (*end == '-')
         {
@@ -37,16 +39,43 @@ namespace SQFReader
             }
         }
 
-        while ((*end >= '0' && *end <= '9') || *end == '.')
+        while ((*end >= '0' && *end <= '9') || *end == '.' || *end == '-' || *end == 'e')
         {
             if (*end == '.')
             {
+                if (isScientific)
+                {
+                    // '.' is present after the 'e' letter!
+                    THROW_PARSEERROR("Error when parsing number");
+                }
                 if (isFloat)
                 {
                     // '.' is present twice!
                     THROW_PARSEERROR("Error when parsing number");
                 }
                 isFloat = true;
+            }
+            if (*end == 'e')
+            {
+                if (isScientific)
+                {
+                    // 'e' is present twice!
+                    THROW_PARSEERROR("Error when parsing number");
+                }
+                isScientific = true;
+            }
+            if (*end == '-')
+            {
+                if (!isScientific)
+                {
+                    THROW_PARSEERROR("Error when parsing number");
+                }
+                if (negativeExponent)
+                {
+                    // '-' is present twice in the exponent!
+                    THROW_PARSEERROR("Error when parsing number");
+                }
+                negativeExponent = true;
             }
             end++;
         }

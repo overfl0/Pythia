@@ -76,6 +76,7 @@ namespace SQF_Writing_Test
         TEST_METHOD(PythonIntegerParsing)
         {
             python_to_sqf("0", "0");
+            python_to_sqf("-0", "0");
             python_to_sqf("250", "250");
             python_to_sqf("1000", "1000");
             python_to_sqf("-5", "-5");
@@ -92,6 +93,7 @@ namespace SQF_Writing_Test
             python_to_sqf("22937.2", "22937.2");
             python_to_sqf("229371.268934", "229371.268934");
             python_to_sqf("695619.606753", "695619.606753");
+            python_to_sqf("-1.23456789012e-008", "-1.23456789012e-8");
         }
 
         TEST_METHOD(PythonListParsing)
