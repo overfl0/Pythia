@@ -70,15 +70,14 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     // Clear the env variables, just in case
     _wputenv_s(L"PYTHONHOME", L"");
     _wputenv_s(L"PYTHONPATH", L"");
+    _wputenv_s(L"PYTHONNOUSERSITE", L"1");  // Disable custom user site
 
-    // TODO: Check if the user site path also has to be removed here
-
-    //Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
+    // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
     pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
     pythonHomeString.push_back(0);
     Py_SetPythonHome(pythonHomeString.data());
 
-    ////Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
+    // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
     std::wstring programName = path + L"\\python.exe"; // Not sure if that should be the value here
     programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
     programNameString.push_back(0);
@@ -95,7 +94,6 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         path + L"\\DLLs" + L";" +
         path + L"\\lib" + L";" +
         L""; // Local directory for `python/` directory
-        // TODO: Change this to GetExecutableDirectory();
     pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
     pathString.push_back(0);
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
