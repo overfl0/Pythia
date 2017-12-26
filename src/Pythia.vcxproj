@@ -224,6 +224,7 @@
     <ClInclude Include="ModsLocation.h" />
     <ClInclude Include="Modules\pythiainternal.h" />
     <ClInclude Include="PythonPath.h" />
+    <ClInclude Include="pythialogger.h" />
     <ClInclude Include="ResponseWriter.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourceLoader.h" />
@@ -265,6 +266,7 @@
     <ClCompile Include="ModsLocation.cpp" />
     <ClCompile Include="Modules\pythiainternal.cpp" />
     <ClCompile Include="PythonPath.cpp" />
+    <ClCompile Include="pythialogger.cpp" />
     <ClCompile Include="ResponseWriter.cpp" />
     <ClCompile Include="rvextension.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />

@@ -31,6 +31,7 @@ def create_root_logger(name):
     return logger
 
 logger = create_root_logger(__name__)
+import pythialogger as logger
 logger.critical('=' * 80)
 logger.critical('Pythia is starting up...')
 logger.critical('=' * 80)
@@ -70,10 +71,11 @@ def handle_function_calling(function, args):
     """Calls the given function with the given arguments and formats the response."""
     global COROUTINES_DICT, COROUTINES_COUNTER
 
-    if logger.level < logging.INFO:
-        function_args = str(args)[1:-1]
-    else:
-        function_args = '...'
+    function_args = str(args)[1:-1]
+    # if logger.level < logging.INFO:
+    #     function_args = str(args)[1:-1]
+    # else:
+    #     function_args = '...'
 
     logger.info('Calling {}({})'.format(function.__name__, function_args))
 
@@ -230,7 +232,7 @@ def python_adapter(sqf_args):
 
     except:
         retval = format_error_string(traceback.format_exc())
-        logger.exception('An exception occurred:')
+        logger.error('An exception occurred:\n{}'.format(traceback.format_exc()))
 
     return retval
 

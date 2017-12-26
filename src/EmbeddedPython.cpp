@@ -11,6 +11,7 @@
 #include "SQFWriter.h"
 #include "PythonPath.h"
 #include "Modules/pythiainternal.h"
+#include "pythialogger.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -105,6 +106,7 @@ EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHand
 {
     DoPythonMagic(getPythonPath());
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
+    PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
     Py_Initialize();
     PyEval_InitThreads(); // Initialize and acquire GIL
     initialize();
@@ -368,4 +370,3 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
         THROW_PYEXCEPTION("Failed to execute python extension");
     }
 }
-

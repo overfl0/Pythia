@@ -25,10 +25,10 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         try
         {
             //spdlog::set_async_mode(4096);
-            spdlog::set_async_mode(4096, spdlog::async_overflow_policy::block_retry,
+            spdlog::set_async_mode(131072, spdlog::async_overflow_policy::block_retry,
                 nullptr,
                 std::chrono::milliseconds(500));
-            Logger::logfile = spdlog::rotating_logger_st("PythiaLogger", "pythia_c.log", 1024 * 1024 * 5, 3);
+            Logger::logfile = spdlog::rotating_logger_mt("PythiaLogger", "pythia_c.log", 1024 * 1024 * 10, 3);
         }
         catch (const spdlog::spdlog_ex& ex)
         {
