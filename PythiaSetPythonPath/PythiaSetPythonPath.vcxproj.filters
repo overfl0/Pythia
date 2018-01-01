@@ -30,6 +30,9 @@
     <ClInclude Include="..\src\Logger.h">
       <Filter>Dependencies</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Paths.h">
+      <Filter>Dependencies</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -38,10 +41,10 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\PythonPath.cpp">
+    <ClCompile Include="..\src\Logger.cpp">
       <Filter>Dependencies</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Logger.cpp">
+    <ClCompile Include="..\src\Paths.cpp">
       <Filter>Dependencies</Filter>
     </ClCompile>
   </ItemGroup>

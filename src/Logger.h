@@ -4,6 +4,8 @@
 namespace Logger
 {
     extern std::shared_ptr<spdlog::logger> logfile;
+    std::string w2s(const std::wstring &var);
+    std::wstring s2w(const std::string &var);
 }
 
 #define LOG_DEBUG Logger::logfile->debug

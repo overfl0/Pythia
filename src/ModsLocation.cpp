@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ModsLocation.h"
 #include "FileHandles.h"
+#include "Paths.h"
 
 #include <filesystem>
 #include <fstream>
@@ -10,12 +11,6 @@
 namespace fs = std::experimental::filesystem;
 
 typedef std::unordered_set<std::wstring> dlist;
-
-std::wstring getPathDirectory(std::wstring path)
-{
-    // Returns the whole string if no backslash is present
-    return path.substr(0, path.find_last_of(L"/\\"));
-}
 
 bool hasEnding(std::wstring const &fullString, std::wstring const &ending) {
     if (fullString.length() >= ending.length()) {

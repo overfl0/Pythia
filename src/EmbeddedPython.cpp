@@ -9,7 +9,7 @@
 #include "ResponseWriter.h"
 #include "SQFReader.h"
 #include "SQFWriter.h"
-#include "PythonPath.h"
+#include "Paths.h"
 #include "Modules/pythiainternal.h"
 #include "Modules/pythialogger.h"
 
@@ -78,12 +78,14 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
     pythonHomeString.push_back(0);
     Py_SetPythonHome(pythonHomeString.data());
+    LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
 
     // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
     std::wstring programName = path + L"\\python.exe"; // Not sure if that should be the value here
     programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
     programNameString.push_back(0);
     Py_SetProgramName(programNameString.data());
+    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
 
     /*
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
@@ -100,6 +102,8 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     pathString.push_back(0);
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
     Py_SetPath(pathString.data());
+    LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
+    LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 }
 
 EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)

@@ -87,9 +87,6 @@
     <ClInclude Include="third_party\double-conversion\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PythonPath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\pythiainternal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -97,6 +94,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Modules\pythialogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Paths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -164,9 +164,6 @@
     <ClCompile Include="third_party\double-conversion\strtod.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PythonPath.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\pythiainternal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -174,6 +171,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Paths.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

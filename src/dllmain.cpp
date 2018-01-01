@@ -33,7 +33,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 return TRUE;
             }
             */
-            createLogger("PythiaLogger", "pythia_c.log");
+            createLogger("PythiaLogger", "Pythia_c.log");
 
             try
             {
@@ -65,4 +65,3 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     }
     return TRUE;
 }
-

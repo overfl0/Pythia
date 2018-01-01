@@ -176,13 +176,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Logger.h" />
+    <ClInclude Include="..\src\Paths.h" />
     <ClInclude Include="..\src\PythonPath.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Logger.cpp" />
-    <ClCompile Include="..\src\PythonPath.cpp" />
+    <ClCompile Include="..\src\Paths.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
