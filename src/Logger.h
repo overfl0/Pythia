@@ -1,5 +1,4 @@
 #pragma once
-#include <fstream>
 #include "third_party/spdlog/spdlog.h"
 
 namespace Logger
@@ -12,4 +11,8 @@ namespace Logger
 #define LOG_WARN Logger::logfile->warn
 #define LOG_ERROR Logger::logfile->error
 
-//spdlogger = spdlog::rotating_logger_mt("some_logger_name", "logs/mylogfile.txt", 1048576 * 5, 3);
+#define LOG_FLUSH Logger::logfile->flush
+
+std::shared_ptr<spdlog::logger> getFallbackLogger();
+void createLogger(std::string loggerName, spdlog::filename_t loggerFile);
+void switchToAsyncLogger(std::string loggerName, spdlog::filename_t loggerFile);

@@ -5,12 +5,13 @@
 #include <tchar.h>
 #include <string>
 #include <locale> // wstring_convert
-#define LOGGER_FILENAME "PythiaSetPythonPath.log"
 #include "../src/Logger.h"
 #include "../src/PythonPath.h"
 #include "../src/common.h"
 
-std::shared_ptr<spdlog::logger> Logger::logfile = spdlog::stderr_logger_mt("Dummy_stderr");
+#define LOGGER_FILENAME "PythiaSetPythonPath.log"
+
+std::shared_ptr<spdlog::logger> Logger::logfile = getFallbackLogger();
 std::wstring pythonPath = L"<Not set>";
 
 std::string w2s(const std::wstring &var)
@@ -67,21 +68,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        try
-        {
-            Logger::logfile = spdlog::rotating_logger_mt("PythiaLogger", "pythiaSetPythonPath.log", 1024 * 1024, 3);
-        }
-        catch (const spdlog::spdlog_ex& ex)
-        {
-            LOG_ERROR(std::string("Could not create the logfile!") + ex.what());
-        }
-
+        createLogger("PythiaSetPythonPathLogger", LOGGER_FILENAME);
         setDLLPath();
+        LOG_FLUSH();
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:
-        Logger::logfile->flush();
+        LOG_FLUSH();
         spdlog::drop_all();
         break;
     }

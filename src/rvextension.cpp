@@ -22,18 +22,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     static bool logger_initialized = false;
     if (!logger_initialized)
     {
-        try
-        {
-            //spdlog::set_async_mode(4096);
-            spdlog::set_async_mode(131072, spdlog::async_overflow_policy::block_retry,
-                nullptr,
-                std::chrono::milliseconds(500));
-            Logger::logfile = spdlog::rotating_logger_mt("PythiaLogger", "pythia_c.log", 1024 * 1024 * 10, 3);
-        }
-        catch (const spdlog::spdlog_ex& ex)
-        {
-            LOG_ERROR(std::string("Could not create the logfile!") + ex.what());
-        }
+        switchToAsyncLogger("PythiaLogger", "pythia_c.log");
         logger_initialized = true;
     }
     if (python != nullptr)

@@ -8,7 +8,7 @@
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
 
-std::shared_ptr<spdlog::logger> Logger::logfile = spdlog::stderr_logger_mt("Dummy_stderr");
+std::shared_ptr<spdlog::logger> Logger::logfile = getFallbackLogger();
 
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD  ul_reason_for_call,
@@ -33,6 +33,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 return TRUE;
             }
             */
+            createLogger("PythiaLogger", "pythia_c.log");
 
             try
             {
@@ -57,7 +58,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 delete python;
                 python = nullptr;
             }
-            //Logger::logfile->flush();
+            //LOG_FLUSH();
             spdlog::drop_all();
         }
         break;
