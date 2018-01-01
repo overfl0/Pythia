@@ -97,7 +97,7 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         path + L"\\python35.zip" + L";" +
         path + L"\\DLLs" + L";" +
         path + L"\\lib" + L";" +
-        L""; // Local directory for `python/` directory
+        getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
     pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
     pathString.push_back(0);
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
