@@ -12,6 +12,7 @@ namespace Logger
 #define LOG_INFO Logger::logfile->info
 #define LOG_WARN Logger::logfile->warn
 #define LOG_ERROR Logger::logfile->error
+#define LOG_CRITICAL Logger::logfile->critical
 
 #define LOG_FLUSH Logger::logfile->flush
 

@@ -14,6 +14,7 @@ void createLogger(std::string loggerName, spdlog::filename_t loggerFile)
 {
     try
     {
+        spdlog::set_level(spdlog::level::debug);
         spdlog::set_sync_mode();
         Logger::logfile = spdlog::rotating_logger_mt(loggerName, loggerFile, 1024 * 1024 * 10, 3);
     }
@@ -35,6 +36,7 @@ void switchToAsyncLogger(std::string loggerName, spdlog::filename_t loggerFile)
 
     try
     {
+        spdlog::set_level(spdlog::level::debug);
         spdlog::set_async_mode(131072, spdlog::async_overflow_policy::block_retry,
             nullptr,
             std::chrono::milliseconds(500));

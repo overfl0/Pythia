@@ -11,6 +11,7 @@ import traceback
 import types
 
 import pythiainternal
+import pythialogger as logger
 
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
@@ -30,11 +31,12 @@ def create_root_logger(name):
 
     return logger
 
-logger = create_root_logger(__name__)
-import pythialogger as logger
+mod_logger = create_root_logger(__name__)
+
 logger.critical('=' * 80)
 logger.critical('Pythia is starting up...')
 logger.critical('=' * 80)
+
 
 def split_by_len(item, itemlen, maxlen):
     """"Requires item to be sliceable (with __getitem__ defined)."""
