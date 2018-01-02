@@ -56,6 +56,7 @@ static PyObject *pythialogger_critical(PyObject *self, PyObject *args)
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 
+/*
 static PyObject *pythialogger_exception(PyObject *self, PyObject *args)
 {
     // TODO: Fetch the exception!!!
@@ -67,6 +68,7 @@ static PyObject *pythialogger_exception(PyObject *self, PyObject *args)
     LOG_ERROR("{}", format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
+*/
 
 static PyMethodDef PythialoggerMethods[] =
 {
@@ -75,7 +77,7 @@ static PyMethodDef PythialoggerMethods[] =
     { "warn",  pythialogger_warn, METH_VARARGS, "Run the logger with the warn level." },
     { "error",  pythialogger_error, METH_VARARGS, "Run the logger with the error level." },
     { "critical",  pythialogger_critical, METH_VARARGS, "Run the logger with the critical level." },
-    { "exception",  pythialogger_exception, METH_VARARGS, "Run the logger with the exception level." },
+    //{ "exception",  pythialogger_exception, METH_VARARGS, "Run the logger with the exception level." },
     { NULL, NULL, 0, NULL }        /* Sentinel */
 };
 
