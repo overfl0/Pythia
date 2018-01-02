@@ -17,7 +17,7 @@
 // This clock is less accurate - can be off by dozens of millis - depending on the kernel HZ.
 // Uncomment to use it instead of the regular clock.
 //
-// #define SPDLOG_CLOCK_COARSE
+#define SPDLOG_CLOCK_COARSE
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -48,7 +48,7 @@
 //
 // WARNING: if your program forks, UNCOMMENT this flag to prevent undefined thread ids in the children logs.
 //
-// #define SPDLOG_DISABLE_TID_CACHING
+#define SPDLOG_DISABLE_TID_CACHING
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -87,7 +87,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Uncomment to enable usage of wchar_t for file names on Windows.
 //
-// #define SPDLOG_WCHAR_FILENAMES
+#define SPDLOG_WCHAR_FILENAMES
 ///////////////////////////////////////////////////////////////////////////////
 
 

@@ -3,13 +3,12 @@
 
 static PyObject *pythialogger_log(PyObject *self, PyObject *args)
 {
-    // TODO: Reference counting!
     const char *format;
 
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_INFO(format);
+    LOG_INFO("{}", format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 

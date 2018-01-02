@@ -8,7 +8,7 @@
 #include "../src/Paths.h"
 #include "../src/common.h"
 
-#define LOGGER_FILENAME "PythiaSetPythonPath.log"
+#define LOGGER_FILENAME L"PythiaSetPythonPath.log"
 
 std::shared_ptr<spdlog::logger> Logger::logfile = getFallbackLogger();
 std::wstring pythonPath = L"<Not set>";

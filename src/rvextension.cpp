@@ -22,7 +22,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     static bool logger_initialized = false;
     if (!logger_initialized)
     {
-        switchToAsyncLogger("PythiaLogger", "Pythia_c.log");
+        switchToAsyncLogger("PythiaLogger", L"Pythia_c.log");
         logger_initialized = true;
     }
     if (python != nullptr)
