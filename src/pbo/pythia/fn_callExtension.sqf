@@ -22,8 +22,7 @@ private _fnc_showHint = {
 	};
 };
 
-params ["_functionName", ["_args", []]];
-private _result = "Pythia" callExtension (str [_functionName, _args]);
+private _result = "Pythia" callExtension (str _this);
 if (_result == "") exitWith {
 	(format ["Extension output is empty. One possible cause is BattlEye blocking the extension."]) call _fnc_showHint;
 	[];

@@ -185,10 +185,15 @@ def python_adapter(sqf_args):
     global FUNCTION_CACHE
 
     try:
-        try:
-            full_function_name, function_args = sqf_args
-        except ValueError:
-            raise PythiaExecuteException('The syntax for calling a function is: [function_name, [args]]')
+        # Allow calling a [function_name] from SQF and just assume args = [] in that case
+        if len(sqf_args) == 1:
+            full_function_name = sqf_args[0]
+            function_args = []
+        else:
+            try:
+                full_function_name, function_args = sqf_args
+            except ValueError:
+                raise PythiaExecuteException('The syntax for calling a function is: [function_name, [args]]')
 
         if not isinstance(function_args, list):
             raise PythiaExecuteException('The arguments of a function need to be passed in an array')
