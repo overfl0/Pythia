@@ -8,7 +8,7 @@ static PyObject *pythialogger_debug(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_DEBUG("{}", format);
+    LOG_DEBUG(format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 
@@ -19,7 +19,7 @@ static PyObject *pythialogger_info(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_INFO("{}", format);
+    LOG_INFO(format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 
@@ -30,7 +30,7 @@ static PyObject *pythialogger_warn(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_WARN("{}", format);
+    LOG_WARN(format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 
@@ -41,7 +41,7 @@ static PyObject *pythialogger_error(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_ERROR("{}", format);
+    LOG_ERROR(format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 
@@ -52,7 +52,7 @@ static PyObject *pythialogger_critical(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_CRITICAL("{}", format);
+    LOG_CRITICAL(format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 
@@ -65,7 +65,7 @@ static PyObject *pythialogger_exception(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s", &format))  // Sets exception on error
         return nullptr;  // Can return NULL here
 
-    LOG_ERROR("{}", format);
+    LOG_ERROR(format);
     Py_RETURN_NONE;  // No exception, Should return object(None)
 }
 */
