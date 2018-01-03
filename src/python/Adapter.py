@@ -5,6 +5,7 @@ import importlib.util
 import logging
 import logging.handlers
 import os
+import site
 import sys
 import time
 import traceback
@@ -33,9 +34,16 @@ def create_root_logger(name):
 
 mod_logger = create_root_logger(__name__)
 
-logger.critical('=' * 80)
-logger.critical('Pythia is starting up...')
-logger.critical('=' * 80)
+logger.info('=' * 80)
+logger.info('Pythia is starting up...')
+logger.info('=' * 80)
+logger.info('sys.path: {}'.format(sys.path))
+logger.info('sys.prefix: {}'.format(sys.prefix))
+logger.info('sys.exec_prefix: {}'.format(sys.exec_prefix))
+logger.info('site.ENABLE_USER_SITE: {}'.format(site.ENABLE_USER_SITE))
+logger.info('site.USER_BASE: {}'.format(site.USER_BASE))
+logger.info('site.USER_SITE: {}'.format(site.USER_SITE))
+logger.info('=' * 80)
 
 
 def split_by_len(item, itemlen, maxlen):
