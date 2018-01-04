@@ -4,34 +4,21 @@
 #include <stdlib.h> 
 #include <tchar.h>
 #include <string>
-#include <locale> // wstring_convert
-#define LOGGER_FILENAME "PythiaSetPythonPath.log"
 #include "../src/Logger.h"
-#include "../src/PythonPath.h"
+#include "../src/Paths.h"
 #include "../src/common.h"
 
+#define LOGGER_FILENAME L"PythiaSetPythonPath.log"
+
+std::shared_ptr<spdlog::logger> Logger::logfile = getFallbackLogger();
 std::wstring pythonPath = L"<Not set>";
-
-std::string w2s(const std::wstring &var)
-{
-    static std::locale loc("");
-    auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-    return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
-}
-
-std::wstring s2w(const std::string &var)
-{
-    static std::locale loc("");
-    auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
-    return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
-}
 
 void setDLLPath()
 {
     LOG_INFO("Setting DLL path");
     std::wstring pythonPath = getPythonPath();
 
-    LOG_INFO(std::string("Setting DLL path to: ") + w2s(pythonPath));
+    LOG_INFO(std::string("Setting DLL path to: ") + Logger::w2s(pythonPath));
     if (SetDllDirectory(pythonPath.c_str()) == 0)
     {
         LOG_ERROR("Failed to call SetDllDirectory");
@@ -61,18 +48,21 @@ void __stdcall RVExtensionVersion(char *output, int outputSize)
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
-					 )
+                     )
 {
-	switch (ul_reason_for_call)
-	{
-	case DLL_PROCESS_ATTACH:
+    switch (ul_reason_for_call)
+    {
+    case DLL_PROCESS_ATTACH:
+        createLogger("PythiaSetPythonPathLogger", LOGGER_FILENAME);
         setDLLPath();
+        LOG_FLUSH();
         break;
-	case DLL_THREAD_ATTACH:
-	case DLL_THREAD_DETACH:
-	case DLL_PROCESS_DETACH:
-		break;
-	}
-	return TRUE;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        LOG_FLUSH();
+        spdlog::drop_all();
+        break;
+    }
+    return TRUE;
 }
-

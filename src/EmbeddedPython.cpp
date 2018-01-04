@@ -9,8 +9,9 @@
 #include "ResponseWriter.h"
 #include "SQFReader.h"
 #include "SQFWriter.h"
-#include "PythonPath.h"
+#include "Paths.h"
 #include "Modules/pythiainternal.h"
+#include "Modules/pythialogger.h"
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -77,12 +78,14 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
     pythonHomeString.push_back(0);
     Py_SetPythonHome(pythonHomeString.data());
+    LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
 
     // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
     std::wstring programName = path + L"\\python.exe"; // Not sure if that should be the value here
     programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
     programNameString.push_back(0);
     Py_SetProgramName(programNameString.data());
+    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
 
     /*
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
@@ -94,17 +97,20 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         path + L"\\python35.zip" + L";" +
         path + L"\\DLLs" + L";" +
         path + L"\\lib" + L";" +
-        L""; // Local directory for `python/` directory
+        getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
     pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
     pathString.push_back(0);
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
     Py_SetPath(pathString.data());
+    LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
+    LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 }
 
 EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
 {
     DoPythonMagic(getPythonPath());
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
+    PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
     Py_Initialize();
     PyEval_InitThreads(); // Initialize and acquire GIL
     initialize();
@@ -242,7 +248,7 @@ void EmbeddedPython::reload()
     }
     catch (const std::exception& ex)
     {
-        LOG_ERROR("Caught error when reloading the extension: " << ex.what());
+        LOG_ERROR(std::string("Caught error when reloading the extension: ") + ex.what());
         pythonInitializationError = ex.what();
     }
 }
@@ -299,22 +305,20 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
         reload();
     #endif
 
+    auto timeStart = std::chrono::high_resolution_clock::now();
     if (!pFunc)
     {
+        LOG_ERROR("Calling function {}", input);
         throw std::runtime_error("No bootstrapping function. Additional error: " + pythonInitializationError);
     }
 
     PyObjectGuard pArgs(SQFReader::decode(input));
-
-    /*PyObjectGuard pArgs(PyUnicode_FromString(input));
-    if (!pArgs)
-    {
-        throw std::runtime_error("Failed to transform given input to unicode");
-    }*/
+    auto timeDecodeEnded = std::chrono::high_resolution_clock::now();
 
     PyObjectGuard pTuple(PyTuple_Pack(1, pArgs.get()));
     if (!pTuple)
     {
+        LOG_ERROR("Calling function {}", input);
         throw std::runtime_error("Failed to convert argument string to tuple");
     }
 
@@ -333,25 +337,32 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
                 if (overflow == 0 && multipartID >= 0)
                 {
                     returnMultipart(multipartID, output, outputSize);
+                    // Do not log multipart requests for performance reasons
                     return;
                 }
                 else
                 {
+                    LOG_ERROR("Calling function {}", input);
                     throw std::runtime_error("Could not read the multipart ID");
                 }
             }
             else
             {
+                LOG_ERROR("Calling function {}", input);
                 throw std::runtime_error("Could not get the multipart ID from the request");
             }
         }
     }
     else
     {
+        LOG_ERROR("Calling function {}", input);
         throw std::runtime_error("Failed to get the function name from the request");
     }
 
+    auto timeAfterMultipartCheck = std::chrono::high_resolution_clock::now();
+
     PyObjectGuard pResult(PyObject_CallObject(pFunc, pTuple.get()));
+    auto timeAfterCall = std::chrono::high_resolution_clock::now();
     if (pResult)
     {
         MultipartResponseWriter writer(output, outputSize);
@@ -361,11 +372,21 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
 
         auto multipartResponse = writer.getMultipart();
         handleMultipart(output, outputSize, multipartResponse);
+        auto timeEnd = std::chrono::high_resolution_clock::now();
+        LOG_INFO(
+            "Calling function {}(...). Total: {}us", //, Decoding: {}us, Call: {}us, Encoding: {}us, Multipart: {}us",
+            PyUnicode_AsUTF8(PyFunction),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart)).count()/*,
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeDecodeEnded - timeStart)).count(),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeAfterCall - timeAfterMultipartCheck)).count(),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeAfterCall)).count(),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeAfterMultipartCheck - timeDecodeEnded)).count()*/
+        );
         return;
     }
     else
     {
+        LOG_ERROR("Calling function {}", input);
         THROW_PYEXCEPTION("Failed to execute python extension");
     }
 }
-

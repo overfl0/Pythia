@@ -5,12 +5,14 @@ import importlib.util
 import logging
 import logging.handlers
 import os
+import site
 import sys
 import time
 import traceback
 import types
 
 import pythiainternal
+import pythialogger as logger
 
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
@@ -30,10 +32,19 @@ def create_root_logger(name):
 
     return logger
 
-logger = create_root_logger(__name__)
-logger.critical('=' * 80)
-logger.critical('Pythia is starting up...')
-logger.critical('=' * 80)
+mod_logger = create_root_logger(__name__)
+
+logger.info('=' * 80)
+logger.info('Pythia is starting up...')
+logger.info('=' * 80)
+logger.info('sys.path: {}'.format(sys.path))
+logger.info('sys.prefix: {}'.format(sys.prefix))
+logger.info('sys.exec_prefix: {}'.format(sys.exec_prefix))
+logger.info('site.ENABLE_USER_SITE: {}'.format(site.ENABLE_USER_SITE))
+logger.info('site.USER_BASE: {}'.format(site.USER_BASE))
+logger.info('site.USER_SITE: {}'.format(site.USER_SITE))
+logger.info('=' * 80)
+
 
 def split_by_len(item, itemlen, maxlen):
     """"Requires item to be sliceable (with __getitem__ defined)."""
@@ -70,49 +81,30 @@ def handle_function_calling(function, args):
     """Calls the given function with the given arguments and formats the response."""
     global COROUTINES_DICT, COROUTINES_COUNTER
 
-    if logger.level < logging.INFO:
-        function_args = str(args)[1:-1]
+    if function == continue_coroutine:
+        # Special handling
+        return function(*args)
+
+    # Call the requested function with the given arguments
+    return_value = function(*args)
+
+    if isinstance(return_value, types.CoroutineType):
+        # This is a coroutine and has to be handled differently
+        try:
+            # Run the coroutine and get the yielded value
+            yielded_value = return_value.send(None)
+
+            COROUTINES_COUNTER += 1
+            COROUTINES_DICT[COROUTINES_COUNTER] = return_value
+
+            return format_response_string(yielded_value, True, COROUTINES_COUNTER)
+
+        except StopIteration as iteration_exception:
+            # The function has ended with a "return" statement
+            return format_response_string(iteration_exception.value)
+
     else:
-        function_args = '...'
-
-    logger.info('Calling {}({})'.format(function.__name__, function_args))
-
-    try:
-        timer_start = time.clock()
-        if function == continue_coroutine:
-            # Special handling
-            return function(*args)
-
-        # Call the requested function with the given arguments
-        return_value = function(*args)
-
-    finally:
-        timer_stop = time.clock()
-        # Log the time
-        logger.debug('Function {} terminated in {:.7f} ms'.format(function.__name__, (timer_stop - timer_start) * 1000))
-
-    try:
-        if isinstance(return_value, types.CoroutineType):
-            # This is a coroutine and has to be handled differently
-            try:
-                # Run the coroutine and get the yielded value
-                yielded_value = return_value.send(None)
-
-                COROUTINES_COUNTER += 1
-                COROUTINES_DICT[COROUTINES_COUNTER] = return_value
-
-                return format_response_string(yielded_value, True, COROUTINES_COUNTER)
-
-            except StopIteration as iteration_exception:
-                # The function has ended with a "return" statement
-                return format_response_string(iteration_exception.value)
-
-        else:
-            return format_response_string(return_value)
-
-    finally:
-        time_pack = time.clock()
-        logger.debug('Function {} terminated and packed in {:.7f} ms'.format(function.__name__, (time_pack - timer_start) * 1000))
+        return format_response_string(return_value)
 
 
 def import_and_strip_traceback(full_module_name):
@@ -235,7 +227,7 @@ def python_adapter(sqf_args):
 
     except:
         retval = format_error_string(traceback.format_exc())
-        logger.exception('An exception occurred:')
+        logger.error('An exception occurred:\n{}'.format(traceback.format_exc()))
 
     return retval
 

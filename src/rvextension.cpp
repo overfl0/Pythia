@@ -6,6 +6,7 @@
 #include <regex>
 #include "ModsLocation.h"
 #include "common.h"
+#include "Logger.h"
 
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
@@ -18,6 +19,12 @@ extern "C"
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
 {
+    static bool logger_initialized = false;
+    if (!logger_initialized)
+    {
+        switchToAsyncLogger("PythiaLogger", L"Pythia_c.log");
+        logger_initialized = true;
+    }
     if (python != nullptr)
     {
         python->enterPythonThread();
