@@ -305,22 +305,20 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
         reload();
     #endif
 
+    auto timeStart = std::chrono::high_resolution_clock::now();
     if (!pFunc)
     {
+        LOG_ERROR("Calling function {}", input);
         throw std::runtime_error("No bootstrapping function. Additional error: " + pythonInitializationError);
     }
 
     PyObjectGuard pArgs(SQFReader::decode(input));
-
-    /*PyObjectGuard pArgs(PyUnicode_FromString(input));
-    if (!pArgs)
-    {
-        throw std::runtime_error("Failed to transform given input to unicode");
-    }*/
+    auto timeDecodeEnded = std::chrono::high_resolution_clock::now();
 
     PyObjectGuard pTuple(PyTuple_Pack(1, pArgs.get()));
     if (!pTuple)
     {
+        LOG_ERROR("Calling function {}", input);
         throw std::runtime_error("Failed to convert argument string to tuple");
     }
 
@@ -339,25 +337,32 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
                 if (overflow == 0 && multipartID >= 0)
                 {
                     returnMultipart(multipartID, output, outputSize);
+                    // Do not log multipart requests for performance reasons
                     return;
                 }
                 else
                 {
+                    LOG_ERROR("Calling function {}", input);
                     throw std::runtime_error("Could not read the multipart ID");
                 }
             }
             else
             {
+                LOG_ERROR("Calling function {}", input);
                 throw std::runtime_error("Could not get the multipart ID from the request");
             }
         }
     }
     else
     {
+        LOG_ERROR("Calling function {}", input);
         throw std::runtime_error("Failed to get the function name from the request");
     }
 
+    auto timeAfterMultipartCheck = std::chrono::high_resolution_clock::now();
+
     PyObjectGuard pResult(PyObject_CallObject(pFunc, pTuple.get()));
+    auto timeAfterCall = std::chrono::high_resolution_clock::now();
     if (pResult)
     {
         MultipartResponseWriter writer(output, outputSize);
@@ -367,10 +372,21 @@ void EmbeddedPython::execute(char *output, int outputSize, const char *input)
 
         auto multipartResponse = writer.getMultipart();
         handleMultipart(output, outputSize, multipartResponse);
+        auto timeEnd = std::chrono::high_resolution_clock::now();
+        LOG_INFO(
+            "Calling function {}(...). Total: {}us", //, Decoding: {}us, Call: {}us, Encoding: {}us, Multipart: {}us",
+            PyUnicode_AsUTF8(PyFunction),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart)).count()/*,
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeDecodeEnded - timeStart)).count(),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeAfterCall - timeAfterMultipartCheck)).count(),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeAfterCall)).count(),
+            (std::chrono::duration_cast<std::chrono::microseconds>(timeAfterMultipartCheck - timeDecodeEnded)).count()*/
+        );
         return;
     }
     else
     {
+        LOG_ERROR("Calling function {}", input);
         THROW_PYEXCEPTION("Failed to execute python extension");
     }
 }

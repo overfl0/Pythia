@@ -81,50 +81,30 @@ def handle_function_calling(function, args):
     """Calls the given function with the given arguments and formats the response."""
     global COROUTINES_DICT, COROUTINES_COUNTER
 
-    function_args = str(args)[1:-1]
-    # if logger.level < logging.INFO:
-    #     function_args = str(args)[1:-1]
-    # else:
-    #     function_args = '...'
+    if function == continue_coroutine:
+        # Special handling
+        return function(*args)
 
-    logger.info('Calling {}({})'.format(function.__name__, function_args))
+    # Call the requested function with the given arguments
+    return_value = function(*args)
 
-    try:
-        timer_start = time.clock()
-        if function == continue_coroutine:
-            # Special handling
-            return function(*args)
+    if isinstance(return_value, types.CoroutineType):
+        # This is a coroutine and has to be handled differently
+        try:
+            # Run the coroutine and get the yielded value
+            yielded_value = return_value.send(None)
 
-        # Call the requested function with the given arguments
-        return_value = function(*args)
+            COROUTINES_COUNTER += 1
+            COROUTINES_DICT[COROUTINES_COUNTER] = return_value
 
-    finally:
-        timer_stop = time.clock()
-        # Log the time
-        logger.debug('Function {} terminated in {:.7f} ms'.format(function.__name__, (timer_stop - timer_start) * 1000))
+            return format_response_string(yielded_value, True, COROUTINES_COUNTER)
 
-    try:
-        if isinstance(return_value, types.CoroutineType):
-            # This is a coroutine and has to be handled differently
-            try:
-                # Run the coroutine and get the yielded value
-                yielded_value = return_value.send(None)
+        except StopIteration as iteration_exception:
+            # The function has ended with a "return" statement
+            return format_response_string(iteration_exception.value)
 
-                COROUTINES_COUNTER += 1
-                COROUTINES_DICT[COROUTINES_COUNTER] = return_value
-
-                return format_response_string(yielded_value, True, COROUTINES_COUNTER)
-
-            except StopIteration as iteration_exception:
-                # The function has ended with a "return" statement
-                return format_response_string(iteration_exception.value)
-
-        else:
-            return format_response_string(return_value)
-
-    finally:
-        time_pack = time.clock()
-        logger.debug('Function {} terminated and packed in {:.7f} ms'.format(function.__name__, (time_pack - timer_start) * 1000))
+    else:
+        return format_response_string(return_value)
 
 
 def import_and_strip_traceback(full_module_name):
