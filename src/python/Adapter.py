@@ -163,8 +163,14 @@ def python_adapter(sqf_args):
     """The extension entry point in python."""
 
     global FUNCTION_CACHE
+    global RELOADER_ENABLED
 
     try:
+        if RELOADER_ENABLED:
+            logger.info('Checking reload...')
+            # Check if some files have changed and may need reloading
+            check_reload()
+
         # Allow calling a [function_name] from SQF and just assume args = [] in that case
         if len(sqf_args) == 1:
             full_function_name = sqf_args[0]
@@ -289,6 +295,10 @@ def interactive(port):
     # To connect, do:
     # import telnetlib; telnetlib.Telnet('127.0.0.1', 4444).interact()
 
+def _enable_reloader(enable):
+    # Forward declaration
+    enable_reloader(enable)
+
 # Keep a separate dict of those functions for reloading purposes
 PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.ping': ping,
@@ -296,14 +306,21 @@ PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.continue': continue_coroutine,
     'pythia.version': version,
     'pythia.interactive': interactive,
+    'pythia.enable_reloader': _enable_reloader,
 }
+
+def invalidate_pythia_functions_cache():
+    global FUNCTION_CACHE
+    FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
+
 # Comment the following lines out to enable remote interactive debugging
 def interactive(port): raise NotImplementedError
 PYTHIA_INTERNAL_FUNCTIONS['pythia.interactive'] = interactive
 
-FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
+invalidate_pythia_functions_cache()
 
 ###############################################################################
+# Module import hooks allowing importing modules from custom locations
 # TODO: Move this to a separate file as soon as the C++ code permits
 ###############################################################################
 
@@ -473,6 +490,105 @@ def DaemonThreadConstructor(self, *args, **kwargs):
 
 threading.Thread.__init__ = DaemonThreadConstructor
 
+
+###############################################################################
+# Reloader for mod development purposes
+# TODO: Move this to a separate file as soon as the C++ code permits
+###############################################################################
+
+MODIFICATION_TIMES = {}
+LAST_CHECK_TIME = 0
+RELOADER_ENABLED = False
+
+def enable_reloader(enable):
+    global RELOADER_ENABLED
+    global LAST_CHECK_TIME
+    global MODIFICATION_TIMES
+
+    if not enable:
+        RELOADER_ENABLED = False
+        return
+    else:
+        if not RELOADER_ENABLED:
+            RELOADER_ENABLED = True
+            MODIFICATION_TIMES = {}
+            LAST_CHECK_TIME = 0
+
+
+def reload_everything():
+    logger.warn('*' * 80)
+    logger.warn('Some files have changed, reloading mods!')
+    logger.warn('*' * 80)
+
+    stash = {}
+    reloadable_modules_list = list(reloadable_modules())
+
+    # Call the __pre_reload__ hook for each module
+    for module in reloadable_modules_list:
+        if hasattr(module, '__pre_reload__'):
+            stash[module.__name__] = module.__pre_reload__()
+
+    # Reload the modules
+    for module in list(reloadable_modules_list):
+        del sys.modules[module.__name__]
+
+    for module in list(reloadable_modules_list):
+        import_and_strip_traceback(module.__name__)
+
+    # Refresh the modules list with new modules after the reload
+    reloadable_modules_list = list(reloadable_modules())
+
+    # Call the __post_reload__ hook for each module
+    for module in reloadable_modules_list:
+        if hasattr(module, '__post_reload__') and module.__name__ in stash:
+            module.__post_reload__(stash[module.__name__])
+
+    invalidate_pythia_functions_cache()
+
+
+def reloadable_modules():
+    for module in sys.modules.values():
+        if module.__name__.startswith('python.'):
+            yield module
+            continue
+
+        for name in PythiaModuleWrapper.modules:
+            if module.__name__ == name or  module.__name__.startswith(name + '.'):
+                yield module
+
+
+def file_changed(path):
+    global MODIFICATION_TIMES
+
+    real_mtime = os.stat(path).st_mtime
+    try:
+        mtime = MODIFICATION_TIMES[path]
+    except KeyError:
+        mtime = real_mtime
+        MODIFICATION_TIMES[path] = mtime
+
+    return real_mtime > mtime
+
+
+def set_file_changed(path):
+    global MODIFICATION_TIMES
+
+    MODIFICATION_TIMES[path] = time.time()
+
+def check_reload():
+    global LAST_CHECK_TIME
+    now = time.time()
+    if now >= LAST_CHECK_TIME + 1:
+        pythia_modules = list(reloadable_modules())
+        for module in pythia_modules:
+            if file_changed(module.__file__):
+                set_file_changed(module.__file__)
+                reload_everything()
+                break
+
+        LAST_CHECK_TIME = time.time()
+
+###############################################################################
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(__file__)
