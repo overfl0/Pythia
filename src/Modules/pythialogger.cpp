@@ -70,6 +70,12 @@ static PyObject *pythialogger_exception(PyObject *self, PyObject *args)
 }
 */
 
+static PyObject *pythialogger_flush(PyObject *self, PyObject *args)
+{
+    LOG_FLUSH();
+    Py_RETURN_NONE;  // No exception, Should return object(None)
+}
+
 static PyMethodDef PythialoggerMethods[] =
 {
     { "debug",  pythialogger_debug, METH_VARARGS, "Run the logger with the debug level." },
@@ -78,6 +84,7 @@ static PyMethodDef PythialoggerMethods[] =
     { "error",  pythialogger_error, METH_VARARGS, "Run the logger with the error level." },
     { "critical",  pythialogger_critical, METH_VARARGS, "Run the logger with the critical level." },
     //{ "exception",  pythialogger_exception, METH_VARARGS, "Run the logger with the exception level." },
+    { "flush",  pythialogger_flush, METH_NOARGS, "Flush the logger." },
     { NULL, NULL, 0, NULL }        /* Sentinel */
 };
 
