@@ -167,7 +167,6 @@ def python_adapter(sqf_args):
 
     try:
         if RELOADER_ENABLED:
-            logger.info('Checking reload...')
             # Check if some files have changed and may need reloading
             check_reload()
 
@@ -563,6 +562,7 @@ def file_changed(path):
     real_mtime = os.stat(path).st_mtime
     try:
         mtime = MODIFICATION_TIMES[path]
+
     except KeyError:
         mtime = real_mtime
         MODIFICATION_TIMES[path] = mtime
@@ -577,16 +577,20 @@ def set_file_changed(path):
 
 def check_reload():
     global LAST_CHECK_TIME
+
     now = time.time()
     if now >= LAST_CHECK_TIME + 1:
+        LAST_CHECK_TIME = time.time()
+        any_file_changed = False
         pythia_modules = list(reloadable_modules())
+
         for module in pythia_modules:
             if file_changed(module.__file__):
                 set_file_changed(module.__file__)
-                reload_everything()
-                break
+                any_file_changed = True
 
-        LAST_CHECK_TIME = time.time()
+        if any_file_changed:
+            reload_everything()
 
 ###############################################################################
 
