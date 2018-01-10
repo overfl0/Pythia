@@ -35,32 +35,53 @@ if (_result select [0, 1] != "[") exitWith {
 
 private _returnCode = _result select [2,1];
 
-// -- Multipart response. This stiches multiple callExtensions to get past the 10k char limit
-if (_returnCode == "m") then {
-    private _returnStiched = "";
-    private _multipartString = call compile _result;
-    private _stitchID = _multipartString param [1, 1, [1]];
-    private _numberOfMessages = _multipartString param [2, 1, [1]];
+while {true} do {
+    switch(_returnCode) do {
+        case "r": {
+            exitWith {
+                (call compile _result) select 1;
+            };
+        };
 
-    for "_i" from 1 to _numberOfMessages do {
-        _result = "Pythia" callExtension (str ["pythia.multipart", _stitchID]);
-        _returnStiched = _returnStiched + _result
+        // -- Multipart response. This stiches multiple callExtensions to get past the 10k char limit
+        case "m": {
+            private _returnStiched = "";
+            private _multipartString = call compile _result;
+            private _stitchID = _multipartString param [1, 1, [1]];
+            private _numberOfMessages = _multipartString param [2, 1, [1]];
+
+            for "_i" from 1 to _numberOfMessag es do {
+                _result = "Pythia" callExtension (str ["pythia.multipart", _stitchID]);
+                _returnStiched = _returnStiched + _result
+            };
+            _result = _returnStiched;
+            _returnCode = _result select [2,1];
+        };
+
+        case "e": {
+            exitWith {
+                (format ["An error occurred: %1", (_result select [5, count _result - 7])]) call _fnc_showHint;
+                [];
+            };
+        };
+
+        // ['s', _continue_id, SQFcode]
+        case "s": {
+            private _resultCompile = call compile _result;
+            private _continue_id = (_resultCompile select 1);
+            private _code = compile (_resultCompile select 2);
+            private _sqf_result = call _code;
+
+            _result = "Pythia" callExtension (str(["pythia.continue", [_continue_id, _sqf_result]]));
+            _returnCode = _result select [2,1];
+        };
+
+        default {
+            exitWith {
+                (format ["Incorrect return code!"]) call _fnc_showHint;
+                [];
+            };
+        };
     };
-    _result = _returnStiched;
-    _returnCode = _result select [2,1];
-};
-
-if (_returnCode == "e") exitWith {
-    (format ["An error occurred: %1", (_result select [5, count _result - 7])]) call _fnc_showHint;
-	[];
-};
-
-if (_returnCode == "s") then {
-    (call compile _result);
-};
-
-if (_returnCode == "r") exitWith {
-    (call compile _result) select 1;
-};
-
+}
 []
