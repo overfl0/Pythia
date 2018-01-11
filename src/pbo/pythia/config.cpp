@@ -19,8 +19,11 @@ class CfgFunctions {
             class Extension {
                 file = "\@pythia\addons\pythia";
                 class callExtension {
+                    header = -1;
                     recompile = 1;
                 };
+
+                class showMessage { header = -1; };
 
                 class callEx {
                     recompile = 1;
