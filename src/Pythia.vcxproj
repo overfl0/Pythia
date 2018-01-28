@@ -22,7 +22,6 @@
     <ProjectGuid>{495BFB09-85DB-4BDF-84E5-558046598748}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Pythia</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>Pythia</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

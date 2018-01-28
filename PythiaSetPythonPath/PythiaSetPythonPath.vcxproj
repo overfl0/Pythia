@@ -23,7 +23,6 @@
     <ProjectGuid>{6C9E825B-ACB1-4F01-9D20-04C27B70C0E5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PythiaSetPythonPath</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
