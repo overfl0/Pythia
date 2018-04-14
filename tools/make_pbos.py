@@ -2,7 +2,7 @@ import argparse
 import os
 import subprocess
 
-PBO_SRC_DIR = ['src', 'pbo']
+PBO_SRC_DIR = ['src', 'Pythia', 'pbo']
 PBO_DEST_DIR = ['@Pythia', 'Addons']
 MAKE_PBO = r'C:\Program Files (x86)\Mikero\DePboTools\bin\makepbo.exe'  # It's not in the PATH in AppVeyor
 
