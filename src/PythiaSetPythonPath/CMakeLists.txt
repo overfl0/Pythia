@@ -7,10 +7,18 @@ link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 file(GLOB headers *.h)
 add_library(PythiaSetPythonPath SHARED 
     dllmain.cpp
-	stdafx.cpp
-	../Pythia/Logger.cpp
-	../Pythia/Paths.cpp
-	${headers}
+    stdafx.cpp
+    ../Pythia/Logger.cpp
+    ../Pythia/Paths.cpp
+    ${headers}
+)
+
+# Copy the file to the @Pythia directory after the fact
+add_custom_command(
+    TARGET PythiaSetPythonPath POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/PythiaSetPythonPath.dll"
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia"
 )
 
 # add_definitions(-DEXPMODULE)

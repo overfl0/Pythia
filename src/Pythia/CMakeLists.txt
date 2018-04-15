@@ -22,6 +22,14 @@ if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo OR CMAKE_BUILD_TYPE STREQUAL Release
     set_target_properties(Pythia PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+# Copy the file to the @Pythia directory after the fact
+add_custom_command(
+    TARGET Pythia POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Pythia.dll"
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia"
+)
+
 # add_definitions(-DEXPMODULE)
 
 # target_link_libraries(Pythia debug libutil.lib)
