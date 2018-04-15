@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 3.6.2)
 project(PythiaProject)
 
 message(STATUS "Setting MSVC flags")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /EHc /std:c++latest")
-string(REPLACE "/O2" "/Ox" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
+
+set(CMAKE_CXX_FLAGS_DEBUG          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1 /EHsc")
+set(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT /Ox /Oi /Ob1 /EHsc /DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE        "/MT /Ox /Oi /Ob2 /EHsc /DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /Zi /Ox /Oi /Ob2 /EHsc /DNDEBUG")
+
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/debug /INCREMENTAL:NO")
 
 ADD_DEFINITIONS(-DUNICODE)
 
