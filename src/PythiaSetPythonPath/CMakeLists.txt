@@ -17,9 +17,15 @@ add_library(PythiaSetPythonPath SHARED
 add_custom_command(
     TARGET PythiaSetPythonPath POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/PythiaSetPythonPath.dll"
-        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia"
+        "$<TARGET_FILE:PythiaSetPythonPath>"
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia/"
 )
+
+if(CMAKE_CL_64)
+    set_target_properties(PythiaSetPythonPath PROPERTIES OUTPUT_NAME "PythiaSetPythonPath_x64")
+else()
+    set_target_properties(PythiaSetPythonPath PROPERTIES OUTPUT_NAME "PythiaSetPythonPath")
+endif()
 
 # add_definitions(-DEXPMODULE)
 

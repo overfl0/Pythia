@@ -26,9 +26,15 @@ endif()
 add_custom_command(
     TARGET Pythia POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/Pythia.dll"
-        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia"
+        "$<TARGET_FILE:Pythia>"
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia/"
 )
+
+if(CMAKE_CL_64)
+    set_target_properties(Pythia PROPERTIES OUTPUT_NAME "Pythia_x64")
+else()
+    set_target_properties(Pythia PROPERTIES OUTPUT_NAME "Pythia")
+endif()
 
 # add_definitions(-DEXPMODULE)
 

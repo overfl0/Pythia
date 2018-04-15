@@ -19,4 +19,7 @@ tmpBuildFiles
 @Pythia/Pythia_x64.dll
 @Pythia/PythiaSetPythonPath.dll
 @Pythia/PythiaSetPythonPath_x64.dll
+@Pythia/PythiaTester.exe
+@Pythia/PythiaTester_x64.exe
 @Pythia/python-embed-*
+bin
