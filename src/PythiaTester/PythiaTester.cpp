@@ -4,8 +4,8 @@
 #include <sstream>
 #include <chrono>
 #include <random>
-#include "../src/SQFGenerator.h"
-#include "../src/SQFGenerator.cpp"
+#include "../Pythia/SQFGenerator.h"
+#include "../Pythia/SQFGenerator.cpp"
 
 #define ARMA_EXTENSION_BUFFER_SIZE (10*1024)
 

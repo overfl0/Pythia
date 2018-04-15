@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "../stdafx.h"
 #include "../common.h"
 
 static PyObject *pythiainternal_version(PyObject *self, PyObject *args)

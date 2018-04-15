@@ -4,9 +4,9 @@
 #include <stdlib.h> 
 #include <tchar.h>
 #include <string>
-#include "../src/Logger.h"
-#include "../src/Paths.h"
-#include "../src/common.h"
+#include "../Pythia/Logger.h"
+#include "../Pythia/Paths.h"
+#include "../Pythia/common.h"
 
 #define LOGGER_FILENAME L"PythiaSetPythonPath.log"
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "../stdafx.h"
 #include "../Logger.h"
 
 static PyObject *pythialogger_debug(PyObject *self, PyObject *args)

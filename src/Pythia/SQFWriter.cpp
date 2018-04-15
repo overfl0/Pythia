@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 
-#include "../src/ExceptionFetcher.h"
+#include "ExceptionFetcher.h"
 #include "third_party/double-conversion/double-conversion.h"
 
 namespace SQFWriter
