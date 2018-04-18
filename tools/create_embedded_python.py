@@ -17,7 +17,7 @@ def install_pip_for(python_executable):
     """"Fetch get_pip.py and run it with the given python executable."""
 
     file_raw = urllib.request.urlopen(PIP_URL).read()
-    pip_installer = 'get-pip.py'
+    pip_installer = 'get-peep.py'
     with open(pip_installer, 'wb') as f:
         f.write(file_raw)
     try:
