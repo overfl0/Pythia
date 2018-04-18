@@ -16,13 +16,13 @@ Building requirements
 ---------------------
 
 - Python 3.5 (64-bit for 64-bit Arma, 32-bit otherwise)
-- Visual Studio Community 2015
+- Visual Studio Community 2017
 
 Building
 --------
 
-- Open `Pythia.sln`, make sure that `Release` configuration is selected
-  (instead of `Debug`) and press F7.
+- File -> Open -> CMake: `CmakeLists.txt`, make sure that `Release` configuration is selected
+  (instead of `Debug`) and CMake -> Build All.
 - Run `python tools\make_pbos.py` to build the required PBO files.
 
 Installing
@@ -30,7 +30,7 @@ Installing
 
 - Build the mod yourself or get a prebuilt version.
 - Copy `@Pythia` to `Arma 3` directory.
-- Create a `python` directory in `Arma 3` directory. Put all your python functions there.
+- (Optional for development) Create a `python` directory in `Arma 3` directory. Put all your python functions there.
 
 Running
 -------
