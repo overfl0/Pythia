@@ -17,9 +17,9 @@ ADD_DEFINITIONS(-DUNICODE)
 ADD_DEFINITIONS(-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 ADD_DEFINITIONS(-D_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 if(CMAKE_CL_64)
     set(PYTHON_PATH "C:\\Python35-x64")
@@ -27,10 +27,10 @@ else()
     set(PYTHON_PATH "C:\\Python35")
 endif()
 
-add_subdirectory(Pythia)
-add_subdirectory(PythiaSetPythonPath)
-add_subdirectory(PythiaTester)
-# add_subdirectory(UnitTests)
+add_subdirectory(src/Pythia)
+add_subdirectory(src/PythiaSetPythonPath)
+add_subdirectory(src/PythiaTester)
+# add_subdirectory(src/UnitTests)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PythiaSetPythonPath)
 
@@ -41,5 +41,4 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT P
 # foreach (_variableName ${_variableNames})
 #     message(STATUS "${_variableName}=${${_variableName}}")
 # endforeach()
-
 # execute_process(COMMAND "${CMAKE_COMMAND}" "-E" "environment")
