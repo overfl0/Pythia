@@ -21,7 +21,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin")
 
-set(PYTHON_PATH "C:\\Python35")
+if(CMAKE_CL_64)
+    set(PYTHON_PATH "C:\\Python35-x64")
+else()
+    set(PYTHON_PATH "C:\\Python35")
+endif()
 
 add_subdirectory(Pythia)
 add_subdirectory(PythiaSetPythonPath)
