@@ -12,8 +12,6 @@ x64
 *.opendb
 __pycache__
 .idea
-pythia.log
-pythia.log.*
 tmpBuildFiles
 @Pythia/Pythia.dll
 @Pythia/Pythia_x64.dll
@@ -23,3 +21,8 @@ tmpBuildFiles
 @Pythia/PythiaTester_x64.exe
 @Pythia/python-embed-*
 bin
+*.log
+*.log.*
+*.rar
+*.exe
+*.dll

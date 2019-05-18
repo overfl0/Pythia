@@ -66,12 +66,9 @@ def main():
         if not os.path.exists(pythonpath):
             os.mkdir(pythonpath)
 
-        if platform.win32_ver()[0] == "7":
-            subprocess.call(["cmd", "/c", "mklink", "/D", os.path.join(armapath, PROJECTDIR), os.path.join(projectpath, PROJECTDIR)])
-        else:
-            subprocess.call(["cmd", "/c", "mklink", "/D", "/J", os.path.join(armapath, PROJECTDIR), os.path.join(projectpath, PROJECTDIR)])
+        subprocess.check_call(["cmd", "/c", "mklink", "/J", os.path.join(armapath, PROJECTDIR), os.path.join(projectpath, PROJECTDIR)])
+
     except:
-        raise
         print("Something went wrong during the link creation. Please finish the setup manually.")
         return 6
 
