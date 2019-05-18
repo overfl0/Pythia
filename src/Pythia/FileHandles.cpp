@@ -13,6 +13,7 @@
 #define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
 
 #define SystemHandleInformation 16
+#define SystemHandleInformationEx 64
 #define ObjectBasicInformation 0
 #define ObjectNameInformation 1
 #define ObjectTypeInformation 2
@@ -59,11 +60,30 @@ typedef struct _SYSTEM_HANDLE
     ACCESS_MASK GrantedAccess;
 } SYSTEM_HANDLE, *PSYSTEM_HANDLE;
 
+typedef struct _SYSTEM_HANDLE_EX
+{
+    PVOID Object;
+    HANDLE ProcessId;
+    HANDLE Handle;
+    ULONG GrantedAccess;
+    USHORT CreatorBackTraceIndex;
+    USHORT ObjectTypeIndex;
+    ULONG HandleAttributes;
+    ULONG Reserved;
+} SYSTEM_HANDLE_EX, *PSYSTEM_HANDLE_EX;
+
 typedef struct _SYSTEM_HANDLE_INFORMATION
 {
     ULONG HandleCount;
     SYSTEM_HANDLE Handles[1];
 } SYSTEM_HANDLE_INFORMATION, *PSYSTEM_HANDLE_INFORMATION;
+
+typedef struct _SYSTEM_HANDLE_INFORMATION_EX
+{
+    ULONG_PTR HandleCount;
+    ULONG_PTR Reserved;
+    SYSTEM_HANDLE_EX Handles[1];
+} SYSTEM_HANDLE_INFORMATION_EX, *PSYSTEM_HANDLE_INFORMATION_EX;
 
 typedef enum _POOL_TYPE
 {
@@ -116,9 +136,9 @@ int getOpenFiles(WStringVector &files)
     _NtQueryObject NtQueryObject =
         (_NtQueryObject)GetLibraryProcAddress("ntdll.dll", "NtQueryObject");
     NTSTATUS status;
-    PSYSTEM_HANDLE_INFORMATION handleInfo;
-    ULONG handleInfoSize = 0x10000;
-    ULONG pid;
+    PSYSTEM_HANDLE_INFORMATION_EX handleInfo;
+    ULONG handleInfoSize = 0x400000;
+    HANDLE pid;
     HANDLE processHandle;
     ULONG i;
 
@@ -131,20 +151,20 @@ int getOpenFiles(WStringVector &files)
         return 0;
     }
 
-    pid = GetCurrentProcessId();
+    pid = reinterpret_cast<HANDLE>((uintptr_t)GetCurrentProcessId());
     processHandle = GetCurrentProcess();
 
-    handleInfo = (PSYSTEM_HANDLE_INFORMATION)malloc(handleInfoSize);
+    handleInfo = (PSYSTEM_HANDLE_INFORMATION_EX)malloc(handleInfoSize);
 
     /* NtQuerySystemInformation won't give us the correct buffer size,
     so we guess by doubling the buffer size. */
     while ((status = NtQuerySystemInformation(
-        SystemHandleInformation,
+        SystemHandleInformationEx,
         handleInfo,
         handleInfoSize,
         NULL
     )) == STATUS_INFO_LENGTH_MISMATCH)
-        handleInfo = (PSYSTEM_HANDLE_INFORMATION)realloc(handleInfo, handleInfoSize *= 2);
+        handleInfo = (PSYSTEM_HANDLE_INFORMATION_EX)realloc(handleInfo, handleInfoSize *= 2);
 
     /* NtQuerySystemInformation stopped giving us STATUS_INFO_LENGTH_MISMATCH. */
     if (!NT_SUCCESS(status))
@@ -156,7 +176,7 @@ int getOpenFiles(WStringVector &files)
 
     for (i = 0; i < handleInfo->HandleCount; i++)
     {
-        SYSTEM_HANDLE handle = handleInfo->Handles[i];
+        SYSTEM_HANDLE_EX handle = handleInfo->Handles[i];
         HANDLE dupHandle = NULL;
         POBJECT_TYPE_INFORMATION objectTypeInfo;
         PVOID objectNameInfo;
