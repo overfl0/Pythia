@@ -77,7 +77,7 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
 
     Py_IgnoreEnvironmentFlag = 1;
     Py_IsolatedFlag = 1;
-    //Py_NoSiteFlag = 1;
+    Py_NoSiteFlag = 1;
     Py_NoUserSiteDirectory = 1;
 
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
@@ -97,6 +97,8 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\DLLs;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\lib;"
+        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64;"
+        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\Lib\\site-packages;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3");
     */
     // TODO: Linux separator is ':'
@@ -104,6 +106,8 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         path + L"\\python" PYTHON_VERSION + L".zip" + L";" +
         path + L"\\DLLs" + L";" +
         path + L"\\lib" + L";" +
+        path + L";" +
+        path + L"\\Lib\\site-packages" + L";" +
         getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
     pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
     pathString.push_back(0);
