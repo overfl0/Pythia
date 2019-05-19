@@ -25,9 +25,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             int retval = 0;
             if ((retval = LoadAllImports()) != 0)
             {
-                std::string error_message = "Failed to load python35.dll "
+                std::string error_message = "Failed to load python" PYTHON_VERSION ".dll "
                                             "(error: " + std::to_string(retval) + "). "
-                                            "Ensure that Python 3.5 is correctly installed!";
+                                            "Ensure that Python " PYTHON_VERSION_DOTTED " is correctly installed!";
                 LOG_ERROR(error_message);
                 pythonInitializationError = error_message;
                 return TRUE;

@@ -32,6 +32,7 @@ int LoadAllImports()
 
 #if 0
 // We're not delay-loading for the time being
+    #error This part of the code has NOT been tested with python > 3.5. You're running this code at your own risk!
     #ifndef NDEBUG
         // In debug builds we don't delay-load python35_d.dll because it contains data
         // and thus cannot be delay-loaded so we just load it automatically and this
@@ -41,7 +42,7 @@ int LoadAllImports()
 
     __try
     {
-        retval = __HrLoadAllImportsForDll("python35.dll");
+        retval = __HrLoadAllImportsForDll("python" PYTHON_VERSION ".dll");
         if (FAILED(retval))
         {
             return retval;

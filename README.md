@@ -208,8 +208,9 @@ Building
 --------
 
 - File -> Open -> CMake: `CmakeLists.txt`, make sure that `Release` configuration is selected
-  (instead of `Debug`) and CMake -> Build All.
+  (instead of `Debug`) and CMake -> Build All. Remember to build for both x86 and x86_64.
 - Run `python tools\make_pbos.py` to build the required PBO files.
+- Run `python tools\create_embedded_python.py @Pythia` to download and prepare x86 and x86_64 python installations.
 
 Contributing
 ------------

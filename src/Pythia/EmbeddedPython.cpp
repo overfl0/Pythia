@@ -69,6 +69,8 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
 {
     // Python pre-initialization magic
 
+    LOG_INFO(std::string("Python version: ") + Py_GetVersion());
+
     // Clear the env variables, just in case
     _wputenv_s(L"PYTHONHOME", L"");
     _wputenv_s(L"PYTHONPATH", L"");
@@ -93,8 +95,9 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\lib;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3");
     */
+    // TODO: Linux separator is ':'
     std::wstring allPaths =
-        path + L"\\python35.zip" + L";" +
+        path + L"\\python" PYTHON_VERSION + L".zip" + L";" +
         path + L"\\DLLs" + L";" +
         path + L"\\lib" + L";" +
         getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
