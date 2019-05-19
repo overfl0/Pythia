@@ -11,24 +11,20 @@ rem ###########################################################################
 set requirements_file=%1
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
-echo ===============================================================================
-echo [1/2] Installing requirements for python 32bit from %requirements_file%...
-echo ===============================================================================
-echo.
+setlocal enabledelayedexpansion
+FOR /D %%G IN ("%~dp0\python-*") DO (
+    echo ===============================================================================
+    echo Installing requirements for %%G from %requirements_file%...
+    echo ===============================================================================
 
-"%~dp0"\python-embed-win32\python.exe -m pip install --upgrade -r %requirements_file%
-if %ERRORLEVEL% GEQ 1 GOTO END_PIP_ERROR
+    echo.
+    "%%G\python.exe" -m pip install --upgrade -r %requirements_file%
+    if !ERRORLEVEL! GEQ 1 GOTO END_PIP_ERROR
+    echo.
+)
+endlocal enabledelayedexpansion
 
-echo.
-echo ===============================================================================
-echo [2/2] Installing requirements for python 64bit from %requirements_file%...
-echo ===============================================================================
-echo.
 
-"%~dp0"\python-embed-amd64\python.exe -m pip install --upgrade -r %requirements_file%
-if %ERRORLEVEL% GEQ 1 GOTO END_PIP_ERROR
-
-echo.
 echo ===============================================================================
 echo Installation done.
 echo ===============================================================================
@@ -37,6 +33,7 @@ rem ### Error handling ########################################################
 GOTO END_OK
 
 :END_PIP_ERROR
+  endlocal enabledelayedexpansion
   ECHO.
   ECHO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ECHO An error happened during requirements installation. Your python environment is

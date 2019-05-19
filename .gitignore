@@ -20,6 +20,7 @@ tmpBuildFiles
 @Pythia/PythiaTester.exe
 @Pythia/PythiaTester_x64.exe
 @Pythia/python-embed-*
+@Pythia/python-*-embed-*
 bin
 *.log
 *.log.*

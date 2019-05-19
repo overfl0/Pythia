@@ -8,7 +8,7 @@ from io import BytesIO
 
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
-EMBED_DIR = 'python-embed-{arch}'
+EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES = ['win32', 'amd64']
 PYTHON_VERSION = '3.5.4'
 
@@ -35,8 +35,8 @@ def prepare_distro(basedir, version, arch, install_pip=True):
     """
 
     url = BASE_ADDRESS.format(version=version, arch=arch)
-    directory = os.path.join(basedir, EMBED_DIR.format(arch=arch))
     version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
+    directory = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
     print('* Preparing embedded python-{version} for {arch}...'.format(version=version, arch=arch))
 
@@ -69,10 +69,11 @@ def prepare_distro(basedir, version, arch, install_pip=True):
 
 
 def prepare_distros(basedir, version, architectures, do_cleanup=True):
+    version_with_minor = PYTHON_VERSION.replace('.', '')[0:2]  # convert 3.5.4 to 35
     # Do a cleanup first
     if do_cleanup:
         for arch in ARCHITECTURES:
-            path = os.path.join(basedir, EMBED_DIR.format(arch=arch))
+            path = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
             try:
                 shutil.rmtree(path)

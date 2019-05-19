@@ -61,9 +61,9 @@ std::wstring getDllPath()
 }
 
 #ifdef _WIN64
-#define EMBEDDEDPYTHONPATH L"python-embed-amd64"
+#define EMBEDDEDPYTHONPATH L"python-" PYTHON_VERSION "-embed-amd64"
 #else
-#define EMBEDDEDPYTHONPATH L"python-embed-win32"
+#define EMBEDDEDPYTHONPATH L"python-" PYTHON_VERSION "-embed-win32"
 #endif
 
 std::wstring getPythonPath()
