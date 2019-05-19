@@ -68,13 +68,17 @@ namespace
 void EmbeddedPython::DoPythonMagic(std::wstring path)
 {
     // Python pre-initialization magic
-
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
 
     // Clear the env variables, just in case
     _wputenv_s(L"PYTHONHOME", L"");
     _wputenv_s(L"PYTHONPATH", L"");
     _wputenv_s(L"PYTHONNOUSERSITE", L"1");  // Disable custom user site
+
+    Py_IgnoreEnvironmentFlag = 1;
+    Py_IsolatedFlag = 1;
+    //Py_NoSiteFlag = 1;
+    Py_NoUserSiteDirectory = 1;
 
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
     pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
