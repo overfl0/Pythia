@@ -6,6 +6,8 @@ Pythia
 An Arma 3 extension that lets you to write python extensions for Arma 3. And it's really simple and straightforward to
 use!
 
+[Pythia's Discord server](https://discord.gg/Pp6ac56).
+
 TL;DR:
 ------
 
@@ -28,9 +30,9 @@ a bool and a string, get an SQF array containing the float, bool and the string
 - Extendable python environment through pip
 - Proven to work with libraries such as numpy, scipy, matplotlib, PyQt5, etc...
 - Automatic python code reloader for easier development
-- Calling SQF back from Python (experimental)
+- Calling SQF back from Python (experimental, using asyncio syntax)
 - Allows returning more than 10240 characters from the extension transparently
-- Annoying sloppy SQF developers with correct code indentation since Day One ;)
+- Annoys sloppy SQF developers with correct code indentation since Day One ;)
 
 #### Potential features
 
@@ -51,8 +53,8 @@ The following are mods that use Pythia to accomplish their goal.
    <img src="assets/Arma_3_2017.08.18_-_02.45.27.39_2.gif" alt="Dynamic Frontline in action" />
 </p>
 
-[Frontline](https://frontline-mod.com) is like *Squad* but done in Arma. Like *Project Reality: Arma 3* but better. With a
-*Dynamic Frontline* feature that moves as you conquer terrain (and a bunch of other features).
+[Frontline](https://frontline-mod.com) is like *Squad* but done in Arma. Like *Project Reality: Arma 3* but better. With
+ a *Dynamic Frontline* feature that moves as you conquer terrain (and a bunch of other features).
 
 The frontline computation is done in Python, with the use of `numpy`, `scipy`, `matplotlib` and custom `Cython` code.
 
@@ -73,8 +75,8 @@ Status
 Current status: Finishing touches before 1.0. You can use it right now - it's stable. Yes, really.
 
 If you are serious about using Pythia, see [the issues page](https://github.com/overfl0/Pythia/issues) and especially
-[this one](https://github.com/overfl0/Pythia/issues/9). You can contact me to ask for planned changes, on [Frontline's
-Discord channel](https://discordapp.com/invite/TckWzF9). I don't bite :).
+[this one](https://github.com/overfl0/Pythia/issues/9). You can contact me to ask for planned changes, on [Pythia's
+Discord server](https://discord.gg/Pp6ac56). I don't bite :).
 
 Example usage
 ------
@@ -175,23 +177,62 @@ Your own mod development
 Code reloader
 -------------
 
-Note: The reloader currently only works for native python code. If your code uses Cython or C extensions (dll/pyd files)
-you should test your code using standalone unit tests.
+*Note: The reloader currently only works for native python code!*
+*If your code uses Cython or custom C extensions (dll/pyd files) you will get errors when reloading.*
 
+To turn the reloader on, simply call:
 ```
 ["pythia.enable_reloader", [True]] call py3_fnc_callExtension
 ```
 
-TODO
+The reloader will then watch all the imported Pythia modules for changes and if any source file is updated, **every
+loaded module** will be reloaded on the next Pythia call. Builtin python modules and modules installed with pip are
+exempt from reloading.
+
+**Important: objects in the global namespace will stay as they are. If such an object points to data inside a module,
+that data will point to the old (not reloaded) module instance, even after the reload!** (the module will not be
+garbage-collected as long as there is something pointing to it).
+
+This can lead to situations where you have two instances of the same module loaded in-memory. The recommended way is to
+create pre_reload/post_reload hooks for your module and reinitialize your new module and global variables with the data
+from the old module, on reload. See below.
+
+#### Keeping your module data between reloads
+
+To prevent losing data during reload your module needs to have `__pre_reload__` and `__post_reload__` hooks declared.
+`__post_reload__(state)` will be called with the exact same arguments as have been returned by `__pre_reload__()` before
+reloading the module.
+
+The reloader works as follows: (simplified pseudo-python code)
+```python
+def reload_all_modules():
+    for module in pythia_modules:
+        modules_state[module.__name__] = module.__pre_reload__()
+
+    reload_modules(pythia_modules)
+
+    for module in pythia_modules:
+        module.__post_reload__(modules_state[module.__name__])
+```
+
+Creating those functions is purely optional.
+
+Note that using the reloader causes a time penalty for each call and shouldn't be used in production.
 
 Threads
 -------
 TODO
 
+Calling SQF back from Python
+----------------------------
+TODO
+
+Note that you need to be comfortable with using asyncio-type code to use this feature!
+
 Installing
 ----------
 
-- Build the mod yourself or get a prebuilt version.
+- Build the mod yourself or get a [prebuilt version](https://github.com/overfl0/Pythia/releases).
 - Copy `@Pythia` to `Arma 3` directory.
 - (Optional for development) Create a `python` directory in `Arma 3` directory. Put all your python functions there.
 
@@ -201,7 +242,7 @@ Pythia development
 Building requirements
 ---------------------
 
-- Python 3.5 (64-bit for 64-bit Arma, 32-bit otherwise; it is suggested to have both installed)
+- Python 3.7 64-bit and 32-bit (you need to build both the 32-bit and 64-bit extensions)
 - Visual Studio Community 2017
 
 Building
@@ -215,5 +256,5 @@ Building
 Contributing
 ------------
 
-All contributions are welcome! Feel free to submit a PR or drop a note on
-[Frontline's Discord channel](https://discordapp.com/invite/TckWzF9).
+All contributions are welcome! Is something in the documentation unclear? Feel free to submit a PR or drop a note on
+[Pythia's Discord server](https://discord.gg/Pp6ac56).
