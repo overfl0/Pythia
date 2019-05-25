@@ -10,7 +10,7 @@ PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES = ['win32', 'amd64']
-PYTHON_VERSION = '3.5.4'
+PYTHON_VERSION = '3.7.3'
 
 
 def install_pip_for(python_executable):

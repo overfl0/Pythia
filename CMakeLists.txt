@@ -25,7 +25,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 # Set your Python version here:
 ###############################################################################
 set(PYTHON_VERSION_MAJOR "3")
-set(PYTHON_VERSION_MINOR "5")
+set(PYTHON_VERSION_MINOR "7")
 
 add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
