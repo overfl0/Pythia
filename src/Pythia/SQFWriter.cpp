@@ -82,7 +82,7 @@ namespace SQFWriter
         //= Unicode ============================================================
         if (PyUnicode_Check(obj))
         {
-            char *obj_utf8 = PyUnicode_AsUTF8(obj);
+            const char *obj_utf8 = PyUnicode_AsUTF8(obj);
             if (obj_utf8 == nullptr)
             {
                 if (PyErr_Occurred())
@@ -95,7 +95,7 @@ namespace SQFWriter
 
             // Compute the output size first
             int required_size = 2; // ""
-            for (char *p = obj_utf8; *p; ++p)
+            for (const char *p = obj_utf8; *p; ++p)
             {
                 ++required_size;
                 if (*p == '"')
@@ -110,7 +110,7 @@ namespace SQFWriter
 
             // Fill the array
             int i = 1;
-            for (char *p = obj_utf8; *p; ++p)
+            for (const char *p = obj_utf8; *p; ++p)
             {
                 if (*p == '"')
                 {
@@ -178,7 +178,7 @@ namespace SQFWriter
         PyObject *repr_obj = PyObject_Repr(obj);
         if (repr_obj)
         {
-            char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
+            const char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
             if (value_utf8)
             {
                 writer->writeBytes((std::string("Str() gave: ") + value_utf8).c_str());

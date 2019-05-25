@@ -27,7 +27,7 @@ std::string PyExceptionFetcher::getError(int recursion)
         return "getError: Maximum recursion limit reached!";
     }
 
-    char *value_utf8 = PyUnicode_AsUTF8(pValue);
+    const char *value_utf8 = PyUnicode_AsUTF8(pValue);
     if (value_utf8)
     {
         return value_utf8;
