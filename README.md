@@ -236,6 +236,8 @@ Installing
 - Build the mod yourself or get a [prebuilt version](https://github.com/overfl0/Pythia/releases).
 - Copy `@Pythia` to `Arma 3` directory.
 - (Optional for development) Create a `python` directory in `Arma 3` directory. Put all your python functions there.
+- If any of your pythia mods contains a `requirements.txt` file, simply drag it onto `@Pythia\install_requirements.bat` to
+install all the requirements to both python installations before running the game.
 
 Pythia development
 ==================
