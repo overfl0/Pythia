@@ -89,7 +89,8 @@ Your directory structure:
     ├── $PYTHIA$  # Contains the name of your python package, for example: MyAwesomeModule
     ├── __init__.py
     ├── module.py
-    └── cython_module.cp35-win_amd64.pyd  # Compiled Cython code, because we can!
+    ├── cython_module.cp37-win_amd64.pyd  # Compiled Cython code, because we can!
+    └── cython_module.cp37-win32.pyd      # Same code but for 32-bit Arma
 ```
 
 `__init__.py`:
