@@ -11,9 +11,17 @@ use!
 TL;DR:
 ------
 
+Having the following function defined:
+```python
+def my_function(some_string, number, the_truth):
+    return ["awesome", 42, True, (1, 3.5)]
+```
+
+And calling this SQF code:
+
     ["MyAwesomeModule.my_function", ["arg1", 3.14256, False]] call py3_fnc_callExtension
 
-Calling the above will return the SQF array below, containing exactly what was returned from Python:
+Will return this to your SQF code:
 
     ["awesome", 42, True, [1, 3.5]]
 
