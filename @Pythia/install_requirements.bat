@@ -18,7 +18,7 @@ FOR /D %%G IN ("%~dp0\python-*") DO (
     echo ===============================================================================
 
     echo.
-    "%%G\python.exe" -m pip install --upgrade -r %requirements_file%
+    "%%G\python.exe" -m pip install --upgrade --no-warn-script-location -r "%requirements_file%"
     if !ERRORLEVEL! GEQ 1 GOTO END_PIP_ERROR
     echo.
 )

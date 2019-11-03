@@ -21,7 +21,7 @@ def install_pip_for(python_executable):
     with open(pip_installer, 'wb') as f:
         f.write(file_raw)
     try:
-        subprocess.run([python_executable, pip_installer], check=True)
+        subprocess.run([python_executable, pip_installer, '--no-warn-script-location'], check=True)
     finally:
         os.unlink(pip_installer)
 
