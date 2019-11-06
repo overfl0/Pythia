@@ -11,7 +11,6 @@ rem ###########################################################################
 set requirements_file=%1
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
-setlocal enabledelayedexpansion
 FOR /D %%G IN ("%~dp0\python-*") DO (
     echo ===============================================================================
     echo Installing requirements for %%G from %requirements_file%...
@@ -19,11 +18,9 @@ FOR /D %%G IN ("%~dp0\python-*") DO (
 
     echo.
     "%%G\python.exe" -m pip install --upgrade --no-warn-script-location -r "%requirements_file%"
-    if !ERRORLEVEL! GEQ 1 GOTO END_PIP_ERROR
+    if ERRORLEVEL 1 GOTO END_PIP_ERROR
     echo.
 )
-endlocal enabledelayedexpansion
-
 
 echo ===============================================================================
 echo Installation done.
