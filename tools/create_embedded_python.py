@@ -14,7 +14,7 @@ PYTHON_VERSION = '3.7.3'
 
 
 def install_pip_for(python_executable):
-    """"Fetch get_pip.py and run it with the given python executable."""
+    """Fetch get_pip.py and run it with the given python executable."""
 
     file_raw = urllib.request.urlopen(PIP_URL).read()
     pip_installer = 'get-pip.py'
@@ -78,7 +78,7 @@ def prepare_distro(basedir, version, arch, install_pip=True):
 
 
 def prepare_distros(basedir, version, architectures, do_cleanup=True):
-    version_with_minor = PYTHON_VERSION.replace('.', '')[0:2]  # convert 3.5.4 to 35
+    version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
     # Do a cleanup first
     if do_cleanup:
         for arch in ARCHITECTURES:
