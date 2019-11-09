@@ -1,16 +1,27 @@
 import argparse
 import os
+import platform
 import shutil
 import subprocess
 import urllib.request
 import zipfile
+from contextlib import contextmanager
 from io import BytesIO
 
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
+MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES = ['win32', 'amd64']
 PYTHON_VERSION = '3.7.3'
+
+
+@contextmanager
+def ignore_no_file():
+    try:
+        yield
+    except FileNotFoundError:
+        pass
 
 
 def install_pip_for(python_executable):
@@ -24,6 +35,32 @@ def install_pip_for(python_executable):
         subprocess.run([python_executable, pip_installer, '--no-warn-script-location'], check=True)
     finally:
         os.unlink(pip_installer)
+
+
+def fetch_dev_files(directory, version, arch):
+    """Fetch the include and libs directories contained in dev.msi"""
+
+    print('* Fetching dev.msi')
+    url = MSI_ADDRESS.format(version=version, arch=arch, file='dev')
+    file_raw = urllib.request.urlopen(url).read()
+
+    try:
+        with open('dev.msi', 'wb') as f:
+            f.write(file_raw)
+
+        if platform.system() == 'Windows':
+            cmd = ['msiexec.exe', '/a', 'dev.msi', '/qn', 'TARGETDIR={}'.format(os.path.realpath(directory))]
+        else:
+            cmd = ['msiextract', '--directory', directory, 'dev.msi']
+
+        print('* Unpacking dev.msi')
+        subprocess.check_call(cmd)
+
+    finally:
+        with ignore_no_file():
+            os.unlink(os.path.join(directory, 'dev.msi'))  # It's created only with msiexec.exe, for some reason
+        with ignore_no_file():
+            os.unlink('dev.msi')
 
 
 def prepare_distro(basedir, version, arch, install_pip=True):
@@ -52,7 +89,6 @@ def prepare_distro(basedir, version, arch, install_pip=True):
 
     # Unpack stdlib (not doing so breaks some pip downloaded tools, like 2to3)
     # Prefetch the whole file prior to deletion
-
     print('* Unpacking stdlib')
     stdlib = 'python{version_with_minor}.zip'.format(version_with_minor=version_with_minor)
     stdlib_path = os.path.join(directory, stdlib)
@@ -70,6 +106,9 @@ def prepare_distro(basedir, version, arch, install_pip=True):
         with open(_pth, 'a') as f:
             f.write('import site\n')
 
+    # Fetch files required when building Cython extensions from source, for example
+    fetch_dev_files(directory, version, arch)
+
     # Install pip
     if install_pip:
         print('* Installing pip into the python distribution...')
@@ -84,10 +123,8 @@ def prepare_distros(basedir, version, architectures, do_cleanup=True):
         for arch in ARCHITECTURES:
             path = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
-            try:
+            with ignore_no_file():
                 shutil.rmtree(path)
-            except FileNotFoundError:
-                pass
 
     for arch in architectures:
         prepare_distro(basedir, version, arch)
