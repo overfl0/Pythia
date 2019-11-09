@@ -27,3 +27,4 @@ bin
 *.rar
 *.exe
 *.dll
+CMakeSettings.json
