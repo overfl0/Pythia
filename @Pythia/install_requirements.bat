@@ -30,7 +30,6 @@ rem ### Error handling ########################################################
 GOTO END_OK
 
 :END_PIP_ERROR
-  endlocal enabledelayedexpansion
   ECHO.
   ECHO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ECHO An error happened during requirements installation. Your python environment is
