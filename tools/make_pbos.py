@@ -43,6 +43,10 @@ def main():
     pbo_src_location = get_pbo_src_location()
     pbo_dest_location = get_destination_location()
 
+    if not os.path.exists(MAKE_PBO):
+        print('Error! Can\'t find makepbo at {}'.format(MAKE_PBO))
+        return 1
+
     for node in os.listdir(pbo_src_location):
         full_path = os.path.join(pbo_src_location, node)
         print (full_path)
