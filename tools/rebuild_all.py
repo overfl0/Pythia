@@ -65,8 +65,8 @@ subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py
 
 check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[b'python37.dll'])
 check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[b'python37.dll'])
-check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'), allowed_imports=[b'python37.dll'])
-check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'), allowed_imports=[b'python37.dll'])
+check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'))
+check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'))
 
 print('Packing the resulting mod to a zip file')
 shutil.make_archive('@Pythia', 'zip', root_dir='.', base_dir='@Pythia')
