@@ -1,7 +1,7 @@
 name = "Pythia";
 picture = "\@pythia\addons\pythia\logo.paa";
 actionName = "Github";
-action = "https://github.com/5sigmapoint2/arma-python-extension";
+action = "https://github.com/overfl0/Pythia";
 description = "Arma addon to use python";
 logo = "\@pythia\addons\pythia\logo.paa";
 logoOver = "\@pythia\addons\pythia\logo.paa";
