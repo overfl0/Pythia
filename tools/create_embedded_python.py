@@ -13,7 +13,7 @@ BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-emb
 MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES = ['win32', 'amd64']
-PYTHON_VERSION = '3.7.5'
+PYTHON_VERSION = '3.7.9'
 
 
 @contextmanager
