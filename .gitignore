@@ -28,3 +28,5 @@ bin
 *.exe
 *.dll
 CMakeSettings.json
+build
+.vscode

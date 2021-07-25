@@ -2,6 +2,7 @@
 // From: http://forum.sysinternals.com/howto-enumerate-handles_topic18892.html
 
 #include <stdio.h>
+#include "Logger.h"
 
 #include "FileHandles.h"
 
@@ -202,6 +203,15 @@ int getOpenFiles(WStringVector &files)
             continue;
         }
 
+        /*
+         * We only want files anyway so lets check the type to ensure its a file. As in some cases reading a named pipe would cause a hange. (Thanks TOBII ET5)
+         */
+        DWORD fileType = GetFileType(dupHandle);
+        if (fileType != FILE_TYPE_DISK) {
+            CloseHandle(dupHandle);
+            continue;
+        }
+
         /* Query the object type. */
         objectTypeInfo = (POBJECT_TYPE_INFORMATION)malloc(0x1000);
         if (!NT_SUCCESS(NtQueryObject(
@@ -268,6 +278,8 @@ int getOpenFiles(WStringVector &files)
 
         /* Cast our buffer into an UNICODE_STRING. */
         objectName = *(PUNICODE_STRING)objectNameInfo;
+        //std::wstring fileName(objectName.Buffer, objectName.Length / 2);
+        //LOG_INFO("File: " + std::string(fileName.begin(), fileName.end()));
 
         /* Print the information! */
         if (objectName.Length)
