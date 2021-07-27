@@ -202,6 +202,16 @@ int getOpenFiles(WStringVector &files)
             continue;
         }
 
+        /*
+         * We only want files anyway so lets check the type to ensure its a file. 
+         * As in some cases reading a named pipe would cause a hang. (Thanks TOBII ET5)
+         */
+        DWORD fileType = GetFileType(dupHandle);
+        if (fileType != FILE_TYPE_DISK) {
+            CloseHandle(dupHandle);
+            continue;
+        }
+
         /* Query the object type. */
         objectTypeInfo = (POBJECT_TYPE_INFORMATION)malloc(0x1000);
         if (!NT_SUCCESS(NtQueryObject(
