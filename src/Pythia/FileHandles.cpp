@@ -203,7 +203,8 @@ int getOpenFiles(WStringVector &files)
         }
 
         /*
-         * We only want files anyway so lets check the type to ensure its a file. As in some cases reading a named pipe would cause a hang. (Thanks TOBII ET5)
+         * We only want files anyway so lets check the type to ensure its a file. 
+         * As in some cases reading a named pipe would cause a hang. (Thanks TOBII ET5)
          */
         DWORD fileType = GetFileType(dupHandle);
         if (fileType != FILE_TYPE_DISK) {
