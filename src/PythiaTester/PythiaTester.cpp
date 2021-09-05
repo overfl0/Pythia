@@ -7,6 +7,8 @@
 #include "../Pythia/SQFGenerator.h"
 #include "../Pythia/SQFGenerator.cpp"
 
+#pragma warning( disable : 4996 ) // Disable warning message 4996 (sscanf).
+
 #define ARMA_EXTENSION_BUFFER_SIZE (10*1024)
 
 typedef void (__stdcall *RVExtension_t)(char *output, int outputSize, const char *function);
