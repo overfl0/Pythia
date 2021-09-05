@@ -27,6 +27,6 @@ class TestResponseWriter : public MultipartResponseWriter
     char tempBuf[tempBufSize];
 
 public:
-    TestResponseWriter::TestResponseWriter();
+    TestResponseWriter();
     std::string getResponse();
 };

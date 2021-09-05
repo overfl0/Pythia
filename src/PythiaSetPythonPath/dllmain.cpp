@@ -33,7 +33,7 @@ extern "C"
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
 {
-    std::string str(pythonPath.begin(), pythonPath.end());
+    std::string str = Logger::w2s(pythonPath);
     size_t minSize = min((size_t)outputSize, str.size() + 1);
     strncpy_s(output, minSize, str.c_str(), _TRUNCATE);
 }

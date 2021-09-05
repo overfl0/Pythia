@@ -3,7 +3,7 @@
 #include <iostream>
 #include "Logger.h"
 
-std::string ResourceLoader::loadTextResource(HMODULE moduleHandle, int id, LPTSTR type)
+std::string ResourceLoader::loadTextResource(HMODULE moduleHandle, int id, LPCTSTR type)
 {
     HRSRC resourceHandle = ::FindResource(moduleHandle, MAKEINTRESOURCE(id), type);
     

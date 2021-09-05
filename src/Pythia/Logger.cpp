@@ -5,7 +5,7 @@
 
 std::shared_ptr<spdlog::logger> getFallbackLogger()
 {
-    constexpr char *fallbackLoggerName = "Fallback_stderr";
+    constexpr const char *fallbackLoggerName = "Fallback_stderr";
     spdlog::drop(fallbackLoggerName);
     return spdlog::stderr_logger_mt(fallbackLoggerName);
 }

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 typedef std::unordered_set<std::wstring> dlist;
 
