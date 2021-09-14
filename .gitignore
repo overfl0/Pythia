@@ -27,6 +27,5 @@ bin
 *.rar
 *.exe
 *.dll
-CMakeSettings.json
 build
 .vscode
