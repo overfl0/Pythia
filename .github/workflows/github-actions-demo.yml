@@ -40,3 +40,8 @@ jobs:
 
       - run: pip install pefile
       - run: python tools\rebuild_all.py
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Pythia
+          path: "@Pythia.zip"
