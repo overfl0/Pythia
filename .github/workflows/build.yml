@@ -36,6 +36,7 @@ jobs:
             @Pythia/*.dll
             @Pythia/*.exe
           if-no-files-found: error
+          retention-days: 1
 
   Build-PBO:
     needs: Build-DLL
@@ -50,8 +51,6 @@ jobs:
           name: Pythia_DLLs
           path: "@Pythia"
 
-      - run: dir "@Pythia"
-
       # Build PBOs and pack
       - name: Install Mikero's tools
         uses: arma-actions/mikero-tools@latest
@@ -63,3 +62,4 @@ jobs:
           name: Pythia
           path: "@Pythia.zip"
           if-no-files-found: error
+          retention-days: 8
