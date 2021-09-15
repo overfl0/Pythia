@@ -46,6 +46,27 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
             sys.exit(1)
 
 
+def check_dll_architecture(path: str, x86=False):
+    arch = '32bit' if x86 else '64bit'
+    print(f'Checking is file {path} is {arch}...')
+    try:
+        import pefile
+    except ImportError:
+        print('Install pefile: pip install pefile')
+        sys.exit(1)
+
+    if not os.path.exists(path):
+        print(f'File {path} is missing!')
+        sys.exit(1)
+
+    pe = pefile.PE(path)
+    arch32 = bool(pe.NT_HEADERS.FILE_HEADER.Characteristics & pefile.IMAGE_CHARACTERISTICS['IMAGE_FILE_32BIT_MACHINE'])
+
+    if (x86 and not arch32) or (not x86 and arch32):
+        print(f'File {path} is not {arch}!')
+        sys.exit(1)
+
+
 os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 with ignore_no_file():
@@ -67,6 +88,11 @@ check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[b'py
 check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[b'python37.dll'])
 check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'))
 check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'))
+print()
+check_dll_architecture(os.path.join('@Pythia', 'Pythia.dll'), x86=True)
+check_dll_architecture(os.path.join('@Pythia', 'Pythia_x64.dll'), x86=False)
+check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'), x86=True)
+check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'), x86=False)
 
 print('Packing the resulting mod to a zip file')
 shutil.make_archive('@Pythia', 'zip', root_dir='.', base_dir='@Pythia')
@@ -74,4 +100,3 @@ shutil.make_archive('@Pythia', 'zip', root_dir='.', base_dir='@Pythia')
 
 # TODO: Use an empty directory to build
 # TODO: Add building of the dlls
-# TODO: Fix https://github.com/overfl0/Pythia/issues/41 to build the dlls
