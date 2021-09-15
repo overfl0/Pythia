@@ -4,6 +4,8 @@ jobs:
   Build-PBOs:
     runs-on: windows-latest
     steps:
+      - run: vswhere -nologo -products Microsoft.VisualStudio.Product.Community -property installationPath
+      - run: vswhere -nologo -products * -property installationPath
       - name: Setup Python 3.7 (x86)
         uses: actions/setup-python@v2
         with:
@@ -17,27 +19,32 @@ jobs:
       - run: new-item -itemtype Junction -path c:\python37-x64 -target C:\hostedtoolcache\windows\Python\3.7.9\x64
       - run: new-item -itemtype Junction -path c:\python37 -target C:\hostedtoolcache\windows\Python\3.7.9\x86
 
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.3
-
-      - uses: arma-actions/mikero-tools@latest
-
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      - run: |
-          mkdir vcproj
-          cd vcproj
-          cmake .. -G "Visual Studio 16 2019" -A Win32
-          cd ..
-          mkdir vcproj64
-          cd vcproj64
-          cmake .. -G "Visual Studio 16 2019" -A x64
-          cd ..
+      # Build 64-bit extension
+      - run: mkdir ninja_x64
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - run: cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        working-directory: ninja_x64
+      - run: ninja
+        working-directory: ninja_x64
 
-      - run: msbuild vcproj\PythiaProject.sln /m /p:Configuration=RelWithDebInfo /p:Platform=Win32
-      - run: msbuild vcproj64\PythiaProject.sln /m /p:Configuration=RelWithDebInfo /p:Platform=x64
+      # Build 32-bit extension
+      - run: mkdir ninja_x86
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+      - run: cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        working-directory: ninja_x86
+      - run: ninja
+        working-directory: ninja_x86
 
+      # Build PBOs and pack
+      - name: Install Mikero's tools
+        uses: arma-actions/mikero-tools@latest
       - run: pip install pefile
       - run: python tools\rebuild_all.py
 

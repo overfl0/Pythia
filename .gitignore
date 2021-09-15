@@ -29,3 +29,7 @@ bin
 *.dll
 build
 .vscode
+ninja
+ninja64
+vcproj
+vcproj64
