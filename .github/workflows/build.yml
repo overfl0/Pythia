@@ -1,46 +1,56 @@
 name: Build Pythia
 on: [push]
 jobs:
-  Build-PBOs:
-    runs-on: windows-latest
+  Build-DLL:
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        arch: [x64, x86]
+
     steps:
-      - run: vswhere -nologo -products Microsoft.VisualStudio.Product.Community -property installationPath
-      - run: vswhere -nologo -products * -property installationPath
-      - name: Setup Python 3.7 (x86)
+      - name: Setup Python 3.7 (${{ matrix.arch }})
         uses: actions/setup-python@v2
         with:
           python-version: '3.7'
-          architecture: 'x86'
-      - name: Setup Python 3.7 (x64)
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-          architecture: 'x64'
-      - run: new-item -itemtype Junction -path c:\python37-x64 -target C:\hostedtoolcache\windows\Python\3.7.9\x64
-      - run: new-item -itemtype Junction -path c:\python37 -target C:\hostedtoolcache\windows\Python\3.7.9\x86
+          architecture: ${{ matrix.arch }}
+      - run: new-item -itemtype Junction -path c:\python37-x64 -target C:\hostedtoolcache\windows\Python\3.7.9\${{ matrix.arch }}
+      - run: new-item -itemtype Junction -path c:\python37 -target C:\hostedtoolcache\windows\Python\3.7.9\${{ matrix.arch }}
 
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      # Build 64-bit extension
-      - run: mkdir ninja_x64
+      # Build the extension
+      - run: mkdir ninja_${{ matrix.arch }}
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: x64
+          arch: ${{ matrix.arch }}
       - run: cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-        working-directory: ninja_x64
+        working-directory: ninja_${{ matrix.arch }}
       - run: ninja
-        working-directory: ninja_x64
+        working-directory: ninja_${{ matrix.arch }}
 
-      # Build 32-bit extension
-      - run: mkdir ninja_x86
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/upload-artifact@v2
         with:
-          arch: x86
-      - run: cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-        working-directory: ninja_x86
-      - run: ninja
-        working-directory: ninja_x86
+          name: Pythia_DLLs
+          path: |
+            @Pythia/*.dll
+            @Pythia/*.exe
+          if-no-files-found: error
+
+  Build-PBO:
+    needs: Build-DLL
+    runs-on: windows-2019
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Download the DLLs
+        uses: actions/download-artifact@v2
+        with:
+          name: Pythia_DLLs
+          path: "@Pythia"
+
+      - run: dir "@Pythia"
 
       # Build PBOs and pack
       - name: Install Mikero's tools
@@ -52,3 +62,4 @@ jobs:
         with:
           name: Pythia
           path: "@Pythia.zip"
+          if-no-files-found: error
