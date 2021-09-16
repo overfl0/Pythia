@@ -12,6 +12,7 @@ x64
 *.opendb
 __pycache__
 .idea
+.vscode
 tmpBuildFiles
 @Pythia/Pythia.dll
 @Pythia/Pythia_x64.dll
@@ -25,12 +26,11 @@ bin
 *.log
 *.log.*
 *.rar
+*.zip
 *.exe
 *.dll
 build
-.vscode
 ninja
 ninja64
 vcproj
 vcproj64
-@Pythia.zip
