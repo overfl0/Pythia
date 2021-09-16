@@ -5,8 +5,9 @@ import shutil
 import subprocess
 import urllib.request
 import zipfile
-from contextlib import contextmanager
 from io import BytesIO
+
+from common import ignore_no_file
 
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
@@ -15,14 +16,6 @@ EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES = ['win32', 'amd64']
 PYTHON_VERSION = '3.7.9'
 PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.0.4', 'wheel==0.37.0']
-
-
-@contextmanager
-def ignore_no_file():
-    try:
-        yield
-    except FileNotFoundError:
-        pass
 
 
 def install_pip_for(python_executable):

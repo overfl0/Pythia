@@ -6,6 +6,7 @@ PBO_SRC_DIR = ['src', 'Pythia', 'pbo']
 PBO_DEST_DIR = ['@Pythia', 'Addons']
 MAKE_PBO = r'C:\Program Files (x86)\Mikero\DePboTools\bin\makepbo.exe'  # It's not in the PATH in AppVeyor
 
+
 def get_base_location():
     """Get base Pythia directory."""
 
