@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6.2)
+cmake_minimum_required(VERSION 3.14.7)
 project(PythiaProject)
 
 message(STATUS "Setting MSVC flags")
@@ -27,12 +27,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(PYTHON_VERSION_MAJOR "3")
 set(PYTHON_VERSION_MINOR "7")
 
-add_definitions(-DPYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-add_definitions(-DPYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
-
-# These are supported in cmake 3.12 and later so we're using the older add_definitions() instead
-#add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-#add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
 # The python executables and libraries are in the same directories as they are on an AppVeyor machine:
 # https://www.appveyor.com/docs/windows-images-software/#python
