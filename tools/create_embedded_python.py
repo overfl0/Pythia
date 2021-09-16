@@ -14,6 +14,7 @@ MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES = ['win32', 'amd64']
 PYTHON_VERSION = '3.7.9'
+PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.0.4', 'wheel==0.37.0']
 
 
 @contextmanager
@@ -32,7 +33,7 @@ def install_pip_for(python_executable):
     with open(pip_installer, 'wb') as f:
         f.write(file_raw)
     try:
-        subprocess.run([python_executable, pip_installer, '--no-warn-script-location'], check=True)
+        subprocess.run([python_executable, pip_installer, '--no-warn-script-location'] + PIP_REQUIREMENTS, check=True)
     finally:
         os.unlink(pip_installer)
 
