@@ -3,6 +3,8 @@
 Pythia
 ======
 
+[![Build Pythia](https://github.com/overfl0/Pythia/actions/workflows/build.yml/badge.svg)](https://github.com/overfl0/Pythia/actions/workflows/build.yml)
+
 An Arma 3 extension that lets you to write python extensions for Arma 3. And it's really simple and straightforward to
 use!
 
