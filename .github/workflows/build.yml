@@ -45,6 +45,12 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
+      - name: Cache tools
+        uses: actions/cache@v2
+        with:
+          path: tools/cache
+          key: tools_cache
+
       - name: Download the DLLs
         uses: actions/download-artifact@v2
         with:
@@ -58,6 +64,7 @@ jobs:
       - run: python tools\rebuild_all.py
 
       - uses: actions/upload-artifact@v2
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           name: Pythia
           path: "@Pythia.zip"
