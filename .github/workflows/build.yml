@@ -13,8 +13,6 @@ jobs:
         with:
           python-version: '3.7'
           architecture: ${{ matrix.arch }}
-      - run: new-item -itemtype Junction -path c:\python37-x64 -target C:\hostedtoolcache\windows\Python\3.7.9\${{ matrix.arch }}
-      - run: new-item -itemtype Junction -path c:\python37 -target C:\hostedtoolcache\windows\Python\3.7.9\${{ matrix.arch }}
 
       - name: Check out repository code
         uses: actions/checkout@v2

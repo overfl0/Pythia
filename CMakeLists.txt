@@ -1,6 +1,13 @@
+###############################################################################
+# Set your Python version here:
+###############################################################################
+set(PYTHON_VERSION_MAJOR "3")
+set(PYTHON_VERSION_MINOR "7")
+
 cmake_minimum_required(VERSION 3.14.7)
 project(PythiaProject)
 
+message(STATUS "Cmake version: ${CMAKE_VERSION}")
 message(STATUS "Setting MSVC flags")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
 
@@ -21,24 +28,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
-###############################################################################
-# Set your Python version here:
-###############################################################################
-set(PYTHON_VERSION_MAJOR "3")
-set(PYTHON_VERSION_MINOR "7")
-
 add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
-# The python executables and libraries are in the same directories as they are on an AppVeyor machine:
-# https://www.appveyor.com/docs/windows-images-software/#python
-# Create a symlink if you don't want to move your python installation here, for example:
-# mklink /j c:\my_path\Python36-64 c:\Python36-x64
-if(CMAKE_CL_64)
-    set(PYTHON_PATH "C:\\Python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-x64")
-else()
-    set(PYTHON_PATH "C:\\Python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
-endif()
+find_package (Python3 "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" EXACT REQUIRED COMPONENTS Development)
+set(PYTHON_PATH "${Python3_RUNTIME_LIBRARY_DIRS}")
 
 add_subdirectory(src/Pythia)
 add_subdirectory(src/PythiaSetPythonPath)

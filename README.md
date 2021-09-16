@@ -256,7 +256,7 @@ Building requirements
 ---------------------
 
 - Python 3.7 64-bit and 32-bit (you need to build both the 32-bit and 64-bit extensions)
-- Visual Studio Community 2017
+- Visual Studio Community 2019
 
 Building
 --------
