@@ -24,4 +24,5 @@ def install_bisign():
     python_zip_file.extractall(directory)
 
 
-install_bisign()
+if __name__ == '__main__':
+    install_bisign()

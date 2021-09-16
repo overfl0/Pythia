@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 
+from install_bisign import install_bisign
 from primitive_git import get_sha1_from_git_directory
 
 PBO_SRC_DIR = ['src', 'Pythia', 'pbo']
@@ -72,7 +73,6 @@ def main():
     parser.add_argument('--junction', '-j', action='store_true', help='Create a junction')
     args = parser.parse_args()
 
-    base_dir = get_base_location()
     pbo_src_location = get_pbo_src_location()
     pbo_dest_location = get_destination_location()
 
@@ -97,22 +97,27 @@ def main():
             create_junction(junction_path, full_path)
 
     # Keys handling
+    install_bisign()
+
+    # Ensure keys directory is clean
     keys_dir = get_keys_dir()
-    shutil.rmtree(keys_dir)
+    if os.path.exists(keys_dir):
+        shutil.rmtree(keys_dir)
     os.mkdir(keys_dir)
     with open(os.path.join(keys_dir, 'DO NOT COPY THESE FILES IF YOU\'RE RUNNING PYTHIA AS A SERVER MOD'), 'w'):
         pass
+
     private_key, public_key = create_private_public_key('pythia')
-    shutil.move(os.path.join(public_key), get_keys_dir())
+
+    # Sign all the PBOs
     try:
+        shutil.move(os.path.join(public_key), get_keys_dir())
         for file_path in files:
             for signature_file in glob.iglob(glob.escape(file_path) + '*.bisign'):
                 print(f'Removing od signature file: {signature_file}')
                 os.unlink(signature_file)
 
             sign_file(file_path, private_key)
-
-
     finally:
         os.remove(private_key)
 
