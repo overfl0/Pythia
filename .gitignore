@@ -22,6 +22,7 @@ tmpBuildFiles
 @Pythia/PythiaTester_x64.exe
 @Pythia/python-embed-*
 @Pythia/python-*-embed-*
+@Pythia/Keys
 bin
 *.log
 *.log.*
@@ -34,3 +35,4 @@ ninja
 ninja64
 vcproj
 vcproj64
+tools/cache
