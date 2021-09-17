@@ -4,7 +4,6 @@
 #include "ExceptionFetcher.h"
 #include "ResourceLoader.h"
 #include <iostream>
-#include "resource.h"
 #include "Logger.h"
 #include "ResponseWriter.h"
 #include "SQFReader.h"
@@ -162,7 +161,7 @@ void EmbeddedPython::initialize()
 
     #else
 
-    std::string text_resource = ResourceLoader::loadTextResource(dllModuleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str();
+    const std::string text_resource = ResourceLoader::loadTextResource();
     PyObject *compiledString = Py_CompileString(
         text_resource.c_str(),
         "python-adapter.py",

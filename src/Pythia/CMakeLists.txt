@@ -2,17 +2,23 @@ include_directories(${Python3_INCLUDE_DIRS})
 link_directories(${Python3_LIBRARY_DIRS})
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
+include(${PROJECT_SOURCE_DIR}/CMakeModules/EmbedResource.cmake)
+embed_resource("python/Adapter.py" "python_generated/py_adapter.h" "PY_ADAPTER")
+
 file(GLOB headers *.h)
 file(GLOB files *.cpp)
 file(GLOB doubleconversion third_party/double-conversion/*.cc)
 file(GLOB modules Modules/*.cpp)
+file(GLOB python_generated python_generated/*.h)
+
 add_library(Pythia SHARED 
     ${files}
     ${doubleconversion}
     ${modules}
     ${headers}
-    Pythia.rc
+    ${python_generated}
 )
+
 if(CMAKE_COMPILER_IS_GNUCXX)
 else() # MSVC
     if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo OR CMAKE_BUILD_TYPE STREQUAL Release)
