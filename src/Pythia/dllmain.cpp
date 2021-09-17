@@ -37,7 +37,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 
             try
             {
-                python = new EmbeddedPython(hModule);
+                python = new EmbeddedPython();
                 LOG_INFO("Python extension successfully loaded");
             }
             catch (const std::exception& ex)

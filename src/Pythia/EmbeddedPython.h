@@ -8,7 +8,7 @@
 class EmbeddedPython
 {
 public:
-    EmbeddedPython(HMODULE moduleHandle);
+    EmbeddedPython();
     virtual ~EmbeddedPython();
     
     void initialize();
@@ -28,7 +28,6 @@ private:
     PyObject *pModule;
     PyObject *pFunc;
     PyThreadState *pThreadState;
-    HMODULE dllModuleHandle;
 
     // Python magic
     std::vector<wchar_t> pythonHomeString;

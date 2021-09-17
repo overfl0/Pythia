@@ -116,7 +116,7 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 }
 
-EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
+EmbeddedPython::EmbeddedPython()
 {
     DoPythonMagic(getPythonPath());
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
