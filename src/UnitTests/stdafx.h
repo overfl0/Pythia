@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include "Python.h"
-
 #include "targetver.h"
 
 // Headers for CppUnitTest

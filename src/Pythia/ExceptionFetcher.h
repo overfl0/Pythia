@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include <Python.h>
 
 class PyExceptionFetcher final
 {

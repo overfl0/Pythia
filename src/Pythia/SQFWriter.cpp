@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Python.h"
+#include <Python.h>
 #include "SQFWriter.h"
 
 #include <string>

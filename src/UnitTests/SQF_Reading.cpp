@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 #include "CppUnitTestLogger.h"
-#include "Python.h"
+#include <Python.h>
 
 #include "../src/SQFreader.h"
 #include "../src/SQFReader.cpp"  // I don't know why I cannot make VS use pythia.lib :(

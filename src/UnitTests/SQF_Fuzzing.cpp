@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 #include "CppUnitTestLogger.h"
-#include "Python.h"
+#include <Python.h>
 #include "../src/SQFReader.h"
 #include "../src/SQFWriter.h"
 #include "../src/SQFGenerator.h"

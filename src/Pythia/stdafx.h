@@ -5,8 +5,6 @@
 
 #pragma once
 
-#include <Python.h>
-
 #ifdef _WIN32
 #include "targetver.h"
 
