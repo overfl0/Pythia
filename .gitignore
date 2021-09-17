@@ -6,6 +6,7 @@ src/x64
 Debug
 Release
 x64
+out
 *.aps
 *.vs
 *.vcxproj.user

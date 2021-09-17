@@ -8,15 +8,32 @@ cmake_minimum_required(VERSION 3.14.7)
 project(PythiaProject)
 
 message(STATUS "Cmake version: ${CMAKE_VERSION}")
-message(STATUS "Setting MSVC flags")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
+message(STATUS "Compiler: ${CMAKE_C_COMPILER}")
 
-set(CMAKE_CXX_FLAGS_DEBUG          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1 /EHsc")
-set(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT /Ox /Oi /Ob1 /EHsc /DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE        "/MT /Ox /Oi /Ob2 /EHsc /DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /Zi /Ox /Oi /Ob2 /EHsc /DNDEBUG")
 
-set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/debug /INCREMENTAL:NO")
+if(CMAKE_COMPILER_IS_GNUCXX)
+    if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+        message(FATAL_ERROR "Require at least gcc-8.0")
+    endif()
+
+    message(STATUS "Setting GCC flags")
+    #SET(CMAKE_CXX_FLAGS "-std=c++17 -march=i686 -m32 -O2 -s -fPIC -fpermissive")
+    SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -fpermissive")
+    set(CMAKE_LIBRARY_ARCHITECTURE x86_64)
+    #set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
+
+else() # MSVC
+
+    message(STATUS "Setting MSVC flags")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
+
+    set(CMAKE_CXX_FLAGS_DEBUG          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1 /EHsc")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT /Ox /Oi /Ob1 /EHsc /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE        "/MT /Ox /Oi /Ob2 /EHsc /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /Zi /Ox /Oi /Ob2 /EHsc /DNDEBUG")
+
+    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/debug /INCREMENTAL:NO")
+endif()
 
 ADD_DEFINITIONS(-DUNICODE)
 

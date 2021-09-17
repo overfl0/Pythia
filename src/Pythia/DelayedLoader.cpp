@@ -1,10 +1,13 @@
 #include "DelayedLoader.h"
 #include "stdafx.h"
 #include "Logger.h"
+#ifdef _WIN32
 #include <delayimp.h>
+#endif
 
 extern std::string pythonInitializationError;
 
+#ifdef _WIN32
 static DWORD DelayLoadExceptionFilter(DWORD code, int *error)
 {
     if (code == VcppException(ERROR_SEVERITY_ERROR, ERROR_MOD_NOT_FOUND))
@@ -21,6 +24,7 @@ static DWORD DelayLoadExceptionFilter(DWORD code, int *error)
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
+#endif
 
 int LoadAllImports()
 {
