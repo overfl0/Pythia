@@ -1,5 +1,12 @@
+#ifdef _WIN32
 #include <SDKDDKVer.h>
 #include <windows.h>
+#else
+#define __stdcall
+#define _strdup strdup
+#define sprintf_s sprintf
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <chrono>
