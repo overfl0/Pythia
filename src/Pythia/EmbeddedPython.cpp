@@ -70,9 +70,15 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
 
     // Clear the env variables, just in case
-    _wputenv_s(L"PYTHONHOME", L"");
-    _wputenv_s(L"PYTHONPATH", L"");
-    _wputenv_s(L"PYTHONNOUSERSITE", L"1");  // Disable custom user site
+    #ifdef _WIN32
+    _putenv_s("PYTHONHOME", "");
+    _putenv_s("PYTHONPATH", "");
+    _putenv_s("PYTHONNOUSERSITE", "1");  // Disable custom user site
+    #else
+    setenv("PYTHONHOME", "", true);
+    setenv("PYTHONPATH", "", true);
+    setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
+    #endif
 
     Py_IgnoreEnvironmentFlag = 1;
     Py_IsolatedFlag = 1;
