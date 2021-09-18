@@ -5,7 +5,6 @@ link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 file(GLOB headers *.h)
 add_library(PythiaSetPythonPath SHARED 
     dllmain.cpp
-    stdafx.cpp
     ../Pythia/Logger.cpp
     ../Pythia/Paths.cpp
     ${headers}
