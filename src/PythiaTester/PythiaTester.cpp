@@ -108,6 +108,25 @@ std::string handleMultipart(int id, int count)
     return fullOutput;
 }
 
+int test_performance_echo(std::string testName, std::string sqf)
+{
+    int iterations = 100000;
+    char output[ARMA_EXTENSION_BUFFER_SIZE];
+
+    std::string request = createPingRequest(sqf);
+
+    auto start = std::chrono::system_clock::now();
+    for (int i = 0; i < iterations; i++)
+    {
+        RVExtensionCheck(output, sizeof(output), request.c_str());
+    }
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = end - start;
+
+    std::cout << "Test " << testName << ": " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    return 0;
+}
+
 int test_fuzzing_single()
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
@@ -149,7 +168,7 @@ int test_fuzzing_single()
 
 void test_fuzzing_multiple()
 {
-    int iterations = 10000;
+    int iterations = 1000;
 
     auto start = std::chrono::system_clock::now();
     for (int i = 0; i < iterations; i++)
@@ -214,12 +233,21 @@ void test_coroutines()
 #endif
 
 
+int waitAndReturn(int retval)
+{
+    std::cout << "Press enter to continue...";
+    std::cin.get();
+    return retval;
+}
+
+
 int main()
 {
     HINSTANCE hInstSetPath = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
     if (!hInstSetPath)
     {
         std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
+        return waitAndReturn(1);
     }
 
     HINSTANCE hInstLibrary = LoadLibrary(TEXT(PYTHIA_DLL));
@@ -230,22 +258,43 @@ int main()
 
         if (RVExtension)
         {
-            //test();
+            // Warming up
+            for (int i = 0; i < 100; i++)
+            {
+                test_fuzzing_single();
+            }
+            // test()
             test_fuzzing_multiple();
+            std::cout << std::endl;
+            std::cout << "Note: the tests below do NOT take into account the time Arma deserializes the output!" << std::endl;
+            std::cout << "As such, they are only indicative of the extension speed, NOT the in-game speed of these calls!" << std::endl;
+            std::cout << std::endl;
+            test_performance_echo("1 -       Integers (x10)", "[1,2,3,4,5,6,7,8,9,10]");
+            test_performance_echo("2 -         Floats (x10)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
+            test_performance_echo("3 -       Booleans (x10)", "[True,False,True,False,True,False,True,False,True,False]");
+            test_performance_echo("4 -        Strings (x10)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
+            test_performance_echo("5 -  Arrays filled (x10)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
+            test_performance_echo("6 -   Arrays empty (x10)", "[[],[],[],[],[],[],[],[],[],[]]");
+            std::cout << std::endl;
+            test_performance_echo("1 -      Integers (x100)", "[1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10]");
+            test_performance_echo("2 -        Floats (x100)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
+            test_performance_echo("3 -      Booleans (x100)", "[True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False]");
+            test_performance_echo("4 -       Strings (x100)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
+            test_performance_echo("5 - Arrays filled (x100)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
+            test_performance_echo("6 -  Arrays empty (x100)", "[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]");
         }
         else
         {
             std::cout << "Could not get RVExtension function." << std::endl;
+            return waitAndReturn(1);
         }
         FreeLibrary(hInstLibrary);
     }
     else
     {
         std::cout << "Could not open library dll." << std::endl;
+        return waitAndReturn(1);
     }
 
-    std::cout << "Press enter to continue...";
-    std::cin.get();
-    return 0;
+    return waitAndReturn(0);
 }
-
