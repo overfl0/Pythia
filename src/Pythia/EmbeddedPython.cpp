@@ -217,7 +217,11 @@ void EmbeddedPython::initModules(modules_t mods)
     // Fill the dict with the items in the unordered_map
     for (const auto& entry: mods)
     {
+        #ifdef _WIN32
         PyObjectGuard pString(PyUnicode_FromWideChar(entry.second.c_str(), -1));
+        #else
+        PyObjectGuard pString(PyUnicode_FromString(entry.second.c_str()));
+        #endif
         if (!pString)
         {
             continue;

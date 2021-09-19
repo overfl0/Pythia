@@ -1,4 +1,4 @@
 #pragma once
 
-typedef std::vector<std::wstring> WStringVector;
+typedef std::vector<tstring> WStringVector;
 int getOpenFiles(WStringVector &files);

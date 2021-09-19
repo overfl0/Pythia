@@ -10,9 +10,9 @@
 
 namespace fs = std::filesystem;
 
-typedef std::unordered_set<std::wstring> dlist;
+typedef std::unordered_set<tstring> dlist;
 
-bool hasEnding(std::wstring const &fullString, std::wstring const &ending) {
+bool hasEnding(tstring const &fullString, tstring const &ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
     }
@@ -21,7 +21,7 @@ bool hasEnding(std::wstring const &fullString, std::wstring const &ending) {
     }
 }
 
-dlist getDirectories(std::wstring const & fileExtension=L"")
+dlist getDirectories(tstring const & fileExtension=LITERAL(""))
 {
     WStringVector files;
     dlist directories;
@@ -67,9 +67,9 @@ static std::string getPythiaModuleName(std::ifstream &stream)
 /**
    Check if the given directory contains python code usable by Pythia.
  */
-static void tryAddingPythiaModule(modules_t &modules, const std::wstring path)
+static void tryAddingPythiaModule(modules_t &modules, const tstring path)
 {
-    auto pythiaFile = path + L"\\$PYTHIA$";
+    auto pythiaFile = path + LITERAL("\\$PYTHIA$");
 
     std::ifstream pythiaFileHandle;
     pythiaFileHandle.open(pythiaFile, std::ios::binary);
@@ -103,7 +103,7 @@ modules_t getPythiaModulesSources()
 {
     modules_t modules;
 
-    dlist directoriesList = getDirectories(L".pbo");
+    dlist directoriesList = getDirectories(LITERAL(".pbo"));
     for (auto &directory : directoriesList)
     {
         auto parent = getPathDirectory(directory);
