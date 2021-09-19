@@ -5,6 +5,8 @@
 
 #include "FileHandles.h"
 
+#ifdef _WIN32
+
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -203,7 +205,7 @@ int getOpenFiles(WStringVector &files)
         }
 
         /*
-         * We only want files anyway so lets check the type to ensure its a file. 
+         * We only want files anyway so lets check the type to ensure its a file.
          * As in some cases reading a named pipe would cause a hang. (Thanks TOBII ET5)
          */
         DWORD fileType = GetFileType(dupHandle);
@@ -339,3 +341,13 @@ int getOpenFiles(WStringVector &files)
 
     return 1;
 }
+
+#else  // ifdef _WIN32
+
+int getOpenFiles(WStringVector& files)
+{
+    // TODO: Implement lsof
+    return 0;
+}
+
+#endif  // ifdef _WIN32
