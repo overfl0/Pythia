@@ -63,17 +63,25 @@ void switchToAsyncLogger(std::string loggerName, spdlog::filename_t loggerFile)
 
 namespace Logger
 {
+    // http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-closed.html#721
+    template<class I, class E, class S>
+    struct codecvt : std::codecvt<I, E, S>
+    {
+        ~codecvt()
+        { }
+    };
+
     std::string w2s(const std::wstring &var)
     {
         static std::locale loc("");
-        auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+        auto &facet = std::use_facet<codecvt<wchar_t, char, std::mbstate_t>>(loc);
         return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
     }
 
     std::wstring s2w(const std::string &var)
     {
         static std::locale loc("");
-        auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+        auto &facet = std::use_facet<codecvt<wchar_t, char, std::mbstate_t>>(loc);
         return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
     }
 }
