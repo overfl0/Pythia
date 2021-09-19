@@ -298,8 +298,8 @@ void returnMultipart(unsigned long multipartID, char *output, int outputSize)
         auto &entry = multiparts.at(multipartID);
         auto &retval = entry.front();
 
-        size_t minSize = min((size_t)outputSize, retval.size() + 1);
-        strncpy_s(output, minSize, retval.data(), _TRUNCATE);
+        size_t minSize = std::min<size_t>((size_t)outputSize, retval.size() + 1);
+        snprintf(output, minSize, "%s", retval.data());
 
         entry.pop();
         if (entry.empty())

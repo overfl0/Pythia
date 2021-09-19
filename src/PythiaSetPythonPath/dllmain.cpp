@@ -1,7 +1,7 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <tchar.h>
 #include <string>
 #include "../Pythia/Logger.h"
@@ -35,14 +35,14 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
 {
     std::string str = Logger::w2s(pythonPath);
     size_t minSize = min((size_t)outputSize, str.size() + 1);
-    strncpy_s(output, minSize, str.c_str(), _TRUNCATE);
+    snprintf(output, minSize, "%s", str.c_str());
 }
 
 void __stdcall RVExtensionVersion(char *output, int outputSize)
 {
     std::string versionInfo(PYTHIA_VERSION);
     size_t minSize = min((size_t)outputSize, versionInfo.size() + 1);
-    strncpy_s(output, minSize, versionInfo.c_str(), _TRUNCATE);
+    snprintf(output, minSize, "%s", versionInfo.c_str());
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,

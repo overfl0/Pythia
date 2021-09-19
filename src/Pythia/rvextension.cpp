@@ -47,7 +47,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
             std::string escaped = std::regex_replace(ex.what(), std::regex("\""), "\"\"");
             std::string toPrint = std::string("[\"e\", \"") + escaped + "\"]";
             size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
-            strncpy_s(output, minSize, toPrint.c_str(), _TRUNCATE);
+            snprintf(output, minSize, "%s", toPrint.c_str());
         }
         python->leavePythonThread();
     }
@@ -58,7 +58,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         std::string escaped = std::regex_replace(pythonInitializationError, std::regex("\""), "\"\"");
         std::string toPrint = std::string("[\"e\", \"Python not initialised: ") + escaped + "\"]";
         size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
-        strncpy_s(output, outputSize, toPrint.c_str(), _TRUNCATE);
+        snprintf(output, minSize, "%s", toPrint.c_str());
     }
 }
 
@@ -66,5 +66,5 @@ void __stdcall RVExtensionVersion(char *output, int outputSize)
 {
     std::string versionInfo(PYTHIA_VERSION);
     size_t minSize = min((size_t)outputSize, versionInfo.size() + 1);
-    strncpy_s(output, minSize, versionInfo.c_str(), _TRUNCATE);
+    snprintf(output, minSize, "%s", versionInfo.c_str());
 }

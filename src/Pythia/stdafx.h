@@ -8,6 +8,12 @@
 #include <windows.h>
 #endif
 
+/* Don't let Python.h #define (v)snprintf as macro because they are implemented
+   properly in Visual Studio since 2015. */
+#if defined(_MSC_VER) && _MSC_VER >= 1900
+#  define HAVE_SNPRINTF 1
+#endif
+
 #include <queue>
 #include <random>
 #include <string>
@@ -15,6 +21,3 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "third_party/spdlog/spdlog.h"
-
-
-// TODO: reference additional headers your program requires here
