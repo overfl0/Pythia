@@ -20,7 +20,7 @@ add_library(Pythia SHARED
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    target_link_libraries(Pythia stdc++fs dl)
+    target_link_libraries(Pythia ${Python3_LIBRARIES} stdc++fs dl)
 else() # MSVC
     if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo OR CMAKE_BUILD_TYPE STREQUAL Release)
         set_target_properties(Pythia PROPERTIES COMPILE_FLAGS "/GL")
@@ -42,8 +42,4 @@ else()
     set_target_properties(Pythia PROPERTIES OUTPUT_NAME "Pythia")
 endif()
 
-#target_link_libraries(Pythia ${Python3_LIBRARIES})
-# add_definitions(-DEXPMODULE)
-
-# target_link_libraries(Pythia debug libutil.lib)
-# target_link_libraries(Pythia optimized libutil.lib)
+# PYTHON_CONFIGURE_OPTS="--enable-shared" time pyenv install --force 3.7.9
