@@ -17,6 +17,7 @@ __pycache__
 tmpBuildFiles
 @Pythia/Pythia.dll
 @Pythia/Pythia_x64.dll
+@Pythia/libPythia.so
 @Pythia/PythiaSetPythonPath.dll
 @Pythia/PythiaSetPythonPath_x64.dll
 @Pythia/PythiaTester.exe

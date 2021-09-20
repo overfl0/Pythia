@@ -13,8 +13,14 @@ extern std::string pythonInitializationError;
 
 extern "C"
 {
-    __declspec (dllexport) void __stdcall RVExtension(char *output, int outputSize, const char *input);
-    __declspec (dllexport) void __stdcall RVExtensionVersion(char *output, int outputSize);
+#ifdef _WIN32
+    __declspec(dllexport) void __stdcall RVExtension(char* output, int outputSize, const char* input);
+    __declspec(dllexport) void __stdcall RVExtensionVersion(char* output, int outputSize);
+#else
+    #define __stdcall
+    __attribute__((visibility("default"))) void RVExtension(char* output, int outputSize, const char* input);
+    __attribute__((visibility("default"))) void RVExtensionVersion(char* output, int outputSize);
+#endif
 }
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
@@ -22,7 +28,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
     static bool logger_initialized = false;
     if (!logger_initialized)
     {
-        switchToAsyncLogger("PythiaLogger", L"Pythia_c.log");
+        switchToAsyncLogger("PythiaLogger", LITERAL("Pythia_c.log"));
         logger_initialized = true;
     }
     if (python != nullptr)
@@ -46,7 +52,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
             // since this is going to happen rarely
             std::string escaped = std::regex_replace(ex.what(), std::regex("\""), "\"\"");
             std::string toPrint = std::string("[\"e\", \"") + escaped + "\"]";
-            size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
+            size_t minSize = std::min<size_t>((size_t)outputSize, toPrint.size() + 1);
             snprintf(output, minSize, "%s", toPrint.c_str());
         }
         python->leavePythonThread();
@@ -57,7 +63,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         // since this is going to happen rarely
         std::string escaped = std::regex_replace(pythonInitializationError, std::regex("\""), "\"\"");
         std::string toPrint = std::string("[\"e\", \"Python not initialised: ") + escaped + "\"]";
-        size_t minSize = min((size_t)outputSize, toPrint.size() + 1);
+        size_t minSize = std::min<size_t>((size_t)outputSize, toPrint.size() + 1);
         snprintf(output, minSize, "%s", toPrint.c_str());
     }
 }
@@ -65,6 +71,6 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
 void __stdcall RVExtensionVersion(char *output, int outputSize)
 {
     std::string versionInfo(PYTHIA_VERSION);
-    size_t minSize = min((size_t)outputSize, versionInfo.size() + 1);
+    size_t minSize = std::min<size_t>((size_t)outputSize, versionInfo.size() + 1);
     snprintf(output, minSize, "%s", versionInfo.c_str());
 }
