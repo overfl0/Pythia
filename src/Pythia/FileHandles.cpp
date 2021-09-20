@@ -344,10 +344,29 @@ int getOpenFiles(WStringVector &files)
 
 #else  // ifdef _WIN32
 
+#include <filesystem>
+
 int getOpenFiles(WStringVector& files)
 {
-    // TODO: Implement lsof
-    return 0;
+    files.clear();
+
+    std::error_code ec;
+
+    for (auto& entry : std::filesystem::directory_iterator("/proc/self/fd", ec))
+    {
+        if (!std::filesystem::is_symlink(entry, ec))
+            continue;
+
+        auto file = std::filesystem::read_symlink(entry, ec);
+        if (ec)
+        {
+            continue;
+        }
+
+        files.push_back(file);
+    }
+
+    return 1;
 }
 
 #endif  // ifdef _WIN32
