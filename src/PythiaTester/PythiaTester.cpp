@@ -256,7 +256,6 @@ int waitAndReturn(int retval)
 
 int main()
 {
-#ifdef _WIN32 // For now don't even use SerPythonPath on linux
     #ifdef _WIN32
     HINSTANCE setPathHandle = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
     #else
@@ -267,7 +266,7 @@ int main()
         std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
         return waitAndReturn(1);
     }
-#endif
+
     #ifdef _WIN32
     HINSTANCE libHandle = LoadLibrary(TEXT(PYTHIA_DLL));
     #else
@@ -322,7 +321,7 @@ int main()
     }
     else
     {
-        std::cout << "Could not open library dll." << std::endl;
+        std::cout << "Could not open library: " << PYTHIA_DLL << std::endl;
         return waitAndReturn(1);
     }
 
