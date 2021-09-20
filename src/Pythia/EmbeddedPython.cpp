@@ -64,7 +64,7 @@ namespace
     };
 }
 
-void EmbeddedPython::DoPythonMagic(std::wstring path)
+void EmbeddedPython::DoPythonMagic(tstring path)
 {
     // Python pre-initialization magic
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
@@ -74,10 +74,12 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     _putenv_s("PYTHONHOME", "");
     _putenv_s("PYTHONPATH", "");
     _putenv_s("PYTHONNOUSERSITE", "1");  // Disable custom user site
+    std::wstring wpath = path;
     #else
     setenv("PYTHONHOME", "", true);
     setenv("PYTHONPATH", "", true);
     setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
+    std::wstring wpath = Logger::s2w(path);
     #endif
 
     Py_IgnoreEnvironmentFlag = 1;
@@ -86,13 +88,13 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     Py_NoUserSiteDirectory = 1;
 
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
-    pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
+    pythonHomeString = std::vector<wchar_t>(wpath.begin(), wpath.end());
     pythonHomeString.push_back(0);
     Py_SetPythonHome(pythonHomeString.data());
     LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
 
     // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
-    std::wstring programName = path + L"\\python.exe"; // Not sure if that should be the value here
+    std::wstring programName = wpath + L"\\python.exe"; // Not sure if that should be the value here
     programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
     programNameString.push_back(0);
     Py_SetProgramName(programNameString.data());
@@ -107,13 +109,24 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         L"D:\\Steam\\SteamApps\\common\\Arma 3");
     */
     // TODO: Linux separator is ':'
+    #ifdef _WIN32
     std::wstring allPaths =
-        path + L"\\python" PYTHON_VERSION + L".zip" + L";" +
-        path + L"\\DLLs" + L";" +
-        path + L"\\lib" + L";" +
-        path + L";" +
-        path + L"\\Lib\\site-packages" + L";" +
+        wpath + L"\\python" PYTHON_VERSION + L".zip" + L";" +
+        wpath + L"\\DLLs" + L";" +
+        wpath + L"\\lib" + L";" +
+        wpath + L";" +
+        wpath + L"\\Lib\\site-packages" + L";" +
         getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
+    #else
+    // TODO: Check these paths later
+    std::wstring allPaths =
+        wpath + L"/python" PYTHON_VERSION + L".zip" + L";" +
+        wpath + L"/DLLs" + L";" +
+        wpath + L"/lib" + L";" +
+        wpath + L";" +
+        wpath + L"/Lib/site-packages" + L";" +
+        Logger::s2w(getProgramDirectory()); // For `python/` directory access. TODO: Use import hooks for that
+    #endif
     pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
     pathString.push_back(0);
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),

@@ -11,7 +11,7 @@ file(GLOB doubleconversion third_party/double-conversion/*.cc)
 file(GLOB modules Modules/*.cpp)
 file(GLOB python_generated python_generated/*.h)
 
-add_library(Pythia SHARED 
+add_library(Pythia SHARED
     ${files}
     ${doubleconversion}
     ${modules}
@@ -20,6 +20,7 @@ add_library(Pythia SHARED
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
+    target_link_libraries(Pythia stdc++fs dl)
 else() # MSVC
     if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo OR CMAKE_BUILD_TYPE STREQUAL Release)
         set_target_properties(Pythia PROPERTIES COMPILE_FLAGS "/GL")

@@ -10,7 +10,7 @@ class EmbeddedPython
 public:
     EmbeddedPython();
     virtual ~EmbeddedPython();
-    
+
     void initialize();
     void initModules(modules_t mods);
     void deinitialize();
@@ -22,7 +22,7 @@ public:
 private:
     EmbeddedPython(const EmbeddedPython&) = delete;
     void operator=(const EmbeddedPython&) = delete;
-    void DoPythonMagic(std::wstring path);
+    void DoPythonMagic(tstring path);
 
 private:
     PyObject *pModule;
