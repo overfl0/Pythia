@@ -2,6 +2,7 @@
 #include <SDKDDKVer.h>
 #include <windows.h>
 #else
+#include <dlfcn.h>
 #define __stdcall
 #define _strdup strdup
 #define sprintf_s sprintf
@@ -222,14 +223,26 @@ void test_coroutines()
     std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
 }
 
-#ifdef _WIN64
-#define PYTHIA_DLL "Pythia_x64.dll"
-#define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.dll"
-#define FUNCNAME "RVExtension"
-#else
-#define PYTHIA_DLL "Pythia.dll"
-#define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.dll"
-#define FUNCNAME "_RVExtension@12"
+#ifdef _WIN32
+    #ifdef _WIN64
+        #define PYTHIA_DLL "Pythia_x64.dll"
+        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.dll"
+        #define FUNCNAME "RVExtension"
+    #else
+        #define PYTHIA_DLL "Pythia.dll"
+        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.dll"
+        #define FUNCNAME "_RVExtension@12"
+    #endif
+    #else // ifdef _WIN32
+    #if defined(__amd64__) || defined(_M_X64) /* x86_64 arch */
+        #define PYTHIA_DLL "libPythia_x64.so"
+        #define PYTHON_SET_PATH_DLL "libPythiaSetPythonPath_x64.so"
+        #define FUNCNAME "RVExtension"
+    #else
+        #define PYTHIA_DLL "libPythia.so"
+        #define PYTHON_SET_PATH_DLL "libPythiaSetPythonPath.so"
+        #define FUNCNAME "_RVExtension@12"
+    #endif
 #endif
 
 
@@ -243,18 +256,31 @@ int waitAndReturn(int retval)
 
 int main()
 {
-    HINSTANCE hInstSetPath = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
-    if (!hInstSetPath)
+#ifdef _WIN32 // For now don't even use SerPythonPath on linux
+    #ifdef _WIN32
+    HINSTANCE setPathHandle = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
+    #else
+    void* setPathHandle = dlopen(PYTHON_SET_PATH_DLL, RTLD_LAZY);
+    #endif
+    if (!setPathHandle)
     {
         std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
         return waitAndReturn(1);
     }
+#endif
+    #ifdef _WIN32
+    HINSTANCE libHandle = LoadLibrary(TEXT(PYTHIA_DLL));
+    #else
+    void* libHandle = dlopen(PYTHIA_DLL, RTLD_LAZY);
+    #endif
 
-    HINSTANCE hInstLibrary = LoadLibrary(TEXT(PYTHIA_DLL));
-
-    if (hInstLibrary)
+    if (libHandle)
     {
-        RVExtension = (RVExtension_t)GetProcAddress(hInstLibrary, FUNCNAME);
+        #ifdef _WIN32
+        RVExtension = (RVExtension_t)GetProcAddress(libHandle, FUNCNAME);
+        #else
+        RVExtension = (RVExtension_t)dlsym(libHandle, FUNCNAME);
+        #endif
 
         if (RVExtension)
         {
@@ -288,7 +314,11 @@ int main()
             std::cout << "Could not get RVExtension function." << std::endl;
             return waitAndReturn(1);
         }
-        FreeLibrary(hInstLibrary);
+        #ifdef _WIN32
+        FreeLibrary(libHandle);
+        #else
+        dlclose(libHandle);
+        #endif
     }
     else
     {

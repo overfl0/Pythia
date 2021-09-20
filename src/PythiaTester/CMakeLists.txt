@@ -21,6 +21,13 @@ else()
     set_target_properties(PythiaTester PROPERTIES OUTPUT_NAME "PythiaTester")
 endif()
 
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+    target_link_libraries(PythiaTester dl)
+else() # MSVC
+
+endif()
+
 #target_link_libraries(PythiaTester ${PYTHON_LIBRARIES})
 # add_definitions(-DEXPMODULE)
 
