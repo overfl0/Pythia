@@ -15,7 +15,7 @@ add_custom_command(
         "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia/"
 )
 
-if(CMAKE_CL_64)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set_target_properties(PythiaTester PROPERTIES OUTPUT_NAME "PythiaTester_x64")
 else()
     set_target_properties(PythiaTester PROPERTIES OUTPUT_NAME "PythiaTester")
