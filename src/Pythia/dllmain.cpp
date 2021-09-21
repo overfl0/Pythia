@@ -8,13 +8,14 @@
 extern EmbeddedPython *python;
 extern std::string pythonInitializationError;
 
-std::shared_ptr<spdlog::logger> Logger::logfile = getFallbackLogger();
+std::shared_ptr<spdlog::logger> Logger::logfile = nullptr;
 
 #ifndef _WIN32
 __attribute__((constructor))
 #endif
 void libraryLoad()
 {
+    Logger::logfile = getFallbackLogger();
     // Ignore delay loading dlls for now as there are problems with loading
     // data from those dlls - and we need that data!
     /*
