@@ -17,10 +17,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     endif()
 
     message(STATUS "Setting GCC flags")
-    #SET(CMAKE_CXX_FLAGS "-std=c++17 -march=i686 -m32 -O2 -s -fPIC -fpermissive")
-    SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread")
-    set(CMAKE_LIBRARY_ARCHITECTURE x86_64)
-    #set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(CMAKE_LIBRARY_ARCHITECTURE x86_64)
+        set(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread")
+    else()
+        set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
+        set(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread -march=i686 -m32")
+    endif()
 
 else() # MSVC
 
@@ -57,7 +60,6 @@ add_subdirectory(src/PythiaTester)
 # add_subdirectory(src/UnitTests)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PythiaSetPythonPath)
-
 
 # Dump all cmake variables
 # get_cmake_property(_variableNames VARIABLES)
