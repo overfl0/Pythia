@@ -54,6 +54,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
             std::string toPrint = std::string("[\"e\", \"") + escaped + "\"]";
             size_t minSize = std::min<size_t>((size_t)outputSize, toPrint.size() + 1);
             snprintf(output, minSize, "%s", toPrint.c_str());
+            LOG_ERROR(toPrint);
         }
         python->leavePythonThread();
     }
@@ -65,6 +66,7 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         std::string toPrint = std::string("[\"e\", \"Python not initialised: ") + escaped + "\"]";
         size_t minSize = std::min<size_t>((size_t)outputSize, toPrint.size() + 1);
         snprintf(output, minSize, "%s", toPrint.c_str());
+        LOG_ERROR(toPrint);
     }
 }
 

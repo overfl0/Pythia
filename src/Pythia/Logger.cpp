@@ -17,6 +17,8 @@ void createLogger(std::string loggerName, spdlog::filename_t loggerFile)
         spdlog::set_level(spdlog::level::debug);
         spdlog::set_sync_mode();
         Logger::logfile = spdlog::rotating_logger_mt(loggerName, loggerFile, 1024 * 1024 * 10, 3);
+        LOG_INFO("Synchronous logger created");
+        LOG_FLUSH();
     }
     catch (const spdlog::spdlog_ex& ex)
     {
