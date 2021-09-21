@@ -268,6 +268,12 @@ int main()
     }
 
     #ifdef _WIN32
+    FreeLibrary(setPathHandle);
+    #else
+    dlclose(setPathHandle);
+    #endif
+
+    #ifdef _WIN32
     HINSTANCE libHandle = LoadLibrary(TEXT(PYTHIA_DLL));
     #else
     void* libHandle = dlopen(PYTHIA_DLL, RTLD_LAZY);

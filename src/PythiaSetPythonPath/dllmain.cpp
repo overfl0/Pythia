@@ -9,7 +9,7 @@
 
 #define LOGGER_FILENAME LITERAL("PythiaSetPythonPath.log")
 
-std::shared_ptr<spdlog::logger> Logger::logfile = getFallbackLogger();  // TODO: Changeme
+std::shared_ptr<spdlog::logger> Logger::logfile = nullptr;
 std::wstring pythonPath = L"<Not set>";
 
 void setDLLPath()
@@ -59,9 +59,9 @@ __attribute__((constructor))
 #endif
 void libraryLoad()
 {
+    Logger::logfile = getFallbackLogger();
     createLogger("PythiaSetPythonPathLogger", LOGGER_FILENAME);
     setDLLPath();
-    LOG_FLUSH();
 }
 
 #ifndef _WIN32
@@ -69,7 +69,11 @@ __attribute__((destructor))
 #endif
 void libraryUnload()
 {
+    #ifdef _WIN32
+    // On linux this seems to be called too late and causes a segfault
     LOG_FLUSH();
+    #endif // _WIN32
+
     spdlog::drop_all();
 }
 
