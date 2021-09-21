@@ -18,7 +18,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
     message(STATUS "Setting GCC flags")
     #SET(CMAKE_CXX_FLAGS "-std=c++17 -march=i686 -m32 -O2 -s -fPIC -fpermissive")
-    SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -fpermissive")
+    SET(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread")
     set(CMAKE_LIBRARY_ARCHITECTURE x86_64)
     #set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
 

@@ -9,7 +9,7 @@ add_library(PythiaSetPythonPath SHARED
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    target_link_libraries(PythiaSetPythonPath pthread)
+
 endif()
 
 # Copy the file to the @Pythia directory after the fact
