@@ -20,7 +20,7 @@ add_custom_command(
         "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia/"
 )
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+if(USE_64BIT_BUILD)
     set_target_properties(PythiaSetPythonPath PROPERTIES OUTPUT_NAME "PythiaSetPythonPath_x64")
 else()
     set_target_properties(PythiaSetPythonPath PROPERTIES OUTPUT_NAME "PythiaSetPythonPath")

@@ -3,29 +3,37 @@
 ###############################################################################
 set(PYTHON_VERSION_MAJOR "3")
 set(PYTHON_VERSION_MINOR "7")
+option(USE_64BIT_BUILD "USE_64BIT_BUILD" ON)
 
 cmake_minimum_required(VERSION 3.14.7)
 project(PythiaProject)
 
 message(STATUS "Cmake version: ${CMAKE_VERSION}")
-message(STATUS "Compiler: ${CMAKE_C_COMPILER}")
 
+message(STATUS "Compiler: ${CMAKE_C_COMPILER} version ${CMAKE_CXX_COMPILER_VERSION}")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-        message(FATAL_ERROR "Require at least gcc-8.0")
+    if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        message(FATAL_ERROR "Require at least gcc-9.0")
     endif()
 
-    message(STATUS "Setting GCC flags")
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(CMAKE_LIBRARY_ARCHITECTURE x86_64)
+    if(USE_64BIT_BUILD)
+        message(STATUS "Setting GCC flags (64bit)")
+        set(CMAKE_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
         set(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread")
     else()
+        message(STATUS "Setting GCC flags (32bit)")
         set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
         set(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread -march=i686 -m32")
     endif()
 
 else() # MSVC
+    if(CMAKE_SIZEOF_VOID_P LESS 8)
+        set(USE_64BIT_BUILD OFF)
+        message(STATUS "Setting MSVC flags (32bit)")
+    else()
+        message(STATUS "Setting MSVC flags (64bit)")
+    endif()
 
     message(STATUS "Setting MSVC flags")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")

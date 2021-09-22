@@ -59,13 +59,43 @@
             "variables": [
                 {
                     "name": "CMAKE_C_COMPILER",
-                    "value": "/usr/bin/gcc-8",
+                    "value": "/usr/bin/gcc-9",
                     "type": "FILEPATH"
                 },
                 {
                     "name": "CMAKE_CXX_COMPILER",
-                    "value": "/usr/bin/g++-8",
+                    "value": "/usr/bin/g++-9",
                     "type": "FILEPATH"
+                }
+            ]
+        },
+        {
+            "name": "x86-WSL-GCC-Release",
+            "generator": "Ninja",
+            "configurationType": "RelWithDebInfo",
+            "buildRoot": "${projectDir}\\out\\build\\${name}",
+            "installRoot": "${projectDir}\\out\\install\\${name}",
+            "cmakeExecutable": "cmake",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "inheritEnvironments": [ "linux_x86" ],
+            "wslPath": "${defaultWSLPath}",
+            "variables": [
+                {
+                    "name": "CMAKE_C_COMPILER",
+                    "value": "/usr/bin/gcc-9",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_CXX_COMPILER",
+                    "value": "/usr/bin/g++-9",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "USE_64BIT_BUILD",
+                    "value": "OFF",
+                    "type": "STRING"
                 }
             ]
         }
