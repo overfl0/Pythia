@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include <memory>
 #include <locale> // wstring_convert
+#include <codecvt> // codecvt_utf8_utf16
 
 std::shared_ptr<spdlog::logger> getFallbackLogger()
 {
@@ -75,15 +76,25 @@ namespace Logger
 
     std::string w2s(const std::wstring &var)
     {
+    #ifdef _WIN32 // If it ain't broke, don't fix it
         static std::locale loc("");
         auto &facet = std::use_facet<codecvt<wchar_t, char, std::mbstate_t>>(loc);
         return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
+    #else
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.to_bytes(var);
+    #endif
     }
 
     std::wstring s2w(const std::string &var)
     {
+    #ifdef _WIN32 // If it ain't broke, don't fix it
         static std::locale loc("");
         auto &facet = std::use_facet<codecvt<wchar_t, char, std::mbstate_t>>(loc);
         return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
+    #else
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.from_bytes(var);
+    #endif
     }
 }
