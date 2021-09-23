@@ -30,8 +30,7 @@ private:
     PyThreadState *pThreadState;
 
     // Python magic
-    std::vector<wchar_t> pythonHomeString;
-    std::vector<wchar_t> programNameString;
-    std::vector<wchar_t> pathString;
+    std::wstring pythonHomeString;
+    std::wstring programNameString;
 };
 

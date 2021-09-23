@@ -64,6 +64,30 @@ namespace
     };
 }
 
+std::wstring joinPaths(std::vector<std::wstring> const paths)
+{
+    std::wstring out;
+    bool firstTime = true;
+    for(const auto& path : paths)
+    {
+        if(firstTime)
+        {
+            firstTime = false;
+            out += path;
+        }
+        else
+        {
+#ifdef _WIN32
+            out += L";";
+#else
+            out += L":";
+#endif
+            out += path;
+        }
+    }
+    return out;
+}
+
 void EmbeddedPython::DoPythonMagic(tstring path)
 {
     // Python pre-initialization magic
@@ -79,6 +103,7 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     setenv("PYTHONHOME", "", true);
     setenv("PYTHONPATH", "", true);
     setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
+
     std::wstring wpath = Logger::s2w(path);
     #endif
 
@@ -88,15 +113,16 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     Py_NoUserSiteDirectory = 1;
 
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
-    pythonHomeString = std::vector<wchar_t>(wpath.begin(), wpath.end());
-    pythonHomeString.push_back(0);
+    this->pythonHomeString = wpath;
     Py_SetPythonHome(pythonHomeString.data());
     LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
 
     // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
-    std::wstring programName = wpath + L"\\python.exe"; // Not sure if that should be the value here
-    programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
-    programNameString.push_back(0);
+#ifdef _WIN32
+    this->programNameString = wpath + L"\\python.exe"; // Not sure if that should be the value here
+#else
+    this->programNameString = wpath + L"/bin/python"; // Not sure if that should be the value here
+#endif
     Py_SetProgramName(programNameString.data());
     LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
 
@@ -108,29 +134,29 @@ void EmbeddedPython::DoPythonMagic(tstring path)
         L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\Lib\\site-packages;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3");
     */
-    // TODO: Linux separator is ':'
+
     #ifdef _WIN32
-    std::wstring allPaths =
-        wpath + L"\\python" PYTHON_VERSION + L".zip" + L";" +
-        wpath + L"\\DLLs" + L";" +
-        wpath + L"\\lib" + L";" +
-        wpath + L";" +
-        wpath + L"\\Lib\\site-packages" + L";" +
-        getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
+    std::wstring allPaths = joinPaths({
+        wpath + L"\\python" PYTHON_VERSION + L".zip",
+        wpath + L"\\DLLs",
+        wpath + L"\\lib",
+        wpath,
+        wpath + L"\\Lib\\site-packages",
+        getProgramDirectory() // For `python/` directory access. TODO: Use import hooks for that
+    });
     #else
-    // TODO: Check these paths later
-    std::wstring allPaths =
-        wpath + L"/python" PYTHON_VERSION + L".zip" + L";" +
-        wpath + L"/DLLs" + L";" +
-        wpath + L"/lib" + L";" +
-        wpath + L";" +
-        wpath + L"/Lib/site-packages" + L";" +
-        Logger::s2w(getProgramDirectory()); // For `python/` directory access. TODO: Use import hooks for that
+    std::wstring allPaths = joinPaths({
+        wpath + L"/lib/python" PYTHON_VERSION + L".zip",
+        wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
+        wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
+        wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
+        wpath,
+        Logger::s2w(getProgramDirectory()) // For `python/` directory access. TODO: Use import hooks for that
+    });
     #endif
-    pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
-    pathString.push_back(0);
+
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
-    Py_SetPath(pathString.data());
+    Py_SetPath(allPaths.c_str());;
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 }
