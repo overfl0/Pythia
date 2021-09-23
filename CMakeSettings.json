@@ -96,6 +96,11 @@
                     "name": "USE_64BIT_BUILD",
                     "value": "OFF",
                     "type": "STRING"
+                },
+                {
+                    "name": "CMAKE_PREFIX_PATH",
+                    "value": "/home/lukasz/.pyenv/versions/3.7.9_32",
+                    "type": "STRING"
                 }
             ]
         }
