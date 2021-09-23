@@ -241,7 +241,7 @@ void test_coroutines()
     #else
         #define PYTHIA_DLL "libPythia.so"
         #define PYTHON_SET_PATH_DLL "libPythiaSetPythonPath.so"
-        #define FUNCNAME "_RVExtension@12"
+        #define FUNCNAME "RVExtension"
     #endif
 #endif
 
