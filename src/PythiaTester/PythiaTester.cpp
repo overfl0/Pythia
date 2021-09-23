@@ -54,10 +54,10 @@ void test()
         RVExtensionCheck(output, sizeof(output), command);
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Last call output: " << output << std::endl;
-    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
 std::string createPingRequest(std::string sqf)
@@ -122,9 +122,9 @@ int test_performance_echo(std::string testName, std::string sqf)
         RVExtensionCheck(output, sizeof(output), request.c_str());
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-    std::cout << "Test " << testName << ": " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Test " << testName << ": " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
     return 0;
 }
 
@@ -181,9 +181,10 @@ void test_fuzzing_multiple()
             return;
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
     std::cout << "Tests OK!" << std::endl;
-    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
 void test_coroutines()
@@ -217,10 +218,10 @@ void test_coroutines()
         }
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Last call output: " << output << std::endl;
-    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
 #ifdef _WIN32
