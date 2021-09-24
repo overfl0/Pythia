@@ -16,9 +16,17 @@ add_custom_command(
 )
 
 if(USE_64BIT_BUILD)
-    set_target_properties(PythiaTester PROPERTIES OUTPUT_NAME "PythiaTester_x64")
+    set_target_properties(PythiaTester PROPERTIES
+        OUTPUT_NAME "PythiaTester_x64"
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "\$ORIGIN"
+    )
 else()
-    set_target_properties(PythiaTester PROPERTIES OUTPUT_NAME "PythiaTester")
+    set_target_properties(PythiaTester PROPERTIES
+        OUTPUT_NAME "PythiaTester"
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "\$ORIGIN"
+    )
 endif()
 
 
