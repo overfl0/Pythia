@@ -35,9 +35,3 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 else() # MSVC
 
 endif()
-
-#target_link_libraries(PythiaTester ${PYTHON_LIBRARIES})
-# add_definitions(-DEXPMODULE)
-
-# target_link_libraries(PythiaTester debug libutil.lib)
-# target_link_libraries(PythiaTester optimized libutil.lib)

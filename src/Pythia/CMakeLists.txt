@@ -37,9 +37,17 @@ add_custom_command(
 )
 
 if(USE_64BIT_BUILD)
-    set_target_properties(Pythia PROPERTIES OUTPUT_NAME "Pythia_x64")
+    set_target_properties(Pythia PROPERTIES
+        OUTPUT_NAME "Pythia_x64"
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "\$ORIGIN/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-linux64/lib"
+    )
 else()
-    set_target_properties(Pythia PROPERTIES OUTPUT_NAME "Pythia")
+    set_target_properties(Pythia PROPERTIES
+        OUTPUT_NAME "Pythia"
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "\$ORIGIN/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-linux32/lib"
+    )
 endif()
 
 # PYTHON_CONFIGURE_OPTS="--enable-shared" time pyenv install --force 3.7.9
