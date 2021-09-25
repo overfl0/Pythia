@@ -3,6 +3,7 @@ import os
 import platform
 import shutil
 import subprocess
+import tarfile
 import urllib.request
 import zipfile
 from io import BytesIO
@@ -10,12 +11,20 @@ from io import BytesIO
 from common import ignore_no_file
 
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
+BASE_STANDALONE_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}-{arch}-' \
+                          'unknown-linux-gnu-noopt.tbz'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
 MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
-ARCHITECTURES = ['win32', 'amd64']
-PYTHON_VERSION = '3.7.9'
+ARCHITECTURES_WINDOWS = ['win32', 'amd64']
+ARCHITECTURES_LINUX = ['linux32', 'linux64']
+ARCHITECTURES_CURRENT = ARCHITECTURES_WINDOWS if platform.system() == 'Windows' else ARCHITECTURES_LINUX
+STANDALONE_MAPPING = {
+    'linux32': 'i686',
+    'linux64': 'x86_64',
+}
 PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.0.4', 'wheel==0.37.0']
+PYTHON_VERSION = '3.7.9'
 
 
 def install_pip_for(python_executable):
@@ -65,56 +74,72 @@ def prepare_distro(basedir, version, arch, install_pip=True):
     4) Install pip inside
     """
 
-    url = BASE_ADDRESS.format(version=version, arch=arch)
+    if arch in ARCHITECTURES_WINDOWS:
+        url = BASE_ADDRESS.format(version=version, arch=arch)
+    else:
+        url = BASE_STANDALONE_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
+
     version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
     directory = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
     print('* Preparing embedded python-{version} for {arch}...'.format(version=version, arch=arch))
 
-    # Download zip file
-    print('* Downloading python zip...')
+    # Download compressed file
+    print('* Downloading python compressed installation...')
     file_raw = urllib.request.urlopen(url).read()
     os.makedirs(directory)
 
-    # Unpack it
-    print('Extracting...')
-    python_zip_file = zipfile.ZipFile(BytesIO(file_raw), 'r')
-    python_zip_file.extractall(directory)
+    print('* Extracting...')
+    if arch in ARCHITECTURES_WINDOWS:
+        python_zip_file = zipfile.ZipFile(BytesIO(file_raw), 'r')
+        python_zip_file.extractall(directory)
 
-    # Unpack stdlib (not doing so breaks some pip downloaded tools, like 2to3)
-    # Prefetch the whole file prior to deletion
-    print('* Unpacking stdlib')
-    stdlib = 'python{version_with_minor}.zip'.format(version_with_minor=version_with_minor)
-    stdlib_path = os.path.join(directory, stdlib)
-    stdlib_zip_file = zipfile.ZipFile(BytesIO(open(stdlib_path, 'rb').read()), 'r')
-    os.unlink(stdlib_path)
-    os.makedirs(stdlib_path)
-    stdlib_zip_file.extractall(stdlib_path)
+        # Unpack stdlib (not doing so breaks some pip downloaded tools, like 2to3)
+        # Prefetch the whole file prior to deletion
+        print('* Unpacking stdlib')
+        stdlib = 'python{version_with_minor}.zip'.format(version_with_minor=version_with_minor)
+        stdlib_path = os.path.join(directory, stdlib)
+        stdlib_zip_file = zipfile.ZipFile(BytesIO(open(stdlib_path, 'rb').read()), 'r')
+        os.unlink(stdlib_path)
+        os.makedirs(stdlib_path)
+        stdlib_zip_file.extractall(stdlib_path)
 
-    # Python 3.6 and above
-    if int(version_with_minor[1]) >= 6:
-        # import site when executing python.exe (doesn't apply to the embedded
-        # version) which gives access to site-packages and that allows pip (and
-        # other packages) to be accessed
-        _pth = os.path.join(directory, 'python{version_with_minor}._pth'.format(version_with_minor=version_with_minor))
-        with open(_pth, 'a') as f:
-            f.write('import site\n')
+        # Python 3.6 and above
+        if int(version_with_minor[1]) >= 6:
+            # import site when executing python.exe (doesn't apply to the embedded
+            # version) which gives access to site-packages and that allows pip (and
+            # other packages) to be accessed
+            _pth = os.path.join(directory,
+                                'python{version_with_minor}._pth'.format(version_with_minor=version_with_minor))
+            with open(_pth, 'a') as f:
+                f.write('import site\n')
 
-    # Fetch files required when building Cython extensions from source, for example
-    fetch_dev_files(directory, version, arch)
+    else:  # Linux
+        python_tar_file = tarfile.open(None, "r:bz2", BytesIO(file_raw))
+        python_tar_file.extractall(directory)
+        python_tar_file.close()
+
+    if arch in ARCHITECTURES_WINDOWS:
+        # Fetch files required when building Cython extensions from source, for example
+        fetch_dev_files(directory, version, arch)
 
     # Install pip
     if install_pip:
-        print('* Installing pip into the python distribution...')
-        install_pip_for(os.path.join(directory, 'python.exe'))
-        print('* Pip installation done!\n')
+        if arch in ARCHITECTURES_WINDOWS:
+            print('* Installing pip into the python distribution...')
+            install_pip_for(os.path.join(directory, 'python.exe'))
+            print('* Pip installation done!\n')
+        else:  # Linux
+            # Don't install pip, for now, as the package is supposed to contain it already
+            # install_pip_for(os.path.join(directory, 'bin', 'python'))
+            pass
 
 
 def prepare_distros(basedir, version, architectures, do_cleanup=True):
     version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
     # Do a cleanup first
     if do_cleanup:
-        for arch in ARCHITECTURES:
+        for arch in ARCHITECTURES_WINDOWS + ARCHITECTURES_LINUX:
             path = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
             with ignore_no_file():
@@ -132,12 +157,13 @@ def prepare_distros(basedir, version, architectures, do_cleanup=True):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('base_directory', help='Directory in which the python directory will be created')
-    parser.add_argument('-a', '--arch', help='Architecture name', choices=ARCHITECTURES, action='append', default=[])
+    parser.add_argument('-a', '--arch', help='Architecture name', choices=ARCHITECTURES_WINDOWS + ARCHITECTURES_LINUX,
+                        action='append', default=None)
     parser.add_argument('-n', '--noclean', help='Don\'t remove other python installations', action='store_true')
     parser.add_argument('-v', '--version', help='Python version ("3.x.y")', default=PYTHON_VERSION)
     args = parser.parse_args()
 
     if not args.arch:
-        args.arch = ARCHITECTURES
+        args.arch = ARCHITECTURES_CURRENT
 
     prepare_distros(args.base_directory, args.version, args.arch, do_cleanup=not args.noclean)
