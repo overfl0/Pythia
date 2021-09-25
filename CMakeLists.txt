@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.14.7)
 project(PythiaProject)
 
 message(STATUS "Cmake version: ${CMAKE_VERSION}")
+message(STATUS "Cmake prefix path: ${CMAKE_PREFIX_PATH}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER} version ${CMAKE_CXX_COMPILER_VERSION}")
 
 if(CMAKE_COMPILER_IS_GNUCXX)

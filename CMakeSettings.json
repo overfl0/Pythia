@@ -66,6 +66,11 @@
                     "name": "CMAKE_CXX_COMPILER",
                     "value": "/usr/bin/g++-9",
                     "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_PREFIX_PATH",
+                    "value": "@Pythia/python-37-embed-linux64",
+                    "type": "STRING"
                 }
             ]
         },
@@ -99,7 +104,7 @@
                 },
                 {
                     "name": "CMAKE_PREFIX_PATH",
-                    "value": "/home/lukasz/.pyenv/versions/3.7.9_32",
+                    "value": "@Pythia/python-37-embed-linux32",
                     "type": "STRING"
                 }
             ]
