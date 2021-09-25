@@ -9,7 +9,6 @@ cmake_minimum_required(VERSION 3.14.7)
 project(PythiaProject)
 
 message(STATUS "Cmake version: ${CMAKE_VERSION}")
-
 message(STATUS "Compiler: ${CMAKE_C_COMPILER} version ${CMAKE_CXX_COMPILER_VERSION}")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -60,7 +59,8 @@ add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_
 add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
 find_package (Python3 "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" EXACT REQUIRED COMPONENTS Development)
-set(PYTHON_PATH "${Python3_RUNTIME_LIBRARY_DIRS}")
+message(STATUS "Python include_directories: ${Python3_INCLUDE_DIRS}")
+message(STATUS "Python link_directories: ${Python3_LIBRARY_DIRS}")
 
 add_subdirectory(src/Pythia)
 add_subdirectory(src/PythiaSetPythonPath)

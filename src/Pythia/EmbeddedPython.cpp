@@ -135,6 +135,14 @@ void EmbeddedPython::DoPythonMagic(tstring path)
         L"D:\\Steam\\SteamApps\\common\\Arma 3");
     */
 
+    /*
+        # Obtain the current paths by running the embedded python binary
+        import sys
+        base_dir = sys.executable.split('/bin/')[0]
+        for path in sys.path:
+            print(path.replace(base_dir, ''))
+     */
+
     #ifdef _WIN32
     std::wstring allPaths = joinPaths({
         wpath + L"\\python" PYTHON_VERSION + L".zip",
