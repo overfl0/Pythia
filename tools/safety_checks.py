@@ -66,3 +66,7 @@ def safety_checks():
     check_dll_architecture(os.path.join('@Pythia', 'Pythia_x64.dll'), x86=False)
     check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'), x86=True)
     check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'), x86=False)
+
+
+if __name__ == '__main__':
+    safety_checks()

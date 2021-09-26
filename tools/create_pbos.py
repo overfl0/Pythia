@@ -3,6 +3,7 @@ import glob
 import os
 import shutil
 import subprocess
+import sys
 
 from install_bisign import install_bisign
 from primitive_git import get_sha1_from_git_directory
@@ -123,4 +124,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
