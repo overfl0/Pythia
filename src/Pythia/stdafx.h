@@ -16,6 +16,9 @@
 #define tstring std::string
 #define LITERAL(x) (x)
 
+// Prevents this error: Failed getting file size from fd: Value too large for defined data type
+#define _FILE_OFFSET_BITS 64
+
 #endif
 
 /* Don't let Python.h #define (v)snprintf as macro because they are implemented
