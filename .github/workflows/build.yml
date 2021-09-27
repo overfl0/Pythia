@@ -107,8 +107,8 @@ jobs:
         with:
           name: Pythia_PBOs
           path: |
-            @Pythia/Addons
-            @Pythia/Keys
+            @Pythia/addons
+            @Pythia/keys
           if-no-files-found: error
           retention-days: 1
 
