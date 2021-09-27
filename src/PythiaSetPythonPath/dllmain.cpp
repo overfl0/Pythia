@@ -24,7 +24,7 @@ void setDLLPath()
         LOG_ERROR("Failed to call SetDllDirectory");
     }
     #else
-    LOG_INFO("Not changing any paths. On linux, this is handled using rpath in libPythia.so");
+    LOG_INFO("Not changing any paths. On linux, this is handled using rpath in Pythia.so");
     #endif
 }
 

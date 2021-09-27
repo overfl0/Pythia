@@ -236,12 +236,12 @@ void test_coroutines()
     #endif
     #else // ifdef _WIN32
     #if defined(__amd64__) || defined(_M_X64) /* x86_64 arch */
-        #define PYTHIA_DLL "libPythia_x64.so"
-        #define PYTHON_SET_PATH_DLL "libPythiaSetPythonPath_x64.so"
+        #define PYTHIA_DLL "Pythia_x64.so"
+        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.so"
         #define FUNCNAME "RVExtension"
     #else
-        #define PYTHIA_DLL "libPythia.so"
-        #define PYTHON_SET_PATH_DLL "libPythiaSetPythonPath.so"
+        #define PYTHIA_DLL "Pythia.so"
+        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.so"
         #define FUNCNAME "RVExtension"
     #endif
 #endif

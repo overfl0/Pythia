@@ -21,7 +21,13 @@ add_custom_command(
 )
 
 if(USE_64BIT_BUILD)
-    set_target_properties(PythiaSetPythonPath PROPERTIES OUTPUT_NAME "PythiaSetPythonPath_x64")
+    set_target_properties(PythiaSetPythonPath PROPERTIES
+        OUTPUT_NAME "PythiaSetPythonPath_x64"
+        PREFIX ""
+    )
 else()
-    set_target_properties(PythiaSetPythonPath PROPERTIES OUTPUT_NAME "PythiaSetPythonPath")
+    set_target_properties(PythiaSetPythonPath PROPERTIES
+        OUTPUT_NAME "PythiaSetPythonPath"
+        PREFIX ""
+    )
 endif()
