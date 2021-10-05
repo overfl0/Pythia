@@ -34,10 +34,10 @@ jobs:
     strategy:
       matrix:
         e: [
-          {arch: x64, os: windows-2019, build64: ON, prefix: amd64},
-          {arch: x86, os: windows-2019, build64: OFF, prefix: win32},
-          {arch: x64, os: ubuntu-20.04, build64: ON, prefix: linux64},
-          {arch: x86, os: ubuntu-20.04, build64: OFF, prefix: linux32},
+          {arch: x64, os: windows-2019, build64: ON, prefix: amd64, docker: ''},
+          {arch: x86, os: windows-2019, build64: OFF, prefix: win32, docker: ''},
+          {arch: x64, os: ubuntu-20.04, build64: ON, prefix: linux64, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
+          {arch: x86, os: ubuntu-20.04, build64: OFF, prefix: linux32, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
         ]
         python: [3.7.9]
 
@@ -64,13 +64,13 @@ jobs:
         with:
           arch: ${{ matrix.e.arch }}
 
-      - run: sudo apt-get install -y ninja-build g++-9-multilib
+      - run: docker build -f Dockerfile.${{ matrix.e.arch }} -t pythia:latest .
         if: ${{ runner.os == 'Linux' }}
 
-      - run: cmake -G Ninja -DCMAKE_PREFIX_PATH=@Pythia/python-37-embed-${{ matrix.e.prefix }} -DUSE_64BIT_BUILD=${{ matrix.e.build64 }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+      - run: ${{ matrix.e.docker }} cmake -G Ninja -DCMAKE_PREFIX_PATH=@Pythia/python-37-embed-${{ matrix.e.prefix }} -DUSE_64BIT_BUILD=${{ matrix.e.build64 }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         working-directory: ninja
 
-      - run: ninja
+      - run: ${{ matrix.e.docker }} ninja
         working-directory: ninja
 
       - uses: actions/upload-artifact@v2

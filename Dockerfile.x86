@@ -1,0 +1,7 @@
+FROM quay.io/pypa/manylinux2014_i686:latest
+
+RUN yum -y update
+RUN git clone https://github.com/ninja-build/ninja
+WORKDIR ninja
+RUN CFLAGS="-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64" ./configure.py --bootstrap
+RUN cp ninja /usr/bin

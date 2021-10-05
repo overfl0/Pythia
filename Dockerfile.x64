@@ -1,0 +1,14 @@
+# Container image that runs your code
+#FROM quay.io/pypa/manylinux_2_24_x86_64:latest
+#
+#RUN apt update
+#RUN apt install -y software-properties-common dirmngr
+#RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1E9377A2BA9EF27F
+#RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y
+#RUN apt update
+#RUN apt install -y ninja-build g++-9-multilib
+
+FROM quay.io/pypa/manylinux2014_x86_64:latest
+
+RUN yum -y update
+RUN yum install -y ninja-build
