@@ -11,7 +11,7 @@ rem ###########################################################################
 set requirements_file=%1
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
-FOR /D %%G IN ("%~dp0\python-*") DO (
+FOR /D %%G IN ("%~dp0\python-*-embed-amd64" "%~dp0\python-*-embed-win32") DO (
     echo ===============================================================================
     echo Installing requirements for %%G from %requirements_file%...
     echo ===============================================================================
