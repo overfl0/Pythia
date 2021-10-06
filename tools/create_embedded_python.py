@@ -40,6 +40,13 @@ def install_pip_for(python_executable):
         os.unlink(pip_installer)
 
 
+def install_pip_linux(python_executable):
+    """Just call ensurepip and then the regulat pip installation."""
+
+    subprocess.run([python_executable, '-m', 'ensurepip'], check=True)
+    subprocess.run([python_executable, '-m', 'pip', 'install'] + PIP_REQUIREMENTS, check=True)
+
+
 def fetch_dev_files(directory, version, arch):
     """Fetch the include and libs directories contained in dev.msi"""
 
@@ -125,14 +132,14 @@ def prepare_distro(basedir, version, arch, install_pip=True):
 
     # Install pip
     if install_pip:
+        print('* Installing pip into the python distribution...')
         if arch in ARCHITECTURES_WINDOWS:
-            print('* Installing pip into the python distribution...')
             install_pip_for(os.path.join(directory, 'python.exe'))
-            print('* Pip installation done!\n')
         else:  # Linux
             # Don't install pip, for now, as the package is supposed to contain it already
             # install_pip_for(os.path.join(directory, 'bin', 'python'))
-            pass
+            install_pip_linux(os.path.join(directory, 'bin', 'python3'))
+        print('* Pip installation done!\n')
 
 
 def prepare_distros(basedir, version, architectures, do_cleanup=True):
