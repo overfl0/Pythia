@@ -69,7 +69,7 @@ static std::string getPythiaModuleName(std::ifstream &stream)
  */
 static void tryAddingPythiaModule(modules_t &modules, const tstring path)
 {
-    auto pythiaFile = path + LITERAL("\\$PYTHIA$");
+    auto pythiaFile = path + std::filesystem::path::preferred_separator + LITERAL("$PYTHIA$");
 
     std::ifstream pythiaFileHandle;
     pythiaFileHandle.open(pythiaFile, std::ios::binary);
