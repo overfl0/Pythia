@@ -12,6 +12,10 @@
 #include "Modules/pythiainternal.h"
 #include "Modules/pythialogger.h"
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
 
@@ -167,6 +171,20 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     Py_SetPath(allPaths.c_str());;
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
+
+    #ifndef _WIN32
+    // https://stackoverflow.com/a/60746446/6543759
+    // https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
+    // undefined symbol: PyExc_ImportError
+    // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
+    // and in Python 3.8+ any C extension
+    // FIXME: Technically speaking, this is a leak
+    void* const libpython_handle = dlopen("libpython" PYTHON_VERSION_DOTTED "m.so", RTLD_LAZY | RTLD_GLOBAL);
+    if(!libpython_handle)
+    {
+        LOG_INFO("Could not load libpython3.7m.so");
+    }
+    #endif // ifndef _WIN32
 }
 
 EmbeddedPython::EmbeddedPython()
