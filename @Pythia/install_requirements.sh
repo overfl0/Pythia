@@ -14,7 +14,7 @@ do
     echo Installing requirements for $interpreter from "$1"...
     echo ===============================================================================
 
-    "${interpreter}"/bin/python3 -m pip install --upgrade -r "$1"
+    "${interpreter}"/bin/python3 -m pip install --no-warn-script-location --upgrade -r "$1"
 
     if [ $? -ne 0 ]; then
         echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
