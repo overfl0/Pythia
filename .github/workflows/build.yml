@@ -20,6 +20,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v2
 
+      - name: Install missing libcrypt dependency
+        if: runner.os == 'Linux' && steps.cache.outputs.cache-hit != 'true'
+        run: sudo dpkg --add-architecture i386 && sudo apt update && sudo apt install -y libcrypt1:i386
+
       - name: Create interpreters
         if: steps.cache.outputs.cache-hit != 'true'
         run: python tools/create_embedded_python.py .
