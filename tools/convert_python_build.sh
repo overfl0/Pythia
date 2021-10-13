@@ -14,6 +14,7 @@ rm -rf python
 tar -I zstd -xvf "$1"
 pushd python/install/
 rm -rf lib/python*/test
+find -name '*.a' -delete
 #zip -r "${1%-*}.zip" bin include lib share
 tar -jcvf "${1%-*}.tbz" bin include lib share
 mv "${1%-*}.tbz" ../..
