@@ -14,7 +14,7 @@ jobs:
         id: cache
         with:
           path: python-${{ matrix.python }}-${{ runner.os }}.tar
-          key: interpreters-${{ matrix.python }}-${{ runner.os }}
+          key: interpreters-${{ matrix.python }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
       - name: Check out repository code
         if: steps.cache.outputs.cache-hit != 'true'
@@ -50,7 +50,7 @@ jobs:
         id: cache
         with:
           path: python-${{ matrix.python }}-${{ runner.os }}.tar
-          key: interpreters-${{ matrix.python }}-${{ runner.os }}
+          key: interpreters-${{ matrix.python }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
       - name: Untar the interpreter
         run: tar xf ../python-${{ matrix.python }}-${{ runner.os }}.tar
