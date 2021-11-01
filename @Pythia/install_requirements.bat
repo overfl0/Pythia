@@ -9,6 +9,7 @@ rem file onto install_requirements.bat
 rem ###########################################################################
 
 set requirements_file=%1
+IF "%1"=="nopause" set requirements_file=%2
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
 FOR /D %%G IN ("%~dp0\python-*-embed-amd64" "%~dp0\python-*-embed-win32") DO (
@@ -46,4 +47,7 @@ GOTO END_OK
 rem ### Error handling ########################################################
 
 :END_OK
+IF "%1"=="nopause" goto END_NOPAUSE
 pause
+
+:END_NOPAUSE
