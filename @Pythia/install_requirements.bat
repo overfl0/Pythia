@@ -38,11 +38,12 @@ GOTO END_OK
   ECHO Fix the issues and reinstall the requirements!
   ECHO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ECHO.
-GOTO END_OK
+GOTO END_NOT_OK
+
 
 :END_MISSING_ARGUMENT
   ECHO Missing requirements file!
-GOTO END_OK
+GOTO END_NOT_OK
 
 rem ### Error handling ########################################################
 
@@ -51,3 +52,11 @@ IF "%1"=="nopause" goto END_NOPAUSE
 pause
 
 :END_NOPAUSE
+EXIT /b
+
+:END_NOT_OK
+IF "%1"=="nopause" goto END_NOT_OK_NOPAUSE
+pause
+
+:END_NOT_OK_NOPAUSE
+EXIT /b 1
