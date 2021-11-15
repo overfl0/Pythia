@@ -17,17 +17,21 @@
     #endif
 #endif
 
-#ifdef _WIN32
-#include <direct.h>
-
 std::string GetCurrentWorkingDir()
 {
-    char buff[FILENAME_MAX + 1];
-    _getcwd(buff, FILENAME_MAX);
-    std::string current_working_dir(buff);
-    return current_working_dir;
-    // TODO: pass NULL to _getcwd and check the return value
+    std::error_code ec;
+    const auto current_path = std::filesystem::current_path(ec);
+    if (ec)
+    {
+        LOG_ERROR("Error getting current working directory!");
+        return "";
+    }
+
+    return current_path.string();
 }
+
+#ifdef _WIN32
+#include <direct.h>
 
 std::wstring getPathDirectory(const std::wstring& path)
 {
@@ -75,20 +79,6 @@ std::wstring getPythonPath()
 
 #include <unistd.h>
 #include <dlfcn.h>
-
-std::string GetCurrentWorkingDir()
-{
-    char* cwd = get_current_dir_name();
-    if (!cwd)
-    {
-        LOG_ERROR("Error getting current working directory!");
-        return "";
-    }
-
-    std::string retval = cwd;
-    free(cwd);
-    return retval;
-}
 
 std::string getPathDirectory(const std::string& path)
 {
