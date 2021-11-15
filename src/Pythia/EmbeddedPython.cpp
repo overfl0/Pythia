@@ -356,7 +356,7 @@ void handleMultipart(char *output, int outputSize, multipart_t entry)
     multiparts[multipartCounter] = entry;
 
     //["m", MULTIPART_COUNTER, len(responses)]
-    snprintf(output, outputSize - 1, "[\"m\",%lu,%lu]", multipartCounter++, (unsigned long)entry.size());
+    snprintf(output, outputSize, "[\"m\",%lu,%lu]", multipartCounter++, (unsigned long)entry.size());
 }
 
 // Note: outputSize is the size CONTAINING the null terminator
