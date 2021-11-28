@@ -20,8 +20,10 @@
 #define ARMA_EXTENSION_BUFFER_SIZE (10*1024)
 
 typedef void (__stdcall *RVExtension_t)(char *output, int outputSize, const char *function);
+typedef void (__stdcall *RVExtensionVersion_t)(char *output, int outputSize);
 
 RVExtension_t RVExtension;
+RVExtensionVersion_t RVExtensionVersion;
 
 void RVExtensionCheck(char *output, int outputSize, const char *function)
 {
@@ -34,6 +36,25 @@ void RVExtensionCheck(char *output, int outputSize, const char *function)
         std::cin.get();
         exit(1);
     }
+}
+
+void RVExtensionVersionCheck(char* output, int outputSize)
+{
+    output[outputSize - 1] = '\0';
+    RVExtensionVersion(output, outputSize);
+    if (output[outputSize - 1] != '\0')
+    {
+        std::cout << "BUFFER OVERFLOW!!!" << std::endl;
+        std::cout << "Press enter to continue...";
+        std::cin.get();
+        exit(1);
+    }
+}
+
+void callVersion()
+{
+    char output[32];
+    RVExtensionVersionCheck(output, 32);
 }
 
 void test()
@@ -228,20 +249,24 @@ void test_coroutines()
     #ifdef _WIN64
         #define PYTHIA_DLL "Pythia_x64.dll"
         #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.dll"
+        #define FUNCNAMEVERSION "RVExtensionVersion"
         #define FUNCNAME "RVExtension"
     #else
         #define PYTHIA_DLL "Pythia.dll"
         #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.dll"
+        #define FUNCNAMEVERSION "_RVExtensionVersion@8"
         #define FUNCNAME "_RVExtension@12"
     #endif
     #else // ifdef _WIN32
     #if defined(__amd64__) || defined(_M_X64) /* x86_64 arch */
         #define PYTHIA_DLL "Pythia_x64.so"
         #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.so"
+        #define FUNCNAMEVERSION "RVExtensionVersion"
         #define FUNCNAME "RVExtension"
     #else
         #define PYTHIA_DLL "Pythia.so"
         #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.so"
+        #define FUNCNAMEVERSION "RVExtensionVersion"
         #define FUNCNAME "RVExtension"
     #endif
 #endif
@@ -254,40 +279,57 @@ int waitAndReturn(int retval)
     return retval;
 }
 
+#ifdef _WIN32
+HINSTANCE openLibrary(tstring name)
+{
+    return LoadLibrary(name.c_str());
+}
+
+#define closeLibrary(a) FreeLibrary(a)
+#define getFunction(handle, name) GetProcAddress(handle, name)
+
+#else
+void * openLibrary(std::string name)
+{
+    return dlopen(name.c_str(), RTLD_LAZY);
+}
+#define closeLibrary(a) dlclose(a)
+#define getFunction(handle, name) dlsym(handle, name)
+#endif
+
+
 
 int main()
 {
-    #ifdef _WIN32
-    HINSTANCE setPathHandle = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
-    #else
-    void* setPathHandle = dlopen(PYTHON_SET_PATH_DLL, RTLD_LAZY);
-    #endif
+    auto setPathHandle = openLibrary(LITERAL(PYTHON_SET_PATH_DLL));
     if (!setPathHandle)
     {
         std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
         return waitAndReturn(1);
     }
 
-    #ifdef _WIN32
-    FreeLibrary(setPathHandle);
-    #else
-    dlclose(setPathHandle);
-    #endif
+    RVExtensionVersion = (RVExtensionVersion_t)getFunction(setPathHandle, FUNCNAMEVERSION);
+    if(RVExtensionVersion)
+    {
+        callVersion();
+    }
+    RVExtension = (RVExtension_t)getFunction(setPathHandle, FUNCNAME);
 
-    #ifdef _WIN32
-    HINSTANCE libHandle = LoadLibrary(TEXT(PYTHIA_DLL));
-    #else
-    void* libHandle = dlopen(PYTHIA_DLL, RTLD_LAZY);
-    #endif
+    RVExtensionVersion = nullptr;
+    RVExtension = nullptr;
+    closeLibrary(setPathHandle);
+
+    auto libHandle = openLibrary(LITERAL(PYTHIA_DLL));
 
     if (libHandle)
     {
-        #ifdef _WIN32
-        RVExtension = (RVExtension_t)GetProcAddress(libHandle, FUNCNAME);
-        #else
-        RVExtension = (RVExtension_t)dlsym(libHandle, FUNCNAME);
-        #endif
+        RVExtensionVersion = (RVExtensionVersion_t)getFunction(libHandle, FUNCNAMEVERSION);
+        if (RVExtensionVersion)
+        {
+            callVersion();
+        }
 
+        RVExtension = (RVExtension_t)getFunction(libHandle, FUNCNAME);
         if (RVExtension)
         {
             // Warming up
@@ -320,12 +362,8 @@ int main()
             std::cout << "Could not get RVExtension function." << std::endl;
             return waitAndReturn(1);
         }
-        #ifdef _WIN32
-        FreeLibrary(libHandle);
-        #else
-        dlclose(libHandle);
-        #endif
-    }
+        closeLibrary(libHandle);
+     }
     else
     {
         std::cout << "Could not open library: " << PYTHIA_DLL << std::endl;
