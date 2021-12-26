@@ -103,7 +103,7 @@ jobs:
 
       # Build PBOs and pack
       - name: Install Mikero's tools
-        uses: arma-actions/mikero-tools@latest
+        uses: arma-actions/mikero-tools@bec8b18fc507ee3180cadeaf35249d3f2702b1ff
 
       - run: python tools/create_pbos.py
 
