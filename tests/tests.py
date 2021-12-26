@@ -78,6 +78,13 @@ class TestMods(Base):
         self.assertEqual(code, 0, 'Calling the tester with the right path succeed')
         self.assertEqual(output, '["r",[1,2,3]]')
 
+    def test_renamed_loaded_mod(self):
+        request = self.create_request('renamed.function', [1, 2, 3, 4])
+        output, err, code = self._call_tester(self.pythia_path, request,
+                                              loaded_pbos=[os.path.join('@RenamedMod', 'addons', 'renamed_mod.pbo')])
+        self.assertEqual(code, 0, 'Calling the tester with the right path succeed')
+        self.assertEqual(output, '["r",[1,2,3,4]]')
+
 
 if __name__ == '__main__':
     unittest.main()
