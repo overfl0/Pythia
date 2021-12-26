@@ -5,6 +5,7 @@ link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 file(GLOB headers *.h)
 add_executable(PythiaTester
     PythiaTester.cpp
+    ${headers}
 )
 
 # Copy the file to the @Pythia directory after the fact

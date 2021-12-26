@@ -14,50 +14,53 @@
 #include <random>
 #include "../Pythia/SQFGenerator.h"
 #include "../Pythia/SQFGenerator.cpp"
+#include "ArmaExtension.h"
 
 #pragma warning( disable : 4996 ) // Disable warning message 4996 (sscanf).
 
 #define ARMA_EXTENSION_BUFFER_SIZE (10*1024)
 
-typedef void (__stdcall *RVExtension_t)(char *output, int outputSize, const char *function);
-typedef void (__stdcall *RVExtensionVersion_t)(char *output, int outputSize);
-
-RVExtension_t RVExtension;
-RVExtensionVersion_t RVExtensionVersion;
-
-void RVExtensionCheck(char *output, int outputSize, const char *function)
+class ArmaExtensionEx: public ArmaExtension
 {
-    output[outputSize - 1] = '\0';
-    RVExtension(output, outputSize, function);
-    if (output[outputSize - 1] != '\0')
+    public:
+    using ArmaExtension::ArmaExtension;
+
+    void RVExtensionCheck(char* output, int outputSize, const char* function)
     {
-        std::cout << "BUFFER OVERFLOW!!!" << std::endl;
-        std::cout << "Press enter to continue...";
-        std::cin.get();
-        exit(1);
+        output[outputSize - 1] = '\0';
+        RVExtension(output, outputSize, function);
+        if (output[outputSize - 1] != '\0')
+        {
+            std::cout << "BUFFER OVERFLOW!!!" << std::endl;
+            std::cout << "Press enter to continue...";
+            std::cin.get();
+            exit(1);
+        }
     }
-}
 
-void RVExtensionVersionCheck(char* output, int outputSize)
-{
-    output[outputSize - 1] = '\0';
-    RVExtensionVersion(output, outputSize);
-    if (output[outputSize - 1] != '\0')
+    void RVExtensionVersionCheck(char* output, int outputSize)
     {
-        std::cout << "BUFFER OVERFLOW!!!" << std::endl;
-        std::cout << "Press enter to continue...";
-        std::cin.get();
-        exit(1);
+        output[outputSize - 1] = '\0';
+        RVExtensionVersion(output, outputSize);
+        if (output[outputSize - 1] != '\0')
+        {
+            std::cout << "BUFFER OVERFLOW!!!" << std::endl;
+            std::cout << "Press enter to continue...";
+            std::cin.get();
+            exit(1);
+        }
     }
-}
 
-void callVersion()
-{
-    char output[32];
-    RVExtensionVersionCheck(output, 32);
-}
+    void callVersion()
+    {
+        char output[32];
+        RVExtensionVersionCheck(output, 32);
+    }
+};
 
-void test()
+
+
+void test(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
@@ -67,12 +70,12 @@ void test()
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
     // First call to initialize everything (in case it is needed)
-    RVExtensionCheck(output, sizeof(output), command);
+    extension.RVExtensionCheck(output, sizeof(output), command);
 
     auto start = std::chrono::system_clock::now();
     for (int i = iterations; i > 0; i--)
     {
-        RVExtensionCheck(output, sizeof(output), command);
+        extension.RVExtensionCheck(output, sizeof(output), command);
     }
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -114,7 +117,7 @@ int compareRegularResponse(const char *response, std::string &expected)
     return -1; // Not a regular response
 }
 
-std::string handleMultipart(int id, int count)
+std::string handleMultipart(ArmaExtensionEx& extension, int id, int count)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     std::string multipartRequest = std::string("['pythia.multipart',") + std::to_string(id) + ']';
@@ -123,14 +126,14 @@ std::string handleMultipart(int id, int count)
     for (int i = 0; i < count; i++)
     {
         output[0] = '\0';
-        RVExtensionCheck(output, sizeof(output), multipartRequest.c_str());
+        extension.RVExtensionCheck(output, sizeof(output), multipartRequest.c_str());
         fullOutput += output;
     }
     //std::cout << fullOutput << std::endl;
     return fullOutput;
 }
 
-int test_performance_echo(std::string testName, std::string sqf)
+int test_performance_echo(ArmaExtensionEx& extension, std::string testName, std::string sqf)
 {
     int iterations = 100000;
     char output[ARMA_EXTENSION_BUFFER_SIZE];
@@ -140,7 +143,7 @@ int test_performance_echo(std::string testName, std::string sqf)
     auto start = std::chrono::system_clock::now();
     for (int i = 0; i < iterations; i++)
     {
-        RVExtensionCheck(output, sizeof(output), request.c_str());
+        extension.RVExtensionCheck(output, sizeof(output), request.c_str());
     }
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -149,7 +152,7 @@ int test_performance_echo(std::string testName, std::string sqf)
     return 0;
 }
 
-int test_fuzzing_single()
+int test_fuzzing_single(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
 
@@ -160,7 +163,7 @@ int test_fuzzing_single()
     std::string sqf = builder.generate(2);
     std::string request = createPingRequest(sqf);
 
-    RVExtensionCheck(output, sizeof(output), request.c_str());
+    extension.RVExtensionCheck(output, sizeof(output), request.c_str());
 
     // Check for regular response
     int regularResponse = compareRegularResponse(output, sqf);
@@ -172,7 +175,7 @@ int test_fuzzing_single()
         //std::cout << output << std::endl;
         int id, count;
         parseMultipart(output, id, count);
-        std::string multipartOutput = handleMultipart(id, count);
+        std::string multipartOutput = handleMultipart(extension, id, count);
 
         int multipartResponse = compareRegularResponse(multipartOutput.c_str(), sqf);
         if (multipartResponse == -1)
@@ -188,7 +191,7 @@ int test_fuzzing_single()
     }
 }
 
-void test_fuzzing_multiple()
+void test_fuzzing_multiple(ArmaExtensionEx& extension)
 {
     int iterations = 1000;
 
@@ -198,7 +201,7 @@ void test_fuzzing_multiple()
         if (i % 10 == 0)
             std::cout << "Test: " << std::to_string(i) << std::endl;
 
-        if (test_fuzzing_single() != 0)
+        if (test_fuzzing_single(extension) != 0)
             return;
     }
     auto end = std::chrono::system_clock::now();
@@ -208,7 +211,7 @@ void test_fuzzing_multiple()
     std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
-void test_coroutines()
+void test_coroutines(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
@@ -221,12 +224,12 @@ void test_coroutines()
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
     // First call to initialize everything (in case it is needed)
-    RVExtensionCheck(output, sizeof(output), command);
+    extension.RVExtensionCheck(output, sizeof(output), command);
 
     auto start = std::chrono::system_clock::now();
     for (int i = iterations; i > 0; i--)
     {
-        RVExtensionCheck(output, sizeof(output), command);
+        extension.RVExtensionCheck(output, sizeof(output), command);
         while (output[2] == 's')
         {
             continue_val = atoi(output + 5);
@@ -235,7 +238,7 @@ void test_coroutines()
             {
                 response[20 + j] = number[j];
             }
-            RVExtensionCheck(output, sizeof(output), response);
+            extension.RVExtensionCheck(output, sizeof(output), response);
         }
     }
     auto end = std::chrono::system_clock::now();
@@ -245,33 +248,6 @@ void test_coroutines()
     std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
-#ifdef _WIN32
-    #ifdef _WIN64
-        #define PYTHIA_DLL "Pythia_x64.dll"
-        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.dll"
-        #define FUNCNAMEVERSION "RVExtensionVersion"
-        #define FUNCNAME "RVExtension"
-    #else
-        #define PYTHIA_DLL "Pythia.dll"
-        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.dll"
-        #define FUNCNAMEVERSION "_RVExtensionVersion@8"
-        #define FUNCNAME "_RVExtension@12"
-    #endif
-    #else // ifdef _WIN32
-    #if defined(__amd64__) || defined(_M_X64) /* x86_64 arch */
-        #define PYTHIA_DLL "Pythia_x64.so"
-        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.so"
-        #define FUNCNAMEVERSION "RVExtensionVersion"
-        #define FUNCNAME "RVExtension"
-    #else
-        #define PYTHIA_DLL "Pythia.so"
-        #define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.so"
-        #define FUNCNAMEVERSION "RVExtensionVersion"
-        #define FUNCNAME "RVExtension"
-    #endif
-#endif
-
-
 int waitAndReturn(int retval)
 {
     std::cout << "Press enter to continue...";
@@ -279,94 +255,61 @@ int waitAndReturn(int retval)
     return retval;
 }
 
-#ifdef _WIN32
-HINSTANCE openLibrary(tstring name)
-{
-    return LoadLibrary(name.c_str());
-}
-
-#define closeLibrary(a) FreeLibrary(a)
-#define getFunction(handle, name) GetProcAddress(handle, name)
-
-#else
-void * openLibrary(std::string name)
-{
-    return dlopen(name.c_str(), RTLD_LAZY);
-}
-#define closeLibrary(a) dlclose(a)
-#define getFunction(handle, name) dlsym(handle, name)
-#endif
-
-
-
 int main()
 {
-    auto setPathHandle = openLibrary(LITERAL(PYTHON_SET_PATH_DLL));
-    if (!setPathHandle)
+    ArmaExtensionEx pythiaSetPythonPath(".", "PythiaSetPythonPath", true);
+    if (!pythiaSetPythonPath)
     {
-        std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
+        std::cout << "Could not open " << pythiaSetPythonPath.fullPath << std::endl;
         return waitAndReturn(1);
     }
 
-    RVExtensionVersion = (RVExtensionVersion_t)getFunction(setPathHandle, FUNCNAMEVERSION);
-    if(RVExtensionVersion)
+    pythiaSetPythonPath.callVersion();
+    pythiaSetPythonPath.unload();
+
+    ArmaExtensionEx pythia(".", "Pythia", true);
+
+    if (pythia)
     {
-        callVersion();
-    }
-    RVExtension = (RVExtension_t)getFunction(setPathHandle, FUNCNAME);
+        pythia.callVersion();
 
-    RVExtensionVersion = nullptr;
-    RVExtension = nullptr;
-    closeLibrary(setPathHandle);
-
-    auto libHandle = openLibrary(LITERAL(PYTHIA_DLL));
-
-    if (libHandle)
-    {
-        RVExtensionVersion = (RVExtensionVersion_t)getFunction(libHandle, FUNCNAMEVERSION);
-        if (RVExtensionVersion)
-        {
-            callVersion();
-        }
-
-        RVExtension = (RVExtension_t)getFunction(libHandle, FUNCNAME);
-        if (RVExtension)
+        if (pythia.hasRVExtension())
         {
             // Warming up
             for (int i = 0; i < 100; i++)
             {
-                test_fuzzing_single();
+                test_fuzzing_single(pythia);
             }
             // test()
-            test_fuzzing_multiple();
+            test_fuzzing_multiple(pythia);
             std::cout << std::endl;
             std::cout << "Note: the tests below do NOT take into account the time Arma deserializes the output!" << std::endl;
             std::cout << "As such, they are only indicative of the extension speed, NOT the in-game speed of these calls!" << std::endl;
             std::cout << std::endl;
-            test_performance_echo("1 -       Integers (x10)", "[1,2,3,4,5,6,7,8,9,10]");
-            test_performance_echo("2 -         Floats (x10)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
-            test_performance_echo("3 -       Booleans (x10)", "[True,False,True,False,True,False,True,False,True,False]");
-            test_performance_echo("4 -        Strings (x10)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
-            test_performance_echo("5 -  Arrays filled (x10)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
-            test_performance_echo("6 -   Arrays empty (x10)", "[[],[],[],[],[],[],[],[],[],[]]");
+            test_performance_echo(pythia, "1 -       Integers (x10)", "[1,2,3,4,5,6,7,8,9,10]");
+            test_performance_echo(pythia, "2 -         Floats (x10)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
+            test_performance_echo(pythia, "3 -       Booleans (x10)", "[True,False,True,False,True,False,True,False,True,False]");
+            test_performance_echo(pythia, "4 -        Strings (x10)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
+            test_performance_echo(pythia, "5 -  Arrays filled (x10)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
+            test_performance_echo(pythia, "6 -   Arrays empty (x10)", "[[],[],[],[],[],[],[],[],[],[]]");
             std::cout << std::endl;
-            test_performance_echo("1 -      Integers (x100)", "[1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10]");
-            test_performance_echo("2 -        Floats (x100)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
-            test_performance_echo("3 -      Booleans (x100)", "[True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False]");
-            test_performance_echo("4 -       Strings (x100)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
-            test_performance_echo("5 - Arrays filled (x100)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
-            test_performance_echo("6 -  Arrays empty (x100)", "[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]");
+            test_performance_echo(pythia, "1 -      Integers (x100)", "[1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10]");
+            test_performance_echo(pythia, "2 -        Floats (x100)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
+            test_performance_echo(pythia, "3 -      Booleans (x100)", "[True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False]");
+            test_performance_echo(pythia, "4 -       Strings (x100)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
+            test_performance_echo(pythia, "5 - Arrays filled (x100)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
+            test_performance_echo(pythia, "6 -  Arrays empty (x100)", "[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]");
         }
         else
         {
             std::cout << "Could not get RVExtension function." << std::endl;
             return waitAndReturn(1);
         }
-        closeLibrary(libHandle);
+        pythia.unload();
      }
     else
     {
-        std::cout << "Could not open library: " << PYTHIA_DLL << std::endl;
+        std::cout << "Could not open library: " << pythia.fullPath << std::endl;
         return waitAndReturn(1);
     }
 
