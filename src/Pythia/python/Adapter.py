@@ -341,7 +341,7 @@ class PythiaModuleWrapper(object):
         bits[0] = PythiaModuleWrapper.modules[bits[0]]
         node_path = os.path.join(*bits)
 
-        logger.debug('Returning:', node_path)
+        logger.debug('Returning: {}'.format(node_path))
         return node_path
 
 
