@@ -37,42 +37,6 @@
             ]
         },
         {
-            "name": "x64-Debug",
-            "generator": "Ninja",
-            "configurationType": "Debug",
-            "buildRoot": "${projectDir}\\out\\build\\${name}",
-            "installRoot": "${projectDir}\\out\\install\\${name}",
-            "cmakeCommandArgs": "",
-            "buildCommandArgs": "",
-            "ctestCommandArgs": "",
-            "inheritEnvironments": [ "msvc_x64_x64" ],
-            "variables": [
-                {
-                    "name": "CMAKE_PREFIX_PATH",
-                    "value": "@Pythia/python-37-embed-amd64",
-                    "type": "STRING"
-                }
-            ]
-        },
-        {
-            "name": "x86-Debug",
-            "generator": "Ninja",
-            "configurationType": "Debug",
-            "buildRoot": "${projectDir}\\out\\build\\${name}",
-            "installRoot": "${projectDir}\\out\\install\\${name}",
-            "cmakeCommandArgs": "",
-            "buildCommandArgs": "",
-            "ctestCommandArgs": "",
-            "inheritEnvironments": [ "msvc_x86_x64" ],
-            "variables": [
-                {
-                    "name": "CMAKE_PREFIX_PATH",
-                    "value": "@Pythia/python-37-embed-win32",
-                    "type": "STRING"
-                }
-            ] 
-        },
-        {
             "name": "x64-WSL-GCC-Release",
             "generator": "Ninja",
             "configurationType": "RelWithDebInfo",
