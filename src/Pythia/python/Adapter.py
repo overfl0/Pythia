@@ -335,13 +335,13 @@ class PythiaModuleWrapper(object):
     @staticmethod
     def _get_node(fullname):
         """Translate pythia dot-separated module name to the path on the disk (without file extension)."""
-        print('_get_node({})'.format(fullname))
+        logger.debug('_get_node({})'.format(fullname))
 
         bits = fullname.split('.')
         bits[0] = PythiaModuleWrapper.modules[bits[0]]
         node_path = os.path.join(*bits)
 
-        print('Returning:', node_path)
+        logger.debug('Returning:', node_path)
         return node_path
 
 
@@ -373,7 +373,7 @@ class PythiaModuleWrapper(object):
         else:
             for suffix in importlib.machinery.all_suffixes():
                 filename = node_path + suffix
-                print('Checking: {}'.format(filename))
+                logger.debug('Checking: {}'.format(filename))
                 if os.path.isfile(filename):
                     return filename
 
@@ -404,7 +404,7 @@ class PythiaModuleWrapper(object):
     def init_modules(modules_dict):
         """Register the whole import mechanism and set the supported Pythia modules."""
         if not PythiaModuleWrapper.initialized:
-            print('Initializing module finder')
+            logger.info('Initializing module finder')
             sys.meta_path.insert(0, PythiaModuleFinder())
             PythiaModuleWrapper.initialized = True
 
@@ -413,7 +413,7 @@ class PythiaModuleWrapper(object):
 
 class PythiaModuleFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path, target = None):
-        print('PythiaModuleFinder: Trying to load: {}'.format(name))
+        logger.info('PythiaModuleFinder: Trying to load: {}'.format(name))
 
         if not PythiaModuleWrapper.is_handled(name):
             return None
@@ -446,11 +446,11 @@ class PythiaLoader(object):
         self.path = path
 
     def get_filename(self, fullname):
-        print('PythiaLoader: Requesting filename for {}'.format(fullname))
+        logger.debug('PythiaLoader: Requesting filename for {}'.format(fullname))
         return self.path
 
     def get_data(self, filename):
-        print('PythiaLoader: Fetching {}'.format(filename))
+        logger.debug('PythiaLoader: Fetching {}'.format(filename))
         return PythiaModuleWrapper.get_data(filename)
 
 
