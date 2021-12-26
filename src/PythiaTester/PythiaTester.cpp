@@ -9,6 +9,7 @@
 #endif
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <chrono>
 #include <random>
@@ -290,20 +291,59 @@ int main(int argc, char* argv[])
 {
     std::filesystem::path path = ".";
     std::string command;
-    bool callPing = false;
+    std::vector<std::string> fakeFiles;
+    bool callCommand = false;
 
-    if(argc == 3)
+    std::ifstream fakeFile;
+
+    // Poor man's commandline parsing
+    if (argc > 1)
     {
-        callPing = true;
-        path = argv[1];
-        command = argv[2];
+        callCommand = true;
+
+        int i = 1;
+        for (; i < argc; i++)
+        {
+            if (std::string(argv[i]) == "-o")
+            {
+                i++;
+                if (i >= argc)
+                {
+                    std::cout << "missing argument" << std::endl;
+                    return waitAndReturn(callCommand, 1);
+                }
+
+                std::string filename(argv[i]);
+                fakeFiles.push_back(filename);
+                fakeFile.open(filename);
+                //std::cout << "Tester: opening file: " << filename << std::endl;
+                if (!fakeFile.is_open())
+                {
+                    std::cout << "Could not open file: " << filename << std::endl;
+                    return waitAndReturn(callCommand, 1);
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (i + 1 >= argc)
+        {
+            std::cout << "missing argument(s)" << std::endl;
+            return waitAndReturn(callCommand, 1);
+        }
+
+        path = argv[i];
+        command = argv[i + 1];
     }
 
     ArmaExtensionEx pythiaSetPythonPath(path, "PythiaSetPythonPath", true);
     if (!pythiaSetPythonPath)
     {
         std::cout << "Could not open " << pythiaSetPythonPath.fullPath << std::endl;
-        return waitAndReturn(callPing, 1);
+        return waitAndReturn(callCommand, 1);
     }
 
     pythiaSetPythonPath.callVersion();
@@ -317,30 +357,29 @@ int main(int argc, char* argv[])
 
         if (pythia.hasRVExtension())
         {
-            if (!callPing)
+            if (!callCommand)
             {
                 defaultTests(pythia);
             }
             else
             {
                 char output[ARMA_EXTENSION_BUFFER_SIZE];
-                std::string request = createPingRequest("[1, 2, 3, 4, 5, 6, 7, 8, 9, 0]");
-                pythia.RVExtensionCheck(output, sizeof(output), request.c_str());
+                pythia.RVExtensionCheck(output, sizeof(output), command.c_str());
                 std::cout << output;
             }
         }
         else
         {
             std::cout << "Could not get RVExtension function." << std::endl;
-            return waitAndReturn(callPing, 1);
+            return waitAndReturn(callCommand, 1);
         }
         pythia.unload();
      }
     else
     {
         std::cout << "Could not open library: " << pythia.fullPath << std::endl;
-        return waitAndReturn(callPing, 1);
+        return waitAndReturn(callCommand, 1);
     }
 
-    return waitAndReturn(callPing, 0);
+    return waitAndReturn(callCommand, 0);
 }
