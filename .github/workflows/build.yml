@@ -36,6 +36,7 @@ jobs:
     needs: Create-Interpreters
     runs-on: ${{ matrix.e.os }}
     strategy:
+      fail-fast: false
       matrix:
         e: [
           {arch: x64, os: windows-2019, build64: ON, prefix: amd64, docker: ''},

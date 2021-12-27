@@ -291,10 +291,19 @@ int main(int argc, char* argv[])
 {
     std::filesystem::path path = ".";
     std::string command;
-    std::vector<std::string> fakeFiles;
+    #ifdef _WIN32
+        std::vector<std::wstring> fakeFiles;
+    #else
+        std::vector<std::string> fakeFiles;
+    #endif
     bool callCommand = false;
 
     std::ifstream fakeFile;
+
+    #ifdef _WIN32
+        auto cmdlinew = GetCommandLineW();
+        auto newArgv = CommandLineToArgvW(cmdlinew, &argc);
+    #endif
 
     // Poor man's commandline parsing
     if (argc > 1)
@@ -313,13 +322,21 @@ int main(int argc, char* argv[])
                     return waitAndReturn(callCommand, 1);
                 }
 
-                std::string filename(argv[i]);
+                #ifdef _WIN32
+                    std::wstring filename(newArgv[i]);
+                #else
+                    std::string filename(argv[i]);
+                #endif
                 fakeFiles.push_back(filename);
                 fakeFile.open(filename);
                 //std::cout << "Tester: opening file: " << filename << std::endl;
                 if (!fakeFile.is_open())
                 {
-                    std::cout << "Could not open file: " << filename << std::endl;
+                    #ifdef _WIN32
+                        std::wcout << "Could not open file: " << filename << std::endl;
+                    #else
+                        std::cout << "Could not open file: " << filename << std::endl;
+                    #endif
                     return waitAndReturn(callCommand, 1);
                 }
             }
@@ -334,8 +351,13 @@ int main(int argc, char* argv[])
             std::cout << "missing argument(s)" << std::endl;
             return waitAndReturn(callCommand, 1);
         }
-
-        path = argv[i];
+        #ifdef _WIN32
+            //std::wcout << "Raw path: " << argv[i] << std::endl;
+            path = newArgv[i];
+        #else
+            //std::cout << "Raw path: " << argv[i] << std::endl;
+            path = argv[i];
+        #endif
         command = argv[i + 1];
     }
 
