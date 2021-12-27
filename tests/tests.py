@@ -98,13 +98,13 @@ class TestSpecialCharsPythia(Base):
 
     def delete_link(self):
         try:
-            os.remove(os.path.abspath(self.special_chars_pythia_path))
+            os.remove(os.path.abspath(os.path.join(self.this_dir, self.special_chars_pythia_path)))
         except (FileNotFoundError, PermissionError, IsADirectoryError):
             pass
 
         # Linux symlink + Windows junction
         try:
-            os.rmdir(os.path.abspath(self.special_chars_pythia_path))
+            os.rmdir(os.path.abspath(os.path.join(self.this_dir, self.special_chars_pythia_path)))
         except FileNotFoundError:
             pass
 
@@ -118,7 +118,8 @@ class TestSpecialCharsPythia(Base):
     def setUp(self):
         super().setUp()
         self.delete_link()
-        self.make_link(os.path.join(self.this_dir, self.pythia_path), os.path.abspath(self.special_chars_pythia_path))
+        self.make_link(os.path.join(self.this_dir, self.pythia_path),
+                       os.path.abspath(os.path.join(self.this_dir, self.special_chars_pythia_path)))
 
     def tearDown(self):
         super().tearDown()
