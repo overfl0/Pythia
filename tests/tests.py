@@ -60,13 +60,21 @@ class TestBasicPing(Base):
     def test_sanity_cant_open_with_local_dir(self):
         request = self.create_request('pythia.ping', [1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
         output, err, code = self._call_tester('.', request)
-        self.assertNotEqual(code, 0, 'Calling the tester with the wrong path should fail')
+        try:
+            self.assertNotEqual(code, 0, 'Calling the tester with the wrong path should fail')
+        except AssertionError:
+            print(output)
+            raise
         self.assertIn('Could not open', output)
 
     def test_sanity_can_open_with_pythia_dir(self):
         request = self.create_request('pythia.ping', [1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
         output, err, code = self._call_tester(self.pythia_path, request)
-        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        try:
+            self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(output)
+            raise
         self.assertEqual(output, '["r",[1,2,3,4,5,6,7,8,9,0]]')
 
 
@@ -75,21 +83,33 @@ class TestMods(Base):
         request = self.create_request('basic.function', [1, 2, 3])
         output, err, code = self._call_tester(self.pythia_path, request,
                                               loaded_pbos=[os.path.join('@BasicMod', 'addons', 'basic_mod.pbo')])
-        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        try:
+            self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(output)
+            raise
         self.assertEqual(output, '["r",[1,2,3]]')
 
     def test_renamed_loaded_mod(self):
         request = self.create_request('renamed.function', [1, 2, 3, 4])
         output, err, code = self._call_tester(self.pythia_path, request,
                                               loaded_pbos=[os.path.join('@RenamedMod', 'addons', 'renamed_mod.pbo')])
-        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        try:
+            self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(output)
+            raise
         self.assertEqual(output, '["r",[1,2,3,4]]')
 
     def test_special_chars_loaded_mod(self):
         request = self.create_request('zolw.function', [1, 2, 3, 4, 5])
         output, err, code = self._call_tester(self.pythia_path, request,
                                               loaded_pbos=[os.path.join('@ŻółwMod', 'addons', 'żółw_mod.pbo')])
-        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        try:
+            self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(output)
+            raise
         self.assertEqual(output, '["r",[1,2,3,4,5]]')
 
 
@@ -129,8 +149,64 @@ class TestSpecialCharsPythia(Base):
         request = self.create_request('basic.function', [1, 2])
         output, err, code = self._call_tester(self.special_chars_pythia_path, request,
                                               loaded_pbos=[os.path.join('@BasicMod', 'addons', 'basic_mod.pbo')])
-        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        try:
+            self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(output)
+            raise
         self.assertEqual(output, '["r",[1,2]]')
+
+
+class TestRequirements(Base):
+    def _uninstall_requests(self):
+        request = self.create_request('requirements_mod.uninstall_requests', [])
+        output, err, code = self._call_tester(
+            self.pythia_path, request, loaded_pbos=[os.path.join('@RequirementsMod', 'addons', 'requirements_mod.pbo')])
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        self.assertTrue(output == '["r",nil]' or 'Successfully uninstalled requests' in output)
+
+    def _check_if_requests_fail(self):
+        request = self.create_request('requirements_mod.get_requests_version', [])
+        output, err, code = self._call_tester(
+            self.pythia_path, request, loaded_pbos=[os.path.join('@RequirementsMod', 'addons', 'requirements_mod.pbo')])
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        self.assertIn('ModuleNotFoundError', output)
+
+    def _install_requirements(self):
+        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, 'install_requirements')
+        if platform.system() == 'Windows':
+            requirements_installer_path += '.bat'
+        else:
+            requirements_installer_path += '.sh'
+
+        requirements_file_path = os.path.join(self.this_dir, '@RequirementsMod', 'requirements.txt')
+
+        if platform.system() == 'Windows':
+            cmd = ['cmd', '/c', requirements_installer_path, 'nopause', requirements_file_path]
+        else:
+            cmd = ['/bin/bash', requirements_installer_path, requirements_file_path]
+
+        process = subprocess.run(cmd, capture_output=True, timeout=30, text=True, cwd=self.this_dir)
+
+        try:
+            self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(process.stdout)
+            raise
+
+    def _check_if_requests_installed(self):
+        request = self.create_request('requirements_mod.get_requests_version', [])
+        output, err, code = self._call_tester(
+            self.pythia_path, request, loaded_pbos=[os.path.join('@RequirementsMod', 'addons', 'requirements_mod.pbo')])
+
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        self.assertEqual(output, '["r","2.26.0"]')
+
+    def test_basic_loaded_mod(self):
+        self._uninstall_requests()
+        self._check_if_requests_fail()
+        self._install_requirements()
+        self._check_if_requests_installed()
 
 
 if __name__ == '__main__':

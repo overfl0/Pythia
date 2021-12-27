@@ -62,7 +62,7 @@ jobs:
         working-directory: "@Pythia"
 
       - name: Install missing libcrypt dependency
-        if: runner.os == 'Linux' && matrix.e.arch == 'x86'
+        if: runner.os == 'Linux'
         run: sudo dpkg --add-architecture i386 && sudo apt update && sudo apt install -y libcrypt1:i386
 
       # Build the extension
@@ -82,9 +82,6 @@ jobs:
       - run: ${{ matrix.e.docker }} ninja
         working-directory: ninja
 
-      - name: Run basic tests
-        run: ./@Pythia/python-37-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
-
       - uses: actions/upload-artifact@v2
         with:
           name: Pythia_Binaries
@@ -96,6 +93,12 @@ jobs:
             python-*.tar
           if-no-files-found: error
           retention-days: 1
+
+      # Note: we're running tests after uploading to make 100% sure we don't
+      # corrupt the environment by running tests.
+      # We could do this in another job but doing this here saves us a few seconds
+      - name: Run basic tests
+        run: ./@Pythia/python-37-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
 
   Build-PBO:
     runs-on: windows-latest
