@@ -209,5 +209,54 @@ class TestRequirements(Base):
         self._check_if_requests_installed()
 
 
+class TestLongDirectory(Base):
+    dir_length = 250
+
+    def _delete_directory(self):
+        try:
+            shutil.rmtree(os.path.join(self.this_dir, '0' * self.dir_length))
+        except FileNotFoundError:
+            pass
+
+    def setUp(self):
+        super().setUp()
+        self._delete_directory()
+
+        current_dir = os.getcwd()
+        try:
+            # Create the directory by chdiring and creating a subdirectory one by one
+            # Because it's sometimes a problem to give abspaths... supposedly
+            os.chdir(self.this_dir)
+            for i in range(10):
+                next_dir = str(i) * self.dir_length
+                os.mkdir(next_dir)
+                os.chdir(next_dir)
+
+            self.long_directory_path = os.getcwd()
+
+            shutil.copytree(os.path.join(self.this_dir, '@BasicMod'),
+                            os.path.join(self.long_directory_path, '@BasicMod'))
+        finally:
+            os.chdir(current_dir)
+
+    def tearDown(self):
+        super().tearDown()
+        self._delete_directory()
+
+    def test_long_directory(self):
+        request = self.create_request('basic.function', [6, 7, 8])
+        output, err, code = self._call_tester(
+            self.pythia_path,
+            request,
+            loaded_pbos=[os.path.join(self.long_directory_path, '@BasicMod', 'addons', 'basic_mod.pbo')]
+        )
+        try:
+            self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(output)
+            raise
+        self.assertEqual(output, '["r",[6,7,8]]')
+
+
 if __name__ == '__main__':
     unittest.main()

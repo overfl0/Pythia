@@ -324,6 +324,15 @@ int main(int argc, char* argv[])
 
                 #ifdef _WIN32
                     std::wstring filename(newArgv[i]);
+
+                    // Optionally convert to UNC
+                    // Otherwise, opening of long files is impossible
+                    if (filename.length() > 2 && filename[1] == L':')
+                    {
+                        // Poor man's convert to UNC:
+                        // "C:\directory\file" => "\\?\C:\directory\file"
+                        filename = L"\\\\?\\" + filename;
+                    }
                 #else
                     std::string filename(argv[i]);
                 #endif
