@@ -85,12 +85,12 @@ class TestMods(Base):
         self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
         self.assertEqual(output, '["r",[1,2,3,4]]')
 
-    # def test_special_chars_loaded_mod(self):
-    #     request = self.create_request('żółw.function', [1, 2, 3, 4, 5])
-    #     output, err, code = self._call_tester(self.pythia_path, request,
-    #                                           loaded_pbos=[os.path.join('@ŻółwMod', 'addons', 'żółw_mod.pbo')])
-    #     self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
-    #     self.assertEqual(output, '["r",[1,2,3,4,5]]')
+    def test_special_chars_loaded_mod(self):
+        request = self.create_request('zolw.function', [1, 2, 3, 4, 5])
+        output, err, code = self._call_tester(self.pythia_path, request,
+                                              loaded_pbos=[os.path.join('@ŻółwMod', 'addons', 'żółw_mod.pbo')])
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+        self.assertEqual(output, '["r",[1,2,3,4,5]]')
 
 
 class TestSpecialCharsPythia(Base):
