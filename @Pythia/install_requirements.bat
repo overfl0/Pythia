@@ -18,7 +18,7 @@ FOR /D %%G IN ("%~dp0\python-*-embed-amd64" "%~dp0\python-*-embed-win32") DO (
     echo ===============================================================================
 
     echo.
-    "%%G\python.exe" -m pip install --upgrade --no-warn-script-location -r "%requirements_file%"
+    "%%G\python.exe" -I -E -s -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
     if ERRORLEVEL 1 GOTO END_PIP_ERROR
     echo.
 )

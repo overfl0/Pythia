@@ -192,6 +192,7 @@ class TestRequirements(Base):
             self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
         except AssertionError:
             print(process.stdout)
+            print(process.stderr)
             raise
 
     def _check_if_requests_installed(self):
@@ -202,7 +203,7 @@ class TestRequirements(Base):
         self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
         self.assertEqual(output, '["r","2.26.0"]')
 
-    def test_basic_loaded_mod(self):
+    def test_installing_requirements(self):
         self._uninstall_requests()
         self._check_if_requests_fail()
         self._install_requirements()
