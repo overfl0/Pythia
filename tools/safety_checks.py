@@ -56,6 +56,32 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
             sys.exit(1)
 
 
+def check_so_architecture(path: str, x86=False):
+    arch = '32bit' if x86 else '64bit'
+    print(f'Checking is file {path} is {arch}...')
+    try:
+        import elftools
+    except ImportError:
+        print('Install elftools: pip install pyelftools')
+        sys.exit(1)
+    from elftools.elf.elffile import ELFFile
+
+    if not os.path.exists(path):
+        print(f'File {path} is missing!')
+        sys.exit(1)
+
+    with open(path, 'rb') as file:
+        elffile = ELFFile(file)
+
+    arch32 = elffile.elfclass == 32
+
+    if (x86 and not arch32) or (not x86 and arch32):
+        print(f'File {path} is not {arch}!')
+        sys.exit(1)
+
+
+
+
 def safety_checks():
     check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[b'python37.dll'])
     check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[b'python37.dll'])
@@ -66,6 +92,11 @@ def safety_checks():
     check_dll_architecture(os.path.join('@Pythia', 'Pythia_x64.dll'), x86=False)
     check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'), x86=True)
     check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'), x86=False)
+    print()
+    check_so_architecture(os.path.join('@Pythia', 'Pythia.so'), x86=True)
+    check_so_architecture(os.path.join('@Pythia', 'Pythia_x64.so'), x86=False)
+    check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.so'), x86=True)
+    check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'), x86=False)
 
 
 if __name__ == '__main__':

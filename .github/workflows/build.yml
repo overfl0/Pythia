@@ -142,7 +142,7 @@ jobs:
       - name: Unpack interpreters
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
-      - run: pip install pefile
+      - run: pip install pefile pyelftools
       - run: python tools/safety_checks.py
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
