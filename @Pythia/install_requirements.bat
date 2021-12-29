@@ -9,15 +9,16 @@ rem file onto install_requirements.bat
 rem ###########################################################################
 
 set requirements_file=%1
+IF "%1"=="nopause" set requirements_file=%2
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
-FOR /D %%G IN ("%~dp0\python-*") DO (
+FOR /D %%G IN ("%~dp0\python-*-embed-amd64" "%~dp0\python-*-embed-win32") DO (
     echo ===============================================================================
     echo Installing requirements for %%G from %requirements_file%...
     echo ===============================================================================
 
     echo.
-    "%%G\python.exe" -m pip install --upgrade --no-warn-script-location -r "%requirements_file%"
+    "%%G\python.exe" -I -E -s -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
     if ERRORLEVEL 1 GOTO END_PIP_ERROR
     echo.
 )
@@ -37,13 +38,25 @@ GOTO END_OK
   ECHO Fix the issues and reinstall the requirements!
   ECHO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ECHO.
-GOTO END_OK
+GOTO END_NOT_OK
+
 
 :END_MISSING_ARGUMENT
   ECHO Missing requirements file!
-GOTO END_OK
+GOTO END_NOT_OK
 
 rem ### Error handling ########################################################
 
 :END_OK
+IF "%1"=="nopause" goto END_NOPAUSE
 pause
+
+:END_NOPAUSE
+EXIT /b
+
+:END_NOT_OK
+IF "%1"=="nopause" goto END_NOT_OK_NOPAUSE
+pause
+
+:END_NOT_OK_NOPAUSE
+EXIT /b 1

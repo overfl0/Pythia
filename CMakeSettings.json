@@ -9,7 +9,14 @@
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
-            "inheritEnvironments": [ "msvc_x64_x64" ]
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "variables": [
+                {
+                    "name": "CMAKE_PREFIX_PATH",
+                    "value": "@Pythia/python-37-embed-amd64",
+                    "type": "STRING"
+                }
+            ]
         },
         {
             "name": "x86-Release",
@@ -20,29 +27,79 @@
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
-            "inheritEnvironments": [ "msvc_x86_x64" ]
+            "inheritEnvironments": [ "msvc_x86_x64" ],
+            "variables": [
+                {
+                    "name": "CMAKE_PREFIX_PATH",
+                    "value": "@Pythia/python-37-embed-win32",
+                    "type": "STRING"
+                }
+            ]
         },
         {
-            "name": "x64-Debug",
+            "name": "x64-WSL-GCC-Release",
             "generator": "Ninja",
-            "configurationType": "Debug",
+            "configurationType": "RelWithDebInfo",
             "buildRoot": "${projectDir}\\out\\build\\${name}",
             "installRoot": "${projectDir}\\out\\install\\${name}",
+            "cmakeExecutable": "cmake",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
-            "inheritEnvironments": [ "msvc_x64_x64" ]
+            "inheritEnvironments": [ "linux_x64" ],
+            "wslPath": "${defaultWSLPath}",
+            "variables": [
+                {
+                    "name": "CMAKE_C_COMPILER",
+                    "value": "/usr/bin/gcc-9",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_CXX_COMPILER",
+                    "value": "/usr/bin/g++-9",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_PREFIX_PATH",
+                    "value": "@Pythia/python-37-embed-linux64",
+                    "type": "STRING"
+                }
+            ]
         },
         {
-            "name": "x86-Debug",
+            "name": "x86-WSL-GCC-Release",
             "generator": "Ninja",
-            "configurationType": "Debug",
+            "configurationType": "RelWithDebInfo",
             "buildRoot": "${projectDir}\\out\\build\\${name}",
             "installRoot": "${projectDir}\\out\\install\\${name}",
+            "cmakeExecutable": "cmake",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
-            "inheritEnvironments": [ "msvc_x86_x64" ]
+            "inheritEnvironments": [ "linux_x86" ],
+            "wslPath": "${defaultWSLPath}",
+            "variables": [
+                {
+                    "name": "CMAKE_C_COMPILER",
+                    "value": "/usr/bin/gcc-9",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_CXX_COMPILER",
+                    "value": "/usr/bin/g++-9",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "USE_64BIT_BUILD",
+                    "value": "OFF",
+                    "type": "STRING"
+                },
+                {
+                    "name": "CMAKE_PREFIX_PATH",
+                    "value": "@Pythia/python-37-embed-linux32",
+                    "type": "STRING"
+                }
+            ]
         }
     ]
 }

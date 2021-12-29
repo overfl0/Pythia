@@ -3,13 +3,14 @@ import glob
 import os
 import shutil
 import subprocess
+import sys
 
 from install_bisign import install_bisign
 from primitive_git import get_sha1_from_git_directory
 
 PBO_SRC_DIR = ['src', 'Pythia', 'pbo']
-PBO_DEST_DIR = ['@Pythia', 'Addons']
-KEYS_DIR = ['@Pythia', 'Keys']
+PBO_DEST_DIR = ['@Pythia', 'addons']
+KEYS_DIR = ['@Pythia', 'keys']
 MAKE_PBO = r'C:\Program Files (x86)\Mikero\DePboTools\bin\makepbo.exe'  # It's not in the PATH in AppVeyor
 
 
@@ -123,4 +124,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

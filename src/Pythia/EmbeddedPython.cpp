@@ -4,7 +4,6 @@
 #include "ExceptionFetcher.h"
 #include "ResourceLoader.h"
 #include <iostream>
-#include "resource.h"
 #include "Logger.h"
 #include "ResponseWriter.h"
 #include "SQFReader.h"
@@ -12,6 +11,10 @@
 #include "Paths.h"
 #include "Modules/pythiainternal.h"
 #include "Modules/pythialogger.h"
+
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
 
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
@@ -65,15 +68,48 @@ namespace
     };
 }
 
-void EmbeddedPython::DoPythonMagic(std::wstring path)
+std::wstring joinPaths(std::vector<std::wstring> const paths)
+{
+    std::wstring out;
+    bool firstTime = true;
+    for(const auto& path : paths)
+    {
+        if(firstTime)
+        {
+            firstTime = false;
+            out += path;
+        }
+        else
+        {
+#ifdef _WIN32
+            out += L";";
+#else
+            out += L":";
+#endif
+            out += path;
+        }
+    }
+    return out;
+}
+
+void EmbeddedPython::DoPythonMagic(tstring path)
 {
     // Python pre-initialization magic
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
 
     // Clear the env variables, just in case
-    _wputenv_s(L"PYTHONHOME", L"");
-    _wputenv_s(L"PYTHONPATH", L"");
-    _wputenv_s(L"PYTHONNOUSERSITE", L"1");  // Disable custom user site
+    #ifdef _WIN32
+    _putenv_s("PYTHONHOME", "");
+    _putenv_s("PYTHONPATH", "");
+    _putenv_s("PYTHONNOUSERSITE", "1");  // Disable custom user site
+    std::wstring wpath = path;
+    #else
+    setenv("PYTHONHOME", "", true);
+    setenv("PYTHONPATH", "", true);
+    setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
+
+    std::wstring wpath = Logger::s2w(path);
+    #endif
 
     Py_IgnoreEnvironmentFlag = 1;
     Py_IsolatedFlag = 1;
@@ -81,15 +117,16 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
     Py_NoUserSiteDirectory = 1;
 
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
-    pythonHomeString = std::vector<wchar_t>(path.begin(), path.end());
-    pythonHomeString.push_back(0);
+    this->pythonHomeString = wpath;
     Py_SetPythonHome(pythonHomeString.data());
     LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
 
     // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
-    std::wstring programName = path + L"\\python.exe"; // Not sure if that should be the value here
-    programNameString = std::vector<wchar_t>(programName.begin(), programName.end());
-    programNameString.push_back(0);
+#ifdef _WIN32
+    this->programNameString = wpath + L"\\python.exe"; // Not sure if that should be the value here
+#else
+    this->programNameString = wpath + L"/bin/python"; // Not sure if that should be the value here
+#endif
     Py_SetProgramName(programNameString.data());
     LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
 
@@ -101,23 +138,56 @@ void EmbeddedPython::DoPythonMagic(std::wstring path)
         L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\Lib\\site-packages;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3");
     */
-    // TODO: Linux separator is ':'
-    std::wstring allPaths =
-        path + L"\\python" PYTHON_VERSION + L".zip" + L";" +
-        path + L"\\DLLs" + L";" +
-        path + L"\\lib" + L";" +
-        path + L";" +
-        path + L"\\Lib\\site-packages" + L";" +
-        getProgramDirectory(); // For `python/` directory access. TODO: Use import hooks for that
-    pathString = std::vector<wchar_t>(allPaths.begin(), allPaths.end());
-    pathString.push_back(0);
+
+    /*
+        # Obtain the current paths by running the embedded python binary
+        import sys
+        base_dir = sys.executable.split('/bin/')[0]
+        for path in sys.path:
+            print(path.replace(base_dir, ''))
+     */
+
+    #ifdef _WIN32
+    std::wstring allPaths = joinPaths({
+        wpath + L"\\python" PYTHON_VERSION + L".zip",
+        wpath + L"\\DLLs",
+        wpath + L"\\lib",
+        wpath,
+        wpath + L"\\Lib\\site-packages",
+        getProgramDirectory() // For `python/` directory access. TODO: Use import hooks for that
+    });
+    #else
+    std::wstring allPaths = joinPaths({
+        wpath + L"/lib/python" PYTHON_VERSION + L".zip",
+        wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
+        wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
+        wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
+        wpath,
+        Logger::s2w(getProgramDirectory()) // For `python/` directory access. TODO: Use import hooks for that
+    });
+    #endif
+
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
-    Py_SetPath(pathString.data());
+    Py_SetPath(allPaths.c_str());;
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
+
+    #ifndef _WIN32
+    // https://stackoverflow.com/a/60746446/6543759
+    // https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
+    // undefined symbol: PyExc_ImportError
+    // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
+    // and in Python 3.8+ any C extension
+    // FIXME: Technically speaking, this is a leak
+    void* const libpython_handle = dlopen("libpython" PYTHON_VERSION_DOTTED "m.so", RTLD_LAZY | RTLD_GLOBAL);
+    if(!libpython_handle)
+    {
+        LOG_INFO("Could not load libpython3.7m.so");
+    }
+    #endif // ifndef _WIN32
 }
 
-EmbeddedPython::EmbeddedPython(HMODULE moduleHandle): dllModuleHandle(moduleHandle)
+EmbeddedPython::EmbeddedPython()
 {
     DoPythonMagic(getPythonPath());
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
@@ -162,7 +232,7 @@ void EmbeddedPython::initialize()
 
     #else
 
-    std::string text_resource = ResourceLoader::loadTextResource(dllModuleHandle, PYTHON_ADAPTER, TEXT("PYTHON")).c_str();
+    const std::string text_resource = ResourceLoader::loadTextResource();
     PyObject *compiledString = Py_CompileString(
         text_resource.c_str(),
         "python-adapter.py",
@@ -212,7 +282,11 @@ void EmbeddedPython::initModules(modules_t mods)
     // Fill the dict with the items in the unordered_map
     for (const auto& entry: mods)
     {
+        #ifdef _WIN32
         PyObjectGuard pString(PyUnicode_FromWideChar(entry.second.c_str(), -1));
+        #else
+        PyObjectGuard pString(PyUnicode_FromString(entry.second.c_str()));
+        #endif
         if (!pString)
         {
             continue;
@@ -282,7 +356,7 @@ void handleMultipart(char *output, int outputSize, multipart_t entry)
     multiparts[multipartCounter] = entry;
 
     //["m", MULTIPART_COUNTER, len(responses)]
-    snprintf(output, outputSize - 1, "[\"m\",%lu,%lu]", multipartCounter++, (unsigned long)entry.size());
+    snprintf(output, outputSize, "[\"m\",%lu,%lu]", multipartCounter++, (unsigned long)entry.size());
 }
 
 // Note: outputSize is the size CONTAINING the null terminator
@@ -293,8 +367,8 @@ void returnMultipart(unsigned long multipartID, char *output, int outputSize)
         auto &entry = multiparts.at(multipartID);
         auto &retval = entry.front();
 
-        size_t minSize = min((size_t)outputSize, retval.size() + 1);
-        strncpy_s(output, minSize, retval.data(), _TRUNCATE);
+        size_t minSize = std::min<size_t>((size_t)outputSize, retval.size() + 1);
+        snprintf(output, minSize, "%s", retval.data());
 
         entry.pop();
         if (entry.empty())

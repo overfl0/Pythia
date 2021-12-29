@@ -8,9 +8,9 @@
 class EmbeddedPython
 {
 public:
-    EmbeddedPython(HMODULE moduleHandle);
+    EmbeddedPython();
     virtual ~EmbeddedPython();
-    
+
     void initialize();
     void initModules(modules_t mods);
     void deinitialize();
@@ -22,17 +22,15 @@ public:
 private:
     EmbeddedPython(const EmbeddedPython&) = delete;
     void operator=(const EmbeddedPython&) = delete;
-    void DoPythonMagic(std::wstring path);
+    void DoPythonMagic(tstring path);
 
 private:
     PyObject *pModule;
     PyObject *pFunc;
     PyThreadState *pThreadState;
-    HMODULE dllModuleHandle;
 
     // Python magic
-    std::vector<wchar_t> pythonHomeString;
-    std::vector<wchar_t> programNameString;
-    std::vector<wchar_t> pathString;
+    std::wstring pythonHomeString;
+    std::wstring programNameString;
 };
 

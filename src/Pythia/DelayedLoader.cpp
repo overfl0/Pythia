@@ -1,10 +1,13 @@
 #include "DelayedLoader.h"
 #include "stdafx.h"
 #include "Logger.h"
+#ifdef _WIN32
 #include <delayimp.h>
+#endif
 
 extern std::string pythonInitializationError;
 
+#ifdef _WIN32
 static DWORD DelayLoadExceptionFilter(DWORD code, int *error)
 {
     if (code == VcppException(ERROR_SEVERITY_ERROR, ERROR_MOD_NOT_FOUND))
@@ -21,6 +24,7 @@ static DWORD DelayLoadExceptionFilter(DWORD code, int *error)
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
+#endif
 
 int LoadAllImports()
 {
@@ -32,7 +36,7 @@ int LoadAllImports()
 
 #if 0
 // We're not delay-loading for the time being
-    #error This part of the code has NOT been tested with python > 3.5. You're running this code at your own risk!
+    #error This part of the code has NOT been tested with python > 3.5. You are running this code at your own risk!
     #ifndef NDEBUG
         // In debug builds we don't delay-load python35_d.dll because it contains data
         // and thus cannot be delay-loaded so we just load it automatically and this

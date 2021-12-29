@@ -1,44 +1,99 @@
 name: Build Pythia
 on: [push]
 jobs:
-  Build-DLL:
-    runs-on: windows-2019
+  Create-Interpreters:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [x64, x86]
+        os: [windows-2019, ubuntu-20.04]
+        python: [3.7.9]
 
     steps:
-      - name: Setup Python 3.7 (${{ matrix.arch }})
-        uses: actions/setup-python@v2
+      - name: Cache interpreters
+        uses: actions/cache@v2
+        id: cache
         with:
-          python-version: '3.7'
-          architecture: ${{ matrix.arch }}
+          path: python-${{ matrix.python }}-${{ runner.os }}.tar
+          key: interpreters-${{ matrix.python }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
+      - name: Check out repository code
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+
+      - name: Create interpreters
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: python tools/create_embedded_python.py .
+
+      - name: Tar interpreters
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: tar cvf python-${{ matrix.python }}-${{ runner.os }}.tar python-*-embed-*
+
+  Build-Binaries:
+    needs: Create-Interpreters
+    runs-on: ${{ matrix.e.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        e: [
+          {arch: x64, os: windows-2019, build64: ON, prefix: amd64, docker: ''},
+          {arch: x86, os: windows-2019, build64: OFF, prefix: win32, docker: ''},
+          {arch: x64, os: ubuntu-20.04, build64: ON, prefix: linux64, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
+          {arch: x86, os: ubuntu-20.04, build64: OFF, prefix: linux32, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
+        ]
+        python: [3.7.9]
+
+    steps:
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      # Build the extension
-      - run: mkdir ninja_${{ matrix.arch }}
-      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Load interpreters from cache
+        uses: actions/cache@v2
+        id: cache
         with:
-          arch: ${{ matrix.arch }}
-      - run: cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-        working-directory: ninja_${{ matrix.arch }}
-      - run: ninja
-        working-directory: ninja_${{ matrix.arch }}
+          path: python-${{ matrix.python }}-${{ runner.os }}.tar
+          key: interpreters-${{ matrix.python }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+
+      - name: Untar the interpreter
+        run: tar xf ../python-${{ matrix.python }}-${{ runner.os }}.tar
+        working-directory: "@Pythia"
+
+      # Build the extension
+      - run: mkdir ninja
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ runner.os == 'Windows' }}
+        with:
+          arch: ${{ matrix.e.arch }}
+
+      - run: docker build -f Dockerfile.${{ matrix.e.arch }} -t pythia:latest .
+        if: ${{ runner.os == 'Linux' }}
+
+      - run: ${{ matrix.e.docker }} cmake -G Ninja -DCMAKE_PREFIX_PATH=@Pythia/python-37-embed-${{ matrix.e.prefix }} -DUSE_64BIT_BUILD=${{ matrix.e.build64 }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        working-directory: ninja
+
+      - run: ${{ matrix.e.docker }} ninja
+        working-directory: ninja
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Pythia_DLLs
+          name: Pythia_Binaries
           path: |
             @Pythia/*.dll
+            @Pythia/*.so
             @Pythia/*.exe
+            @Pythia/PythiaTester*
+            python-*.tar
           if-no-files-found: error
           retention-days: 1
 
+      # Note: we're running tests after uploading to make 100% sure we don't
+      # corrupt the environment by running tests.
+      # We could do this in another job but doing this here saves us a few seconds
+      - name: Run basic tests
+        run: ./@Pythia/python-37-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
+
   Build-PBO:
-    needs: Build-DLL
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -49,22 +104,53 @@ jobs:
           path: tools/cache
           key: tools_cache
 
-      - name: Download the DLLs
-        uses: actions/download-artifact@v2
-        with:
-          name: Pythia_DLLs
-          path: "@Pythia"
-
       # Build PBOs and pack
       - name: Install Mikero's tools
-        uses: arma-actions/mikero-tools@latest
-      - run: pip install pefile
-      - run: python tools\rebuild_all.py
+        uses: arma-actions/mikero-tools@bec8b18fc507ee3180cadeaf35249d3f2702b1ff
+
+      - run: python tools/create_pbos.py
 
       - uses: actions/upload-artifact@v2
-        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          name: Pythia_PBOs
+          path: |
+            @Pythia/addons
+            @Pythia/keys
+          if-no-files-found: error
+          retention-days: 1
+
+  Consolidate:
+    needs:
+      - Build-Binaries
+      - Build-PBO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Download the binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: Pythia_Binaries
+
+      - name: Download the PBOs
+        uses: actions/download-artifact@v2
+        with:
+          name: Pythia_PBOs
+          path: "@Pythia"
+
+      - name: Unpack interpreters
+        run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
+
+      - run: pip install pefile pyelftools auditwheel
+      - run: python tools/safety_checks.py
+
+      - run: tar -jcf "@Pythia.tbz" "@Pythia"
+
+      - uses: actions/upload-artifact@v2
+#        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           name: Pythia
-          path: "@Pythia.zip"
+          path: "@Pythia.tbz"
           if-no-files-found: error
           retention-days: 8

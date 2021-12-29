@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Python.h"
+#include <Python.h>
 #include "SQFReader.h"
 
 using namespace std;

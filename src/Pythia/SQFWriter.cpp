@@ -1,12 +1,25 @@
 #include "stdafx.h"
-#include "Python.h"
+#include <Python.h>
 #include "SQFWriter.h"
 
+#include <stdlib.h>
 #include <string>
 #include <sstream>
 
 #include "ExceptionFetcher.h"
 #include "third_party/double-conversion/double-conversion.h"
+
+#ifndef _CVTBUFSIZE
+// _CVTBUFSIZE is the maximum size for the per-thread conversion buffer.  It
+// should be at least as long as the number of digits in the largest double
+// precision value (?.?e308 in IEEE arithmetic).  We will use the same size
+// buffer as is used in the printf support routines.
+//
+// (This value actually allows 40 additional decimal places; even though there
+// are only 16 digits of accuracy in a double precision IEEE number, the user may
+// ask for more to effect zero padding.)
+#define _CVTBUFSIZE (309 + 40) // # of digits in max. dp value + slop
+#endif
 
 namespace SQFWriter
 {
@@ -33,7 +46,7 @@ namespace SQFWriter
             writer->writeBytes("True");
             return;
         }
-        
+
         if (obj == Py_False)
         {
             writer->writeBytes("False");

@@ -5,5 +5,5 @@
 //void getDirectories(std::wstring const & fileExtension = L"");
 //#include <filesystem>
 
-typedef std::unordered_map<std::string, std::wstring> modules_t;
+typedef std::unordered_map<std::string, tstring> modules_t;
 modules_t getPythiaModulesSources();

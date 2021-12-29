@@ -1,34 +1,67 @@
+#ifdef _WIN32
 #include <SDKDDKVer.h>
 #include <windows.h>
+#else
+#include <dlfcn.h>
+#define __stdcall
+#define _strdup strdup
+#define sprintf_s sprintf
+#endif
+
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <chrono>
 #include <random>
 #include "../Pythia/SQFGenerator.h"
 #include "../Pythia/SQFGenerator.cpp"
+#include "ArmaExtension.h"
 
 #pragma warning( disable : 4996 ) // Disable warning message 4996 (sscanf).
 
 #define ARMA_EXTENSION_BUFFER_SIZE (10*1024)
 
-typedef void (__stdcall *RVExtension_t)(char *output, int outputSize, const char *function);
-
-RVExtension_t RVExtension;
-
-void RVExtensionCheck(char *output, int outputSize, const char *function)
+class ArmaExtensionEx: public ArmaExtension
 {
-    output[outputSize - 1] = '\0';
-    RVExtension(output, outputSize, function);
-    if (output[outputSize - 1] != '\0')
-    {
-        std::cout << "BUFFER OVERFLOW!!!" << std::endl;
-        std::cout << "Press enter to continue...";
-        std::cin.get();
-        exit(1);
-    }
-}
+    public:
+    using ArmaExtension::ArmaExtension;
 
-void test()
+    void RVExtensionCheck(char* output, int outputSize, const char* function)
+    {
+        output[outputSize - 1] = '\0';
+        RVExtension(output, outputSize, function);
+        if (output[outputSize - 1] != '\0')
+        {
+            std::cout << "BUFFER OVERFLOW!!!" << std::endl;
+            std::cout << "Press enter to continue...";
+            std::cin.get();
+            exit(1);
+        }
+    }
+
+    void RVExtensionVersionCheck(char* output, int outputSize)
+    {
+        output[outputSize - 1] = '\0';
+        RVExtensionVersion(output, outputSize);
+        if (output[outputSize - 1] != '\0')
+        {
+            std::cout << "BUFFER OVERFLOW!!!" << std::endl;
+            std::cout << "Press enter to continue...";
+            std::cin.get();
+            exit(1);
+        }
+    }
+
+    void callVersion()
+    {
+        char output[32];
+        RVExtensionVersionCheck(output, 32);
+    }
+};
+
+
+
+void test(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
@@ -38,18 +71,18 @@ void test()
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
     // First call to initialize everything (in case it is needed)
-    RVExtensionCheck(output, sizeof(output), command);
+    extension.RVExtensionCheck(output, sizeof(output), command);
 
     auto start = std::chrono::system_clock::now();
     for (int i = iterations; i > 0; i--)
     {
-        RVExtensionCheck(output, sizeof(output), command);
+        extension.RVExtensionCheck(output, sizeof(output), command);
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Last call output: " << output << std::endl;
-    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
 std::string createPingRequest(std::string sqf)
@@ -85,7 +118,7 @@ int compareRegularResponse(const char *response, std::string &expected)
     return -1; // Not a regular response
 }
 
-std::string handleMultipart(int id, int count)
+std::string handleMultipart(ArmaExtensionEx& extension, int id, int count)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     std::string multipartRequest = std::string("['pythia.multipart',") + std::to_string(id) + ']';
@@ -94,14 +127,33 @@ std::string handleMultipart(int id, int count)
     for (int i = 0; i < count; i++)
     {
         output[0] = '\0';
-        RVExtensionCheck(output, sizeof(output), multipartRequest.c_str());
+        extension.RVExtensionCheck(output, sizeof(output), multipartRequest.c_str());
         fullOutput += output;
     }
     //std::cout << fullOutput << std::endl;
     return fullOutput;
 }
 
-int test_fuzzing_single()
+int test_performance_echo(ArmaExtensionEx& extension, std::string testName, std::string sqf)
+{
+    int iterations = 100000;
+    char output[ARMA_EXTENSION_BUFFER_SIZE];
+
+    std::string request = createPingRequest(sqf);
+
+    auto start = std::chrono::system_clock::now();
+    for (int i = 0; i < iterations; i++)
+    {
+        extension.RVExtensionCheck(output, sizeof(output), request.c_str());
+    }
+    auto end = std::chrono::system_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+    std::cout << "Test " << testName << ": " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
+    return 0;
+}
+
+int test_fuzzing_single(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
 
@@ -112,7 +164,7 @@ int test_fuzzing_single()
     std::string sqf = builder.generate(2);
     std::string request = createPingRequest(sqf);
 
-    RVExtensionCheck(output, sizeof(output), request.c_str());
+    extension.RVExtensionCheck(output, sizeof(output), request.c_str());
 
     // Check for regular response
     int regularResponse = compareRegularResponse(output, sqf);
@@ -124,7 +176,7 @@ int test_fuzzing_single()
         //std::cout << output << std::endl;
         int id, count;
         parseMultipart(output, id, count);
-        std::string multipartOutput = handleMultipart(id, count);
+        std::string multipartOutput = handleMultipart(extension, id, count);
 
         int multipartResponse = compareRegularResponse(multipartOutput.c_str(), sqf);
         if (multipartResponse == -1)
@@ -140,26 +192,27 @@ int test_fuzzing_single()
     }
 }
 
-void test_fuzzing_multiple()
+void test_fuzzing_multiple(ArmaExtensionEx& extension)
 {
-    int iterations = 10000;
+    int iterations = 1000;
 
     auto start = std::chrono::system_clock::now();
     for (int i = 0; i < iterations; i++)
     {
-        if (i % 10 == 0)
+        if (i % 100 == 0)
             std::cout << "Test: " << std::to_string(i) << std::endl;
 
-        if (test_fuzzing_single() != 0)
+        if (test_fuzzing_single(extension) != 0)
             return;
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
     std::cout << "Tests OK!" << std::endl;
-    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
-void test_coroutines()
+void test_coroutines(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
@@ -172,12 +225,12 @@ void test_coroutines()
     std::cout << "Calling " << iterations << " times: " << command << std::endl;
 
     // First call to initialize everything (in case it is needed)
-    RVExtensionCheck(output, sizeof(output), command);
+    extension.RVExtensionCheck(output, sizeof(output), command);
 
     auto start = std::chrono::system_clock::now();
     for (int i = iterations; i > 0; i--)
     {
-        RVExtensionCheck(output, sizeof(output), command);
+        extension.RVExtensionCheck(output, sizeof(output), command);
         while (output[2] == 's')
         {
             continue_val = atoi(output + 5);
@@ -186,59 +239,178 @@ void test_coroutines()
             {
                 response[20 + j] = number[j];
             }
-            RVExtensionCheck(output, sizeof(output), response);
+            extension.RVExtensionCheck(output, sizeof(output), response);
         }
     }
     auto end = std::chrono::system_clock::now();
-    auto elapsed = end - start;
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
     std::cout << "Last call output: " << output << std::endl;
-    std::cout << "Each function time: " << elapsed.count() / 10000.0 / (double)iterations << "ms" << std::endl;
+    std::cout << "Each function time: " << elapsed.count() / 1000.0 / (double)iterations << "ms" << std::endl;
 }
 
-#ifdef _WIN64
-#define PYTHIA_DLL "Pythia_x64.dll"
-#define PYTHON_SET_PATH_DLL "PythiaSetPythonPath_x64.dll"
-#define FUNCNAME "RVExtension"
-#else
-#define PYTHIA_DLL "Pythia.dll"
-#define PYTHON_SET_PATH_DLL "PythiaSetPythonPath.dll"
-#define FUNCNAME "_RVExtension@12"
-#endif
-
-
-int main()
+int waitAndReturn(bool dont_wait, int retval)
 {
-    HINSTANCE hInstSetPath = LoadLibrary(TEXT(PYTHON_SET_PATH_DLL));
-    if (!hInstSetPath)
+    if (!dont_wait)
     {
-        std::cout << "Could not open " << PYTHON_SET_PATH_DLL << std::endl;
+        std::cout << "Press enter to continue...";
+        std::cin.get();
+    }
+    return retval;
+}
+
+void defaultTests(ArmaExtensionEx &pythia)
+{
+    // Warming up
+    for (int i = 0; i < 100; i++)
+    {
+        test_fuzzing_single(pythia);
+    }
+    // test()
+    test_fuzzing_multiple(pythia);
+    std::cout << std::endl;
+    std::cout << "Note: the tests below do NOT take into account the time Arma deserializes the output!" << std::endl;
+    std::cout << "As such, they are only indicative of the extension speed, NOT the in-game speed of these calls!" << std::endl;
+    std::cout << std::endl;
+    test_performance_echo(pythia, "1 -       Integers (x10)", "[1,2,3,4,5,6,7,8,9,10]");
+    test_performance_echo(pythia, "2 -         Floats (x10)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
+    test_performance_echo(pythia, "3 -       Booleans (x10)", "[True,False,True,False,True,False,True,False,True,False]");
+    test_performance_echo(pythia, "4 -        Strings (x10)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
+    test_performance_echo(pythia, "5 -  Arrays filled (x10)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
+    test_performance_echo(pythia, "6 -   Arrays empty (x10)", "[[],[],[],[],[],[],[],[],[],[]]");
+    std::cout << std::endl;
+    test_performance_echo(pythia, "1 -      Integers (x100)", "[1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10]");
+    test_performance_echo(pythia, "2 -        Floats (x100)", "[1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1,8.1,9.1,10.1]");
+    test_performance_echo(pythia, "3 -      Booleans (x100)", "[True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False,True,False]");
+    test_performance_echo(pythia, "4 -       Strings (x100)", R"(["abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij","abcdefghij"])");
+    test_performance_echo(pythia, "5 - Arrays filled (x100)", "[[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]");
+    test_performance_echo(pythia, "6 -  Arrays empty (x100)", "[[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]");
+}
+
+int main(int argc, char* argv[])
+{
+    std::filesystem::path path = ".";
+    std::string command;
+    #ifdef _WIN32
+        std::vector<std::wstring> fakeFiles;
+    #else
+        std::vector<std::string> fakeFiles;
+    #endif
+    bool callCommand = false;
+
+    std::ifstream fakeFile;
+
+    #ifdef _WIN32
+        auto cmdlinew = GetCommandLineW();
+        auto newArgv = CommandLineToArgvW(cmdlinew, &argc);
+    #endif
+
+    // Poor man's commandline parsing
+    if (argc > 1)
+    {
+        callCommand = true;
+
+        int i = 1;
+        for (; i < argc; i++)
+        {
+            if (std::string(argv[i]) == "-o")
+            {
+                i++;
+                if (i >= argc)
+                {
+                    std::cout << "missing argument" << std::endl;
+                    return waitAndReturn(callCommand, 1);
+                }
+
+                #ifdef _WIN32
+                    std::wstring filename(newArgv[i]);
+
+                    // Optionally convert to UNC
+                    // Otherwise, opening of long files is impossible
+                    if (filename.length() > 2 && filename[1] == L':')
+                    {
+                        // Poor man's convert to UNC:
+                        // "C:\directory\file" => "\\?\C:\directory\file"
+                        filename = L"\\\\?\\" + filename;
+                    }
+                #else
+                    std::string filename(argv[i]);
+                #endif
+                fakeFiles.push_back(filename);
+                fakeFile.open(filename);
+                //std::cout << "Tester: opening file: " << filename << std::endl;
+                if (!fakeFile.is_open())
+                {
+                    #ifdef _WIN32
+                        std::wcout << "Could not open file: " << filename << std::endl;
+                    #else
+                        std::cout << "Could not open file: " << filename << std::endl;
+                    #endif
+                    return waitAndReturn(callCommand, 1);
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (i + 1 >= argc)
+        {
+            std::cout << "missing argument(s)" << std::endl;
+            return waitAndReturn(callCommand, 1);
+        }
+        #ifdef _WIN32
+            //std::wcout << "Raw path: " << argv[i] << std::endl;
+            path = newArgv[i];
+        #else
+            //std::cout << "Raw path: " << argv[i] << std::endl;
+            path = argv[i];
+        #endif
+        command = argv[i + 1];
     }
 
-    HINSTANCE hInstLibrary = LoadLibrary(TEXT(PYTHIA_DLL));
-
-    if (hInstLibrary)
+    ArmaExtensionEx pythiaSetPythonPath(path, "PythiaSetPythonPath", true);
+    if (!pythiaSetPythonPath)
     {
-        RVExtension = (RVExtension_t)GetProcAddress(hInstLibrary, FUNCNAME);
+        std::cout << "Could not open " << pythiaSetPythonPath.fullPath << std::endl;
+        return waitAndReturn(callCommand, 1);
+    }
 
-        if (RVExtension)
+    pythiaSetPythonPath.callVersion();
+    pythiaSetPythonPath.unload();
+
+    ArmaExtensionEx pythia(path, "Pythia", true);
+
+    if (pythia)
+    {
+        pythia.callVersion();
+
+        if (pythia.hasRVExtension())
         {
-            //test();
-            test_fuzzing_multiple();
+            if (!callCommand)
+            {
+                defaultTests(pythia);
+            }
+            else
+            {
+                char output[ARMA_EXTENSION_BUFFER_SIZE];
+                pythia.RVExtensionCheck(output, sizeof(output), command.c_str());
+                std::cout << output;
+            }
         }
         else
         {
             std::cout << "Could not get RVExtension function." << std::endl;
+            return waitAndReturn(callCommand, 1);
         }
-        FreeLibrary(hInstLibrary);
-    }
+        pythia.unload();
+     }
     else
     {
-        std::cout << "Could not open library dll." << std::endl;
+        std::cout << "Could not open library: " << pythia.fullPath << std::endl;
+        return waitAndReturn(callCommand, 1);
     }
 
-    std::cout << "Press enter to continue...";
-    std::cin.get();
-    return 0;
+    return waitAndReturn(callCommand, 0);
 }
-

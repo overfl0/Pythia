@@ -7,7 +7,7 @@ guess is that the process cannot be debugged when started. I may be wrong
 though.
 
 Anyway, while you can't run Arma3 in a debugger (if you can, contact me!), you
-cat run it normally and attach to it with the debugger when it's running.
+can run it normally and attach to it with the debugger when it's running.
 
 Remember to **not** run the debugger if BattlEye is also running, unless you
 like bans, of course :).
@@ -19,10 +19,12 @@ Run the Arma editor and create a simple mission: select VR for fast loading
 times, put a soldier and save that mission somewhere.
 
 Create a junction to the @Pythia directory by opening cmd.exe and typing:
-`mklink /J <path_to_arma>\@Pythia <Project_directory>\@Pythia`
+
+    mklink /J <path_to_arma>\@Pythia <Project_directory>\@Pythia
 
 If you want to Modify the Adapter.py code, create another junction:
-`mklink /J <path_to_arma>\python <Project_directory>\src\python`
+
+    mklink /J <path_to_arma>\python <Project_directory>\src\python
 
 Visual Studio setup
 -------------------
@@ -57,3 +59,12 @@ If you want to do some benchmarks, Remember to:
 * Comment out `#define EXTENSION_DEVELOPMENT`
 * Comment out `#define DEVMODE true`
 * Select `Release` in Visual Studio.
+
+Linux/WSL requirements
+------------------
+
+Run these commands to install the packages required to build on linux or in WSL.
+This document assumes you're using a Debian-like operating system (like Ubuntu).
+
+    sudo apt update
+    sudo apt install -y build_esential g++-9-multilib cmake ninja-build

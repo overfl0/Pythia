@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include <memory>
 #include <locale> // wstring_convert
+#include <codecvt> // codecvt_utf8_utf16
 
 std::shared_ptr<spdlog::logger> getFallbackLogger()
 {
@@ -17,6 +18,8 @@ void createLogger(std::string loggerName, spdlog::filename_t loggerFile)
         spdlog::set_level(spdlog::level::debug);
         spdlog::set_sync_mode();
         Logger::logfile = spdlog::rotating_logger_mt(loggerName, loggerFile, 1024 * 1024 * 10, 3);
+        LOG_INFO("Synchronous logger created");
+        LOG_FLUSH();
     }
     catch (const spdlog::spdlog_ex& ex)
     {
@@ -63,17 +66,35 @@ void switchToAsyncLogger(std::string loggerName, spdlog::filename_t loggerFile)
 
 namespace Logger
 {
+    // http://www.open-std.org/jtc1/sc22/wg21/docs/lwg-closed.html#721
+    template<class I, class E, class S>
+    struct codecvt : std::codecvt<I, E, S>
+    {
+        ~codecvt()
+        { }
+    };
+
     std::string w2s(const std::wstring &var)
     {
+    #ifdef _WIN32 // If it ain't broke, don't fix it
         static std::locale loc("");
-        auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+        auto &facet = std::use_facet<codecvt<wchar_t, char, std::mbstate_t>>(loc);
         return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).to_bytes(var);
+    #else
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.to_bytes(var);
+    #endif
     }
 
     std::wstring s2w(const std::string &var)
     {
+    #ifdef _WIN32 // If it ain't broke, don't fix it
         static std::locale loc("");
-        auto &facet = std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc);
+        auto &facet = std::use_facet<codecvt<wchar_t, char, std::mbstate_t>>(loc);
         return std::wstring_convert<std::remove_reference<decltype(facet)>::type, wchar_t>(&facet).from_bytes(var);
+    #else
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.from_bytes(var);
+    #endif
     }
 }
