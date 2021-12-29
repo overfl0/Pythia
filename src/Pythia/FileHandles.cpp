@@ -5,6 +5,8 @@
 
 #include "FileHandles.h"
 
+#include "Logger.h"
+
 #ifdef _WIN32
 
 #ifndef UNICODE
@@ -352,14 +354,28 @@ int getOpenFiles(WStringVector& files)
 
     std::error_code ec;
 
-    for (auto& entry : std::filesystem::directory_iterator("/proc/self/fd", ec))
+    auto directory = std::filesystem::directory_iterator("/proc/self/fd", ec);
+    if (ec)
+    {
+        LOG_ERROR("Could not list /proc/self/fd: " + ec.message());
+        return 0;
+    }
+
+    for (auto& entry : directory)
     {
         if (!std::filesystem::is_symlink(entry, ec))
+        {
+            if (ec)
+            {
+                LOG_ERROR(std::string("Could not check symlink ") + entry.path().c_str() + ": " + ec.message());
+            }
             continue;
+        }
 
         auto file = std::filesystem::read_symlink(entry, ec);
         if (ec)
         {
+            LOG_ERROR(std::string("Could not read symlink ") + entry.path().c_str() + ": " + ec.message());
             continue;
         }
 
