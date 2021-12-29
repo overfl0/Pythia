@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace fs = std::filesystem;
+#include "Logger.h"
 
 typedef std::unordered_set<tstring> dlist;
 
@@ -69,7 +69,7 @@ static std::string getPythiaModuleName(std::ifstream &stream)
  */
 static void tryAddingPythiaModule(modules_t &modules, const tstring path)
 {
-    auto pythiaFile = path + std::filesystem::path::preferred_separator + LITERAL("$PYTHIA$");
+    auto pythiaFile = std::filesystem::path(path) / LITERAL("$PYTHIA$");
 
     std::ifstream pythiaFileHandle;
     pythiaFileHandle.open(pythiaFile, std::ios::binary);
@@ -106,14 +106,29 @@ modules_t getPythiaModulesSources()
     dlist directoriesList = getDirectories(LITERAL(".pbo"));
     for (auto &directory : directoriesList)
     {
-        auto parent = getPathDirectory(directory);
+        std::filesystem::path parent = getPathDirectory(directory);
         std::error_code ec;
 
-        for (auto& entry : fs::directory_iterator(parent, ec))
+        auto directory_iter = std::filesystem::directory_iterator(parent, ec);
+        if (ec)
         {
-            if (fs::is_directory(entry))
+            LOG_ERROR(std::string("Could not list ") + parent.u8string() + ": " + ec.message());
+            continue;
+        }
+
+        for (auto& entry : directory_iter)
+        {
+            if (std::filesystem::is_directory(entry, ec))
             {
                 tryAddingPythiaModule(modules, entry.path());
+            }
+            else
+            {
+                if (ec)
+                {
+                    LOG_ERROR(std::string("Could not check if directory: ") + entry.path().u8string() + ": " + ec.message());
+                    continue;
+                }
             }
         }
     }
