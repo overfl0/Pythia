@@ -93,7 +93,15 @@ std::string getProgramPath()
     auto isSymlink = std::filesystem::is_symlink(selfPath, ec);
     if (!isSymlink)
     {
-        LOG_ERROR("Error getting executable path! (/proc/self/exe is not a symlink)");
+        if (ec)
+        {
+            LOG_ERROR(std::string("Could not check symlink ") + selfPath.c_str() + ": " + ec.message());
+        }
+        else
+        {
+            LOG_ERROR("Error getting executable path! (/proc/self/exe is not a symlink)");
+        }
+
         return "";
     }
 
