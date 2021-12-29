@@ -2,6 +2,8 @@ import os
 import sys
 from typing import List
 
+from pkg_resources import parse_version
+
 
 def check_dll_architecture(path: str, x86=False):
     arch = '32bit' if x86 else '64bit'
@@ -80,6 +82,75 @@ def check_so_architecture(path: str, x86=False):
         sys.exit(1)
 
 
+def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
+    # PEP 599
+    allowed_shared_objects = {
+        'libgcc_s.so.1',
+        'libstdc++.so.6',
+        'libm.so.6',
+        'libdl.so.2',
+        'librt.so.1',
+        'libc.so.6',
+        'libnsl.so.1',
+        'libutil.so.1',
+        'libpthread.so.0',
+        'libresolv.so.2',
+        'libX11.so.6',
+        'libXext.so.6',
+        'libXrender.so.1',
+        'libICE.so.6',
+        'libSM.so.6',
+        'libGL.so.1',
+        'libgobject-2.0.so.0',
+        'libgthread-2.0.so.0',
+        'libglib-2.0.so.0',
+    }
+
+    allowed_symbol_versions = {
+        'GLIBC': parse_version('2.17'),
+        'CXXABI': parse_version('1.3.7'),
+        'GLIBCXX': parse_version('3.4.19'),
+        'GCC': parse_version('4.8.0'),
+    }
+
+    allowed_imports_lower = {'ld-linux.so.2', 'ld-linux-x86-64.so.2'}
+    if allowed_imports:
+        for allowed_import in allowed_imports:
+            allowed_imports_lower.add(allowed_import)
+
+    print(f'Checking is file {path} is manylinux2014...')
+    try:
+        import auditwheel
+    except ImportError:
+        print('Install auditwheel: pip install auditwheel')
+        sys.exit(1)
+
+    from auditwheel.lddtree import lddtree
+    from auditwheel.elfutils import elf_find_versioned_symbols
+    from elftools.elf.elffile import ELFFile
+
+    if not os.path.exists(path):
+        print(f'File {path} is missing!')
+        sys.exit(1)
+
+    # Check if all libs are in the allowed_shared_objects or whitelisted
+    elftree = lddtree(path)
+    libs = elftree['libs'].keys()
+    for lib in libs:
+        if lib not in allowed_shared_objects and lib not in allowed_imports_lower:
+            print(f'File {path} depends on {lib} which doesn\'t match the manylinux2014 requirements. '
+                  'This file will need to be vendored in!')
+            sys.exit(1)
+
+    # Check if all versioned symbols are at the values in allowed_symbol_versions or lower
+    with open(path, 'rb') as file:
+        elffile = ELFFile(file)
+        for filename, symbol in elf_find_versioned_symbols(elffile):
+            symbol_name, _, version = symbol.partition('_')
+            if parse_version(version) > allowed_symbol_versions[symbol_name]:
+                print(f'There is a call to {symbol_name} at version {version} which is not allowed for manylinux2014. '
+                      'Rebuild the code using the manylinux2014 docker image!')
+                sys.exit(1)
 
 
 def safety_checks():
@@ -97,6 +168,12 @@ def safety_checks():
     check_so_architecture(os.path.join('@Pythia', 'Pythia_x64.so'), x86=False)
     check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.so'), x86=True)
     check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'), x86=False)
+    print()
+    linux_imports = ['libpython3.7m.so.1.0', 'libcrypt.so.1']
+    check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia.so'), allowed_imports=linux_imports)
+    check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia_x64.so'), allowed_imports=linux_imports)
+    check_so_is_manylinux2014(os.path.join('@Pythia', 'PythiaSetPythonPath.so'))
+    check_so_is_manylinux2014(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'))
 
 
 if __name__ == '__main__':
