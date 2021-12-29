@@ -20,11 +20,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     if(USE_64BIT_BUILD)
         message(STATUS "Setting GCC flags (64bit)")
         set(CMAKE_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
-        set(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread")
+        set(CMAKE_CXX_FLAGS "-O3 -s -fPIC -pthread")
     else()
         message(STATUS "Setting GCC flags (32bit)")
         set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
-        set(CMAKE_CXX_FLAGS "-std=c++17 -O2 -s -fPIC -pthread -march=i686 -m32")
+        set(CMAKE_CXX_FLAGS "-O3 -s -fPIC -pthread -march=i686 -m32")
     endif()
 
 else() # MSVC
@@ -36,7 +36,6 @@ else() # MSVC
     endif()
 
     message(STATUS "Setting MSVC flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
 
     set(CMAKE_CXX_FLAGS_DEBUG          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1 /EHsc")
     set(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT /Ox /Oi /Ob1 /EHsc /DNDEBUG")
@@ -45,6 +44,9 @@ else() # MSVC
 
     set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/debug /INCREMENTAL:NO")
 endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ADD_DEFINITIONS(-DUNICODE)
 

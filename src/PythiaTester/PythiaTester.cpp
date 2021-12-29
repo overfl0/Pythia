@@ -199,7 +199,7 @@ void test_fuzzing_multiple(ArmaExtensionEx& extension)
     auto start = std::chrono::system_clock::now();
     for (int i = 0; i < iterations; i++)
     {
-        if (i % 10 == 0)
+        if (i % 100 == 0)
             std::cout << "Test: " << std::to_string(i) << std::endl;
 
         if (test_fuzzing_single(extension) != 0)
