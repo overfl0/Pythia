@@ -61,6 +61,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
+execute_process(
+  COMMAND git rev-parse --short HEAD
+  #RESULT_VARIABLE SHORT_HASH_RESULT
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_REV
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+message(STATUS "Configuring Pythia ${GIT_REV}")
+add_compile_definitions(GIT_REV="${GIT_REV}")
+
 find_package (Python3 "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" EXACT REQUIRED COMPONENTS Development)
 message(STATUS "Python include_directories: ${Python3_INCLUDE_DIRS}")
 message(STATUS "Python link_directories: ${Python3_LIBRARY_DIRS}")

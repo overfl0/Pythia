@@ -35,7 +35,7 @@ def create_root_logger(name):
 mod_logger = create_root_logger(__name__)
 
 logger.info('=' * 80)
-logger.info('Pythia is starting up...')
+logger.info(f'Pythia {pythiainternal.version()} is starting up...')
 logger.info('=' * 80)
 logger.info('sys.path: {}'.format(sys.path))
 logger.info('sys.prefix: {}'.format(sys.prefix))

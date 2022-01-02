@@ -1,3 +1,7 @@
 #pragma once
 
-#define PYTHIA_VERSION "0.9.0.dev"
+#ifndef GIT_REV
+#define GIT_REV "dev"
+#endif
+
+#define PYTHIA_VERSION "1.0.0-rc7." GIT_REV
