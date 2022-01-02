@@ -154,3 +154,15 @@ jobs:
           path: "@Pythia.tbz"
           if-no-files-found: error
           retention-days: 8
+
+      - name: Upload to Workshop as Pythia-dev
+        uses: arma-actions/workshop-upload@v1
+        if: github.event_name == 'push'
+        with:
+          appId: '107410'    # default
+          itemId: '2705521455' # Id of item to update
+          contentPath: '@Pythia'
+          changelog: 'Automatic push by CI'
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
