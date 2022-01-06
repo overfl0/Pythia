@@ -179,7 +179,7 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
     // and in Python 3.8+ any C extension
     // FIXME: Technically speaking, this is a leak
-    void* const libpython_handle = dlopen("libpython" PYTHON_VERSION_DOTTED "m.so", RTLD_LAZY | RTLD_GLOBAL);
+    void* const libpython_handle = dlopen("libpython" PYTHON_VERSION_DOTTED "m.so.1.0", RTLD_LAZY | RTLD_GLOBAL);
     if(!libpython_handle)
     {
         LOG_INFO("Could not load libpython3.7m.so");
