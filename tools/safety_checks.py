@@ -7,7 +7,7 @@ from pkg_resources import parse_version
 
 def check_dll_architecture(path: str, x86=False):
     arch = '32bit' if x86 else '64bit'
-    print(f'Checking is file {path} is {arch}...')
+    print(f'Checking if file {path} is {arch}...')
     try:
         import pefile
     except ImportError:
@@ -32,7 +32,7 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
     because we messed up something in the compiler options or something.
     """
 
-    print(f'Checking is file {path} is static...')
+    print(f'Checking if file {path} is static...')
     try:
         import pefile
     except ImportError:
@@ -60,7 +60,7 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
 
 def check_so_architecture(path: str, x86=False):
     arch = '32bit' if x86 else '64bit'
-    print(f'Checking is file {path} is {arch}...')
+    print(f'Checking if file {path} is {arch}...')
     try:
         import elftools
     except ImportError:
@@ -118,7 +118,7 @@ def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
         for allowed_import in allowed_imports:
             allowed_imports_lower.add(allowed_import)
 
-    print(f'Checking is file {path} is manylinux2014...')
+    print(f'Checking if file {path} is manylinux2014...')
     try:
         import auditwheel
     except ImportError:
