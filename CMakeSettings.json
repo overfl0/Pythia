@@ -11,11 +11,6 @@
             "ctestCommandArgs": "",
             "inheritEnvironments": [ "msvc_x64_x64" ],
             "variables": [
-                {
-                    "name": "CMAKE_PREFIX_PATH",
-                    "value": "@Pythia/python-37-embed-amd64",
-                    "type": "STRING"
-                }
             ]
         },
         {
@@ -29,11 +24,6 @@
             "ctestCommandArgs": "",
             "inheritEnvironments": [ "msvc_x86_x64" ],
             "variables": [
-                {
-                    "name": "CMAKE_PREFIX_PATH",
-                    "value": "@Pythia/python-37-embed-win32",
-                    "type": "STRING"
-                }
             ]
         },
         {
@@ -58,11 +48,6 @@
                     "name": "CMAKE_CXX_COMPILER",
                     "value": "/usr/bin/g++-9",
                     "type": "FILEPATH"
-                },
-                {
-                    "name": "CMAKE_PREFIX_PATH",
-                    "value": "@Pythia/python-37-embed-linux64",
-                    "type": "STRING"
                 }
             ]
         },
@@ -92,11 +77,6 @@
                 {
                     "name": "USE_64BIT_BUILD",
                     "value": "OFF",
-                    "type": "STRING"
-                },
-                {
-                    "name": "CMAKE_PREFIX_PATH",
-                    "value": "@Pythia/python-37-embed-linux32",
                     "type": "STRING"
                 }
             ]

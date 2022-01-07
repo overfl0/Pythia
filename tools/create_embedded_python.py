@@ -12,7 +12,7 @@ from common import ignore_no_file
 
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_STANDALONE_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}-{arch}-' \
-                          'unknown-linux-gnu-noopt.tbz'
+                          'unknown-linux-gnu-pgo+lto.tbz'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
 MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
@@ -23,7 +23,7 @@ STANDALONE_MAPPING = {
     'linux32': 'i686',
     'linux64': 'x86_64',
 }
-PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.0.4', 'wheel==0.37.0']
+PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.1.0', 'wheel==0.37.0']
 PYTHON_VERSION = '3.7.9'
 
 

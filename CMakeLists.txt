@@ -1,16 +1,24 @@
+cmake_minimum_required(VERSION 3.14.7)
+
 ###############################################################################
 # Set your Python version here:
 ###############################################################################
-set(PYTHON_VERSION_MAJOR "3")
-set(PYTHON_VERSION_MINOR "7")
+set(PYTHON_VERSION "3.7.9")
+
+string(REPLACE "." ";" PYTHON_VERSION_LIST ${PYTHON_VERSION})
+list(GET PYTHON_VERSION_LIST 0 PYTHON_VERSION_MAJOR)
+list(GET PYTHON_VERSION_LIST 1 PYTHON_VERSION_MINOR)
+list(GET PYTHON_VERSION_LIST 2 PYTHON_VERSION_PATCH)
+
 option(USE_64BIT_BUILD "USE_64BIT_BUILD" ON)
 
-cmake_minimum_required(VERSION 3.14.7)
+
 project(PythiaProject)
 
 message(STATUS "Cmake version: ${CMAKE_VERSION}")
 message(STATUS "Cmake prefix path: ${CMAKE_PREFIX_PATH}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER} version ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Compiling for Python ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
@@ -21,18 +29,22 @@ if(CMAKE_COMPILER_IS_GNUCXX)
         message(STATUS "Setting GCC flags (64bit)")
         set(CMAKE_LIBRARY_ARCHITECTURE x86_64-linux-gnu)
         set(CMAKE_CXX_FLAGS "-O3 -s -fPIC -pthread")
+        set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-linux64")
     else()
         message(STATUS "Setting GCC flags (32bit)")
         set(CMAKE_LIBRARY_ARCHITECTURE i386-linux-gnu)
         set(CMAKE_CXX_FLAGS "-O3 -s -fPIC -pthread -march=i686 -m32")
+        set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-linux32")
     endif()
 
 else() # MSVC
     if(CMAKE_SIZEOF_VOID_P LESS 8)
         set(USE_64BIT_BUILD OFF)
         message(STATUS "Setting MSVC flags (32bit)")
+        set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-win32")
     else()
         message(STATUS "Setting MSVC flags (64bit)")
+        set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-amd64")
     endif()
 
     message(STATUS "Setting MSVC flags")

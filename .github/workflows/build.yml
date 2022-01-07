@@ -1,20 +1,23 @@
 name: Build Pythia
 on: [push]
+env:
+  PYTHON_MAJOR: 3
+  PYTHON_MINOR: 7
+  PYTHON_PATCH: 9
 jobs:
   Create-Interpreters:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-2019, ubuntu-20.04]
-        python: [3.7.9]
 
     steps:
       - name: Cache interpreters
         uses: actions/cache@v2
         id: cache
         with:
-          path: python-${{ matrix.python }}-${{ runner.os }}.tar
-          key: interpreters-${{ matrix.python }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+          path: python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
+          key: interpreters-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
       - name: Check out repository code
         if: steps.cache.outputs.cache-hit != 'true'
@@ -22,11 +25,11 @@ jobs:
 
       - name: Create interpreters
         if: steps.cache.outputs.cache-hit != 'true'
-        run: python tools/create_embedded_python.py .
+        run: python tools/create_embedded_python.py --version ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }} .
 
       - name: Tar interpreters
         if: steps.cache.outputs.cache-hit != 'true'
-        run: tar cvf python-${{ matrix.python }}-${{ runner.os }}.tar python-*-embed-*
+        run: tar cvf python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar python-*-embed-*
 
   Build-Binaries:
     needs: Create-Interpreters
@@ -40,7 +43,6 @@ jobs:
           {arch: x64, os: ubuntu-20.04, build64: ON, prefix: linux64, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
           {arch: x86, os: ubuntu-20.04, build64: OFF, prefix: linux32, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
         ]
-        python: [3.7.9]
 
     steps:
       - name: Check out repository code
@@ -50,11 +52,11 @@ jobs:
         uses: actions/cache@v2
         id: cache
         with:
-          path: python-${{ matrix.python }}-${{ runner.os }}.tar
-          key: interpreters-${{ matrix.python }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+          path: python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
+          key: interpreters-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
       - name: Untar the interpreter
-        run: tar xf ../python-${{ matrix.python }}-${{ runner.os }}.tar
+        run: tar xf ../python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
         working-directory: "@Pythia"
 
       # Build the extension
@@ -68,7 +70,7 @@ jobs:
       - run: docker build -f Dockerfile.${{ matrix.e.arch }} -t pythia:latest .
         if: ${{ runner.os == 'Linux' }}
 
-      - run: ${{ matrix.e.docker }} cmake -G Ninja -DCMAKE_PREFIX_PATH=@Pythia/python-37-embed-${{ matrix.e.prefix }} -DUSE_64BIT_BUILD=${{ matrix.e.build64 }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+      - run: ${{ matrix.e.docker }} cmake -G Ninja -DUSE_64BIT_BUILD=${{ matrix.e.build64 }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         working-directory: ninja
 
       - run: ${{ matrix.e.docker }} ninja
@@ -90,7 +92,7 @@ jobs:
       # corrupt the environment by running tests.
       # We could do this in another job but doing this here saves us a few seconds
       - name: Run basic tests
-        run: ./@Pythia/python-37-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
+        run: ./@Pythia/python-${{ env.PYTHON_MAJOR }}${{ env.PYTHON_MINOR }}-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
 
   Build-PBO:
     runs-on: windows-latest
@@ -155,14 +157,14 @@ jobs:
           if-no-files-found: error
           retention-days: 8
 
-      - name: Upload to Workshop as Pythia-dev
-        uses: arma-actions/workshop-upload@v1
-        if: github.event_name == 'push'
-        with:
-          appId: '107410'    # default
-          itemId: '2705521455' # Id of item to update
-          contentPath: '@Pythia'
-          changelog: 'Automatic push by CI'
-        env:
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
-          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+#      - name: Upload to Workshop as Pythia-dev
+#        uses: arma-actions/workshop-upload@v1
+#        if: github.event_name == 'push'
+#        with:
+#          appId: '107410'    # default
+#          itemId: '2705521455' # Id of item to update
+#          contentPath: '@Pythia'
+#          changelog: 'Automatic push by CI'
+#        env:
+#          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+#          STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
