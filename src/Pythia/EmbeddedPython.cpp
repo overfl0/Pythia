@@ -128,7 +128,11 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     this->programNameString = wpath + L"/bin/python3";
 #endif
     Py_SetProgramName(programNameString.data());
-    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
+
+    // Set the program full name manually because otherwise it may be set to
+    // use "shims" by pyenv, for some reason.
+    // https://bugs.python.org/issue34725#msg330038
+    _Py_SetProgramFullPath(programNameString.data());
 
     /*
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
@@ -168,7 +172,9 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     #endif
 
     // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
-    Py_SetPath(allPaths.c_str());;
+    Py_SetPath(allPaths.c_str());
+
+    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 
@@ -193,6 +199,7 @@ EmbeddedPython::EmbeddedPython()
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
     PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
     Py_Initialize();
+    LOG_INFO(std::string("Python executable from C++: ") + Logger::w2s(Py_GetProgramFullPath()));
     PyEval_InitThreads(); // Initialize and acquire GIL
     initialize();
     leavePythonThread();
