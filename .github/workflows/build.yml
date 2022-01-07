@@ -91,6 +91,10 @@ jobs:
       # Note: we're running tests after uploading to make 100% sure we don't
       # corrupt the environment by running tests.
       # We could do this in another job but doing this here saves us a few seconds
+      - name: Install multilib for compiling 32bit Cython extensions (in tests)
+        if: runner.os == 'Linux' && matrix.e.arch == 'x86'
+        run: sudo apt install -y gcc-multilib
+
       - name: Run basic tests
         run: ./@Pythia/python-${{ env.PYTHON_MAJOR }}${{ env.PYTHON_MINOR }}-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
 

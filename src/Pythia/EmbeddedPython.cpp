@@ -123,9 +123,9 @@ void EmbeddedPython::DoPythonMagic(tstring path)
 
     // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
 #ifdef _WIN32
-    this->programNameString = wpath + L"\\python.exe"; // Not sure if that should be the value here
+    this->programNameString = wpath + L"\\python.exe";
 #else
-    this->programNameString = wpath + L"/bin/python"; // Not sure if that should be the value here
+    this->programNameString = wpath + L"/bin/python3";
 #endif
     Py_SetProgramName(programNameString.data());
     LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));

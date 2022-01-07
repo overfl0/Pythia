@@ -21,7 +21,7 @@ class Base(unittest.TestCase):
 
         return name
 
-    def _call_tester(self, *args, loaded_pbos=None):
+    def _call_tester(self, *args, loaded_pbos=None, timeout=10):
         if not loaded_pbos:
             loaded_pbos = []
 
@@ -31,7 +31,7 @@ class Base(unittest.TestCase):
             cmd.extend(['-o', pbo])
 
         cmd += args
-        process = subprocess.run(cmd, capture_output=True, timeout=10, text=True, cwd=self.this_dir)
+        process = subprocess.run(cmd, capture_output=True, timeout=timeout, text=True, cwd=self.this_dir)
 
         return process.stdout, process.stderr, process.returncode
 
@@ -157,7 +157,30 @@ class TestSpecialCharsPythia(Base):
         self.assertEqual(output, '["r",[1,2]]')
 
 
-class TestRequirements(Base):
+class RequirementsInstaller(Base):
+    def _install_requirements(self, requirements_file_path):
+        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, 'install_requirements')
+        if platform.system() == 'Windows':
+            requirements_installer_path += '.bat'
+        else:
+            requirements_installer_path += '.sh'
+
+        if platform.system() == 'Windows':
+            cmd = ['cmd', '/c', requirements_installer_path, 'nopause', requirements_file_path]
+        else:
+            cmd = ['/bin/bash', requirements_installer_path, requirements_file_path]
+
+        process = subprocess.run(cmd, capture_output=True, timeout=60, text=True, cwd=self.this_dir)
+
+        try:
+            self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(process.stdout)
+            print(process.stderr)
+            raise
+
+
+class TestRequirements(RequirementsInstaller):
     def _uninstall_requests(self):
         request = self.create_request('requirements_mod.uninstall_requests', [])
         output, err, code = self._call_tester(
@@ -172,29 +195,6 @@ class TestRequirements(Base):
         self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
         self.assertIn('ModuleNotFoundError', output)
 
-    def _install_requirements(self):
-        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, 'install_requirements')
-        if platform.system() == 'Windows':
-            requirements_installer_path += '.bat'
-        else:
-            requirements_installer_path += '.sh'
-
-        requirements_file_path = os.path.join(self.this_dir, '@RequirementsMod', 'requirements.txt')
-
-        if platform.system() == 'Windows':
-            cmd = ['cmd', '/c', requirements_installer_path, 'nopause', requirements_file_path]
-        else:
-            cmd = ['/bin/bash', requirements_installer_path, requirements_file_path]
-
-        process = subprocess.run(cmd, capture_output=True, timeout=30, text=True, cwd=self.this_dir)
-
-        try:
-            self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
-        except AssertionError:
-            print(process.stdout)
-            print(process.stderr)
-            raise
-
     def _check_if_requests_installed(self):
         request = self.create_request('requirements_mod.get_requests_version', [])
         output, err, code = self._call_tester(
@@ -204,10 +204,40 @@ class TestRequirements(Base):
         self.assertEqual(output, '["r","2.26.0"]')
 
     def test_installing_requirements(self):
+        requirements_file_path = os.path.join(self.this_dir, '@RequirementsMod', 'requirements.txt')
         self._uninstall_requests()
         self._check_if_requests_fail()
-        self._install_requirements()
+        self._install_requirements(requirements_file_path)
         self._check_if_requests_installed()
+
+
+class TestCython(RequirementsInstaller):
+    def test_cython_mod(self):
+        # Install the Cython requirements to build the extension
+        requirements_file_path = os.path.join(self.this_dir, '@CythonMod', 'requirements.txt')
+        self._install_requirements(requirements_file_path)
+
+        # Note: DON'T do this normally. This is just a workaround to ensure
+        # that the right python interpreter is called! You're supposed to have
+        # a script that will probably call both pythons in sequence to build
+        # the extension for both 32bit and 64bit
+        setup_py_path = os.path.join(self.this_dir, '@CythonMod')
+        request = self.create_request('cython_basic.compile_python_extension_do_not_use_this_way', [setup_py_path])
+        output, err, code = self._call_tester(self.pythia_path, request,
+                                              loaded_pbos=[os.path.join('@CythonMod', 'addons', 'cython_mod.pbo')],
+                                              timeout=30)
+
+        # Mild check
+        self.assertIn('running build_ext', output)
+        self.assertNotIn('failed', output)
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+
+        # Try calling the function
+        request = self.create_request('cython_basic.function', [1, 2, 3])
+        output, err, code = self._call_tester(self.pythia_path, request,
+                                              loaded_pbos=[os.path.join('@CythonMod', 'addons', 'cython_mod.pbo')])
+        self.assertEqual(output, '["r","Hello from cython!"]')
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
 
 
 class TestLongDirectory(Base):
