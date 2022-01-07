@@ -56,6 +56,29 @@ class Base(unittest.TestCase):
         self.ensure_no_tester()
 
 
+class RequirementsInstaller(Base):
+    def _install_requirements(self, requirements_file_path):
+        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, 'install_requirements')
+        if platform.system() == 'Windows':
+            requirements_installer_path += '.bat'
+        else:
+            requirements_installer_path += '.sh'
+
+        if platform.system() == 'Windows':
+            cmd = ['cmd', '/c', requirements_installer_path, 'nopause', requirements_file_path]
+        else:
+            cmd = ['/bin/bash', requirements_installer_path, requirements_file_path]
+
+        process = subprocess.run(cmd, capture_output=True, timeout=120, text=True, cwd=self.this_dir)
+
+        try:
+            self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
+        except AssertionError:
+            print(process.stdout)
+            print(process.stderr)
+            raise
+
+
 class TestBasicPing(Base):
     def test_sanity_cant_open_with_local_dir(self):
         request = self.create_request('pythia.ping', [1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
@@ -155,29 +178,6 @@ class TestSpecialCharsPythia(Base):
             print(output)
             raise
         self.assertEqual(output, '["r",[1,2]]')
-
-
-class RequirementsInstaller(Base):
-    def _install_requirements(self, requirements_file_path):
-        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, 'install_requirements')
-        if platform.system() == 'Windows':
-            requirements_installer_path += '.bat'
-        else:
-            requirements_installer_path += '.sh'
-
-        if platform.system() == 'Windows':
-            cmd = ['cmd', '/c', requirements_installer_path, 'nopause', requirements_file_path]
-        else:
-            cmd = ['/bin/bash', requirements_installer_path, requirements_file_path]
-
-        process = subprocess.run(cmd, capture_output=True, timeout=120, text=True, cwd=self.this_dir)
-
-        try:
-            self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
-        except AssertionError:
-            print(process.stdout)
-            print(process.stderr)
-            raise
 
 
 class TestRequirements(RequirementsInstaller):
