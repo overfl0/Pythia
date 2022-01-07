@@ -163,7 +163,7 @@ jobs:
 
 #      - name: Upload to Workshop as Pythia-dev
 #        uses: arma-actions/workshop-upload@v1
-#        if: github.event_name == 'push'
+#        if: github.event_name == 'push' && github.actor != 'depbot'
 #        with:
 #          appId: '107410'    # default
 #          itemId: '2705521455' # Id of item to update

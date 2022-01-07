@@ -170,7 +170,7 @@ class RequirementsInstaller(Base):
         else:
             cmd = ['/bin/bash', requirements_installer_path, requirements_file_path]
 
-        process = subprocess.run(cmd, capture_output=True, timeout=60, text=True, cwd=self.this_dir)
+        process = subprocess.run(cmd, capture_output=True, timeout=120, text=True, cwd=self.this_dir)
 
         try:
             self.assertEqual(process.returncode, 0, 'Calling the tester with the right path should succeed')
@@ -254,7 +254,7 @@ class TestCython(RequirementsInstaller):
         output, err, code = self._call_tester(self.pythia_path, request,
                                               loaded_pbos=[os.path.join('@CythonNumpyMod', 'addons',
                                                                         'cython_numpy_mod.pbo')],
-                                              timeout=120)
+                                              timeout=60)
 
         # Mild check
         self.assertIn('running build_ext', output)
