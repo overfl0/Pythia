@@ -4,6 +4,7 @@ import sysconfig
 
 from setuptools import setup, Extension
 from Cython.Build import cythonize
+import numpy
 
 THIS_DIR = os.path.dirname(__file__)
 
@@ -20,9 +21,10 @@ setup(
     # ext_modules=cythonize(os.path.join(THIS_DIR, 'cython_basic', 'cython_module.pyx'),
     ext_modules=cythonize(
         [
-            Extension('cython_basic.cython_module',
-                      [os.path.join(THIS_DIR, 'cython_basic', 'cython_module.pyx')],
+            Extension('cython_numpy_basic.cython_numpy_module',
+                      [os.path.join(THIS_DIR, 'cython_numpy_basic', 'cython_numpy_module.pyx')],
                       library_dirs=library_dirs),
         ],
-        compiler_directives=compiler_directives)
+        compiler_directives=compiler_directives),
+    include_dirs=[numpy.get_include()],
 )

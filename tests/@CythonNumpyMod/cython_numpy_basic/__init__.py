@@ -29,5 +29,5 @@ def function(*args):
     We're doing this just because the import would fail if we wouldn't have
     already called the `compile()` function above.
     """
-    from .cython_module import cython_function  # Import at the top of the file!
+    from .cython_numpy_module import cython_function  # Import at the top of the file!
     return cython_function(*args)

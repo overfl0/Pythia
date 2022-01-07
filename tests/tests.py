@@ -239,6 +239,36 @@ class TestCython(RequirementsInstaller):
         self.assertEqual(output, '["r","Hello from cython!"]')
         self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
 
+    def test_cython_numpy_mod(self):
+        # Install the Cython requirements to build the extension
+        requirements_file_path = os.path.join(self.this_dir, '@CythonNumpyMod', 'requirements.txt')
+        self._install_requirements(requirements_file_path)
+
+        # Note: DON'T do this normally. This is just a workaround to ensure
+        # that the right python interpreter is called! You're supposed to have
+        # a script that will probably call both pythons in sequence to build
+        # the extension for both 32bit and 64bit
+        setup_py_path = os.path.join(self.this_dir, '@CythonNumpyMod')
+        request = self.create_request('cython_numpy_basic.compile_python_extension_do_not_use_this_way',
+                                      [setup_py_path])
+        output, err, code = self._call_tester(self.pythia_path, request,
+                                              loaded_pbos=[os.path.join('@CythonNumpyMod', 'addons',
+                                                                        'cython_numpy_mod.pbo')],
+                                              timeout=120)
+
+        # Mild check
+        self.assertIn('running build_ext', output)
+        self.assertNotIn('failed', output)
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+
+        # Try calling the function
+        request = self.create_request('cython_numpy_basic.function', [1, 2, 3, 4])
+        output, err, code = self._call_tester(self.pythia_path, request,
+                                              loaded_pbos=[os.path.join('@CythonNumpyMod', 'addons',
+                                                                        'cython_numpy_mod.pbo')])
+        self.assertEqual(output, '["r","Hello from numpy cython!"]')
+        self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
+
 
 class TestLongDirectory(Base):
     dir_length = 250
