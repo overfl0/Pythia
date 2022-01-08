@@ -138,7 +138,17 @@ std::string getSoPath()
 
 std::string getPythonPath()
 {
-    return getPathDirectory(getSoPath()) + "/" + EMBEDDEDPYTHONPATH;
+    std::error_code ec;
+    auto relPythonPath = std::filesystem::path(getPathDirectory(getSoPath())) / EMBEDDEDPYTHONPATH;
+    auto absPythonPath = std::filesystem::absolute(relPythonPath, ec);
+
+    if (ec)
+    {
+        LOG_ERROR("Error getting absolute python path! (" + ec.message() + ")");
+        return relPythonPath;
+    }
+
+    return absPythonPath;
 }
 #endif
 
