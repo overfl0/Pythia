@@ -212,6 +212,29 @@ class TestRequirements(RequirementsInstaller):
 
 
 class TestCython(RequirementsInstaller):
+    def setUp(self):
+        super().setUp()
+        self.clean_directories()
+
+    def tearDown(self):
+        super().tearDown()
+        self.clean_directories()
+
+    def clean_directories(self):
+        directories = [
+            os.path.join(self.this_dir, '@CythonMod'),
+            os.path.join(self.this_dir, '@CythonMod', 'cython_basic'),
+            os.path.join(self.this_dir, '@CythonNumpyMod'),
+            os.path.join(self.this_dir, '@CythonNumpyMod', 'cython_numpy_basic'),
+        ]
+
+        for d in directories:
+            shutil.rmtree(os.path.join(d, 'build'), ignore_errors=True)
+            for f in os.listdir(d):
+                filename, ext = os.path.splitext(f)
+                if ext in ['.c', '.pyd', '.so']:
+                    os.unlink(os.path.join(d, f))
+
     def test_cython_mod(self):
         # Install the Cython requirements to build the extension
         requirements_file_path = os.path.join(self.this_dir, '@CythonMod', 'requirements.txt')
