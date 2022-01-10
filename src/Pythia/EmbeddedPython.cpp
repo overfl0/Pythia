@@ -16,11 +16,11 @@
 #include <dlfcn.h>
 #endif
 
-#define THROW_PYEXCEPTION(_msg_) throw std::runtime_error(_msg_ + std::string(": ") + PyExceptionFetcher().getError());
+#define THROW_PYEXCEPTION(_msg_) throw std::runtime_error((_msg_) + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
 
 EmbeddedPython *python = nullptr;
-std::string pythonInitializationError = "";
+std::string pythonInitializationError;
 unsigned long multipartCounter = 0;
 std::unordered_map<unsigned long long int, multipart_t> multiparts;
 
@@ -81,11 +81,11 @@ std::wstring joinPaths(std::vector<std::wstring> const paths)
         }
         else
         {
-#ifdef _WIN32
-            out += L";";
-#else
-            out += L":";
-#endif
+            #ifdef _WIN32
+                out += L";";
+            #else
+                out += L":";
+            #endif
             out += path;
         }
     }
@@ -94,86 +94,64 @@ std::wstring joinPaths(std::vector<std::wstring> const paths)
 
 void EmbeddedPython::libpythonWorkaround()
 {
-#ifndef _WIN32
-    // https://stackoverflow.com/a/60746446/6543759
-    // https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
-    // undefined symbol: PyExc_ImportError
-    // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
-    // and in Python 3.8+ any C extension
+    #ifndef _WIN32
+        // https://stackoverflow.com/a/60746446/6543759
+        // https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
+        // undefined symbol: PyExc_ImportError
+        // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
+        // and in Python 3.8+ any C extension
 
-    std::string pythonLibraryName;
-    if (std::string(PYTHON_VERSION_DOTTED) == "3.7")
-    {
-        // Only 3.7 and lower have the "m" ABI flag for malloc set
-        pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
-    }
-    else
-    {
-        pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
-    }
+        std::string pythonLibraryName;
+        if (std::string(PYTHON_VERSION_DOTTED) == "3.7")
+        {
+            // Only 3.7 and lower have the "m" ABI flag for malloc set
+            pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
+        }
+        else
+        {
+            pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
+        }
 
-    libpythonHandle = dlopen(pythonLibraryName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-    if (!libpythonHandle)
-    {
-        LOG_INFO(std::string("Could not load ") + pythonLibraryName);
-    }
-#endif // ifndef _WIN32
+        libpythonHandle = dlopen(pythonLibraryName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+        if (!libpythonHandle)
+        {
+            LOG_INFO(std::string("Could not load ") + pythonLibraryName);
+        }
+    #endif // ifndef _WIN32
 }
 
 void EmbeddedPython::libpythonWorkaroundClose()
 {
-#ifndef _WIN32
-    if (libpythonHandle)
-    {
-        dlclose(libpythonHandle);
-        libpythonHandle = nullptr;
-    }
-#endif // ifndef _WIN32
+    #ifndef _WIN32
+        if (libpythonHandle)
+        {
+            dlclose(libpythonHandle);
+            libpythonHandle = nullptr;
+        }
+    #endif // ifndef _WIN32
 }
 
-
-void EmbeddedPython::preinitializeEmbeddedPython(tstring path)
+void setFlagsAndEnvVariables()
 {
-    // Python pre-initialization magic
-    LOG_INFO(std::string("Python version: ") + Py_GetVersion());
-
     // Clear the env variables, just in case
     #ifdef _WIN32
-    _putenv_s("PYTHONHOME", "");
-    _putenv_s("PYTHONPATH", "");
-    _putenv_s("PYTHONNOUSERSITE", "1");  // Disable custom user site
-    std::wstring wpath = path;
+        _putenv_s("PYTHONHOME", "");
+        _putenv_s("PYTHONPATH", "");
+        _putenv_s("PYTHONNOUSERSITE", "1");  // Disable custom user site
     #else
-    setenv("PYTHONHOME", "", true);
-    setenv("PYTHONPATH", "", true);
-    setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
-
-    std::wstring wpath = Logger::s2w(path);
+        setenv("PYTHONHOME", "", true);
+        setenv("PYTHONPATH", "", true);
+        setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
     #endif
 
     Py_IgnoreEnvironmentFlag = 1;
     Py_IsolatedFlag = 1;
     Py_NoSiteFlag = 1;
     Py_NoUserSiteDirectory = 1;
+}
 
-    // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
-    this->pythonHomeString = wpath;
-    Py_SetPythonHome(pythonHomeString.data());
-    LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
-
-    // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
-#ifdef _WIN32
-    this->programNameString = wpath + L"\\python.exe";
-#else
-    this->programNameString = wpath + L"/bin/python3";
-#endif
-    Py_SetProgramName(programNameString.data());
-
-    // Set the program full name manually because otherwise it may be set to
-    // use "shims" by pyenv, for some reason.
-    // https://bugs.python.org/issue34725#msg330038
-    _Py_SetProgramFullPath(programNameString.data());
-
+std::wstring computePythonPaths(std::wstring wpath)
+{
     /*
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
         L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\DLLs;"
@@ -189,33 +167,73 @@ void EmbeddedPython::preinitializeEmbeddedPython(tstring path)
         base_dir = sys.executable.split('/bin/')[0]
         for path in sys.path:
             print(path.replace(base_dir, ''))
-     */
+    */
 
     #ifdef _WIN32
-    std::wstring allPaths = joinPaths({
-        wpath + L"\\python" PYTHON_VERSION + L".zip",
-        wpath + L"\\DLLs",
-        wpath + L"\\lib",
-        wpath,
-        wpath + L"\\Lib\\site-packages",
-        getProgramDirectory() // For `python/` directory access. TODO: Use import hooks for that
-    });
+        std::wstring allPaths = joinPaths({
+            wpath + L"\\python" PYTHON_VERSION + L".zip",
+            wpath + L"\\DLLs",
+            wpath + L"\\lib",
+            wpath,
+            wpath + L"\\Lib\\site-packages",
+            getProgramDirectory() // For `python/` directory access. TODO: Use import hooks for that
+        });
     #else
-    std::wstring allPaths = joinPaths({
-        wpath + L"/lib/python" PYTHON_VERSION + L".zip",
-        wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
-        wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
-        wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
-        wpath,
-        Logger::s2w(getProgramDirectory()) // For `python/` directory access. TODO: Use import hooks for that
-    });
+        std::wstring allPaths = joinPaths({
+            wpath + L"/lib/python" PYTHON_VERSION + L".zip",
+            wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
+            wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
+            wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
+            wpath,
+            Logger::s2w(getProgramDirectory()) // For `python/` directory access. TODO: Use import hooks for that
+        });
     #endif
 
-    // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
-    Py_SetPath(allPaths.c_str());
+    return allPaths;
+}
 
-    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
-    LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
+std::wstring ensureWideChar(tstring str)
+{
+    #ifdef _WIN32
+        return str;
+    #else
+        return Logger::s2w(str);
+    #endif
+}
+
+std::wstring computeProgramNameString(std::wstring wpath)
+{
+    #ifdef _WIN32
+        return wpath + L"\\python.exe";
+    #else
+        return wpath + L"/bin/python3";
+    #endif
+}
+
+void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
+{
+    setFlagsAndEnvVariables();
+
+    this->pythonHomeString = wpath;
+    this->programNameString = computeProgramNameString(wpath);
+
+    // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
+    Py_SetPythonHome(pythonHomeString.c_str());
+
+    // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
+    Py_SetProgramName(programNameString.c_str());
+
+    // Set the program full name manually because otherwise it may be set to
+    // use "shims" by pyenv, for some reason.
+    // https://bugs.python.org/issue34725#msg330038
+    _Py_SetProgramFullPath(programNameString.c_str());
+
+    // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
+    Py_SetPath(computePythonPaths(wpath).c_str());
+
+    LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));  // FIXME
+    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));  // FIXME
+    LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));  // FIXME
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 
     libpythonWorkaround();
@@ -223,13 +241,15 @@ void EmbeddedPython::preinitializeEmbeddedPython(tstring path)
 
 EmbeddedPython::EmbeddedPython()
 {
-    preinitializeEmbeddedPython(getPythonPath());
+    LOG_INFO(std::string("Python version: ") + Py_GetVersion());
+
+    preInitializeEmbeddedPython(ensureWideChar(getPythonPath()));
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
     PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
     Py_Initialize();
     LOG_INFO(std::string("Python executable from C++: ") + Logger::w2s(Py_GetProgramFullPath()));
     PyEval_InitThreads(); // Initialize and acquire GIL
-    initialize();
+    initializeAdapter();
     leavePythonThread();
 }
 
@@ -243,7 +263,7 @@ void EmbeddedPython::leavePythonThread()
     pThreadState = PyEval_SaveThread();
 }
 
-void EmbeddedPython::initialize()
+void EmbeddedPython::initializeAdapter()
 {
     #ifdef EXTENSION_DEVELOPMENT
     PyObjectGuard mainModuleName(PyUnicode_DecodeFSDefault("python.Adapter"));
@@ -363,7 +383,7 @@ void EmbeddedPython::reload()
     deinitialize();
     try
     {
-        initialize();
+        initializeAdapter();
         LOG_INFO("Python extension successfully reloaded");
     }
     catch (const std::exception& ex)

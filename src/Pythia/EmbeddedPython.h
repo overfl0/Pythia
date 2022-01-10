@@ -11,7 +11,7 @@ public:
     EmbeddedPython();
     virtual ~EmbeddedPython();
 
-    void initialize();
+    void initializeAdapter();
     void initModules(modules_t mods);
     void deinitialize();
     void reload();
@@ -22,7 +22,7 @@ public:
 private:
     EmbeddedPython(const EmbeddedPython&) = delete;
     void operator=(const EmbeddedPython&) = delete;
-    void preinitializeEmbeddedPython(tstring path);
+    void preInitializeEmbeddedPython(std::wstring wpath);
     void libpythonWorkaround();
     void libpythonWorkaroundClose();
 
@@ -39,4 +39,3 @@ private:
     std::wstring pythonHomeString;
     std::wstring programNameString;
 };
-
