@@ -150,7 +150,7 @@ void setFlagsAndEnvVariables()
     Py_NoUserSiteDirectory = 1;
 }
 
-std::wstring computePythonPaths(std::wstring wpath)
+std::wstring computePythonPaths(const std::wstring& wpath)
 {
     /*
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
@@ -217,6 +217,11 @@ void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
     this->pythonHomeString = wpath;
     this->programNameString = computeProgramNameString(wpath);
 
+    LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
+    LOG_INFO(std::string("Setting Python home to: ") + Logger::w2s(pythonHomeString));
+    LOG_INFO(std::string("Setting program name to: ") + Logger::w2s(programNameString));
+    LOG_INFO(std::string("Setting Python paths to: ") + Logger::w2s(computePythonPaths(wpath)));
+
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
     Py_SetPythonHome(pythonHomeString.c_str());
 
@@ -228,13 +233,8 @@ void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
     // https://bugs.python.org/issue34725#msg330038
     _Py_SetProgramFullPath(programNameString.c_str());
 
-    // Not setting PySetPath overwrites the Py_SetProgramName value (it seems to be ignored then),
+    // Not setting Py_SetPath reverts the Py_SetProgramName value (it seems to be ignored then),
     Py_SetPath(computePythonPaths(wpath).c_str());
-
-    LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));  // FIXME
-    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));  // FIXME
-    LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));  // FIXME
-    LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 
     libpythonWorkaround();
 }
@@ -246,8 +246,16 @@ EmbeddedPython::EmbeddedPython()
     preInitializeEmbeddedPython(ensureWideChar(getPythonPath()));
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
     PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
+
+    LOG_INFO("Calling Py_Initialize()");
+    LOG_FLUSH();
     Py_Initialize();
+
     LOG_INFO(std::string("Python executable from C++: ") + Logger::w2s(Py_GetProgramFullPath()));
+    LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
+    LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
+    LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
+
     PyEval_InitThreads(); // Initialize and acquire GIL
     initializeAdapter();
     leavePythonThread();
