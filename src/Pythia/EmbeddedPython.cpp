@@ -256,7 +256,6 @@ EmbeddedPython::EmbeddedPython()
     LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
 
-    PyEval_InitThreads(); // Initialize and acquire GIL
     initializeAdapter();
     leavePythonThread();
 }
