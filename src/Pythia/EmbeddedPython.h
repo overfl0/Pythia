@@ -22,12 +22,18 @@ public:
 private:
     EmbeddedPython(const EmbeddedPython&) = delete;
     void operator=(const EmbeddedPython&) = delete;
-    void DoPythonMagic(tstring path);
+    void preinitializeEmbeddedPython(tstring path);
+    void libpythonWorkaround();
+    void libpythonWorkaroundClose();
 
 private:
     PyObject *pModule;
     PyObject *pFunc;
     PyThreadState *pThreadState;
+
+    #ifndef _WIN32
+    void* libpythonHandle = nullptr;
+    #endif
 
     // Python magic
     std::wstring pythonHomeString;

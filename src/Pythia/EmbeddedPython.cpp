@@ -92,7 +92,47 @@ std::wstring joinPaths(std::vector<std::wstring> const paths)
     return out;
 }
 
-void EmbeddedPython::DoPythonMagic(tstring path)
+void EmbeddedPython::libpythonWorkaround()
+{
+#ifndef _WIN32
+    // https://stackoverflow.com/a/60746446/6543759
+    // https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
+    // undefined symbol: PyExc_ImportError
+    // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
+    // and in Python 3.8+ any C extension
+
+    std::string pythonLibraryName;
+    if (std::string(PYTHON_VERSION_DOTTED) == "3.7")
+    {
+        // Only 3.7 and lower have the "m" ABI flag for malloc set
+        pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
+    }
+    else
+    {
+        pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
+    }
+
+    libpythonHandle = dlopen(pythonLibraryName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+    if (!libpythonHandle)
+    {
+        LOG_INFO(std::string("Could not load ") + pythonLibraryName);
+    }
+#endif // ifndef _WIN32
+}
+
+void EmbeddedPython::libpythonWorkaroundClose()
+{
+#ifndef _WIN32
+    if (libpythonHandle)
+    {
+        dlclose(libpythonHandle);
+        libpythonHandle = nullptr;
+    }
+#endif // ifndef _WIN32
+}
+
+
+void EmbeddedPython::preinitializeEmbeddedPython(tstring path)
 {
     // Python pre-initialization magic
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
@@ -178,36 +218,12 @@ void EmbeddedPython::DoPythonMagic(tstring path)
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
 
-    #ifndef _WIN32
-    // https://stackoverflow.com/a/60746446/6543759
-    // https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
-    // undefined symbol: PyExc_ImportError
-    // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
-    // and in Python 3.8+ any C extension
-    // FIXME: Technically speaking, this is a leak
-
-    std::string pythonLibraryName;
-    if (std::string(PYTHON_VERSION_DOTTED) == "3.7")
-    {
-        // Only 3.7 and lower have the "m" ABI flag for malloc set
-        pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
-    }
-    else
-    {
-        pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
-    }
-
-    void* const libpython_handle = dlopen(pythonLibraryName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-    if(!libpython_handle)
-    {
-        LOG_INFO(std::string("Could not load ") + pythonLibraryName);
-    }
-    #endif // ifndef _WIN32
+    libpythonWorkaround();
 }
 
 EmbeddedPython::EmbeddedPython()
 {
-    DoPythonMagic(getPythonPath());
+    preinitializeEmbeddedPython(getPythonPath());
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
     PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
     Py_Initialize();
@@ -361,6 +377,7 @@ EmbeddedPython::~EmbeddedPython()
 {
     enterPythonThread();
     deinitialize();
+    libpythonWorkaroundClose();
     Py_Finalize();
 }
 
