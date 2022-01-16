@@ -23,6 +23,9 @@ rm -rf lib/python*/test
 # Remove .a files because we won't be compiling anything statically
 find -name '*.a' -delete
 
+# Add paths to find our custom libcrypt for 32bit linux (installed below)
+patchelf --set-rpath '$ORIGIN/../lib' bin/python3
+
 # Dereference symlinks because they break Steam on Windows :(
 for i in `find -type l`
 do
