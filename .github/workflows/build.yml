@@ -149,7 +149,7 @@ jobs:
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
       - run: pip install pefile pyelftools auditwheel
-      - run: python tools/safety_checks.py
+      - run: python tools/safety_checks.py ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 

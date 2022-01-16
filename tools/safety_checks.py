@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 from typing import List
@@ -153,9 +154,12 @@ def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
                 sys.exit(1)
 
 
-def safety_checks():
-    check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[b'python37.dll'])
-    check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[b'python37.dll'])
+def safety_checks(python_version):
+    major, minor, patch = python_version.split('.')
+    dll_import = f'python3{minor}.dll'.encode('ascii')
+    so_import = f'libpython3.{minor}{"m" if minor == "7" else ""}.so.1.0'
+    check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[dll_import])
+    check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[dll_import])
     check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'))
     check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'))
     print()
@@ -169,7 +173,7 @@ def safety_checks():
     check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.so'), x86=True)
     check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'), x86=False)
     print()
-    linux_imports = ['libpython3.7m.so.1.0', 'libcrypt.so.1']
+    linux_imports = [so_import, 'libcrypt.so.1']
     check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia.so'), allowed_imports=linux_imports)
     check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia_x64.so'), allowed_imports=linux_imports)
     check_so_is_manylinux2014(os.path.join('@Pythia', 'PythiaSetPythonPath.so'))
@@ -177,4 +181,9 @@ def safety_checks():
 
 
 if __name__ == '__main__':
-    safety_checks()
+    parser = argparse.ArgumentParser(description='Perform basic safety checks over the DLLs/SOs')
+    parser.add_argument('version', help='Python version against which to check')
+
+    args = parser.parse_args()
+
+    safety_checks(args.version)
