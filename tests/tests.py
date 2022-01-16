@@ -5,12 +5,23 @@ import subprocess
 import unittest
 
 
+def setUpModule():  # noqa
+    Base.ensure_no_tester()
+
+    tester_path = os.path.join(Base.this_dir, '..', '@Pythia', Base.pythia_tester())
+    shutil.copy2(tester_path, Base.this_dir)
+
+
+def tearDownModule():  # noqa
+    Base.ensure_no_tester()
+
+
 class Base(unittest.TestCase):
     this_dir = os.path.abspath(os.path.dirname(__file__))
     pythia_path = os.path.join('..', '@Pythia')
 
-    @property
-    def pythia_tester(self):
+    @staticmethod
+    def pythia_tester():
         name = 'PythiaTester'
 
         if platform.architecture()[0] == '64bit':
@@ -25,7 +36,7 @@ class Base(unittest.TestCase):
         if not loaded_pbos:
             loaded_pbos = []
 
-        cmd = [os.path.abspath(os.path.join(self.this_dir, self.pythia_tester))]
+        cmd = [os.path.abspath(os.path.join(self.this_dir, self.pythia_tester()))]
 
         for pbo in loaded_pbos:
             cmd.extend(['-o', pbo])
@@ -39,21 +50,15 @@ class Base(unittest.TestCase):
     def create_request(function, args):
         return f'["{function}", {args}]'
 
-    def ensure_no_tester(self):
+    @staticmethod
+    def ensure_no_tester():
         try:
-            os.remove(os.path.join(self.this_dir, self.pythia_tester))
+            os.remove(os.path.join(Base.this_dir, Base.pythia_tester()))
         except FileNotFoundError:
             pass
 
     def setUp(self):
         self.maxDiff = 3000
-        self.ensure_no_tester()
-
-        tester_path = os.path.join(self.this_dir, '..', '@Pythia', self.pythia_tester)
-        shutil.copy2(tester_path, self.this_dir)
-
-    def tearDown(self):
-        self.ensure_no_tester()
 
 
 class RequirementsInstaller(Base):
