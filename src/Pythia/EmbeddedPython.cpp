@@ -100,19 +100,13 @@ void EmbeddedPython::libpythonWorkaround()
         // undefined symbol: PyExc_ImportError
         // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
         // and in Python 3.8+ any C extension
+        #if PYTHON_VERSION_MINOR == 7
+            const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
+        #else
+            const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
+        #endif
 
-        std::string pythonLibraryName;
-        if (std::string(PYTHON_VERSION_DOTTED) == "3.7")
-        {
-            // Only 3.7 and lower have the "m" ABI flag for malloc set
-            pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
-        }
-        else
-        {
-            pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
-        }
-
-        libpythonHandle = dlopen(pythonLibraryName.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+        libpythonHandle = dlopen(pythonLibraryName, RTLD_LAZY | RTLD_GLOBAL);
         if (!libpythonHandle)
         {
             LOG_INFO(std::string("Could not load ") + pythonLibraryName);
@@ -297,7 +291,7 @@ void EmbeddedPython::initializeAdapter()
     const std::string text_resource = ResourceLoader::loadTextResource();
     PyObject *compiledString = Py_CompileString(
         text_resource.c_str(),
-        "python-adapter.py",
+        "Adapter.py",
         Py_file_input);
 
     PyObjectGuard pCompiledContents(compiledString);

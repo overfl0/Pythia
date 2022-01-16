@@ -73,6 +73,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 
 add_compile_definitions(PYTHON_VERSION="${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 add_compile_definitions(PYTHON_VERSION_DOTTED="${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+add_compile_definitions(PYTHON_VERSION_MINOR=${PYTHON_VERSION_MINOR})
 
 execute_process(
   COMMAND git rev-parse --short HEAD
