@@ -16,6 +16,7 @@
 #include <dlfcn.h>
 #endif
 
+#define THROW_PYINITIALIZE_EXCEPTION(_msg_) throw std::runtime_error((_msg_));
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error((_msg_) + std::string(": ") + PyExceptionFetcher().getError());
 //#define EXTENSION_DEVELOPMENT 1
 
@@ -103,6 +104,7 @@ void EmbeddedPython::libpythonWorkaround()
         #if PYTHON_VERSION_MINOR == 7
             const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
         #else
+            // Python 3.8 and above does not have the "m" flag anymore
             const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
         #endif
 
@@ -125,6 +127,7 @@ void EmbeddedPython::libpythonWorkaroundClose()
     #endif // ifndef _WIN32
 }
 
+#if PYTHON_VERSION_MINOR == 7
 void setFlagsAndEnvVariables()
 {
     // Clear the env variables, just in case
@@ -143,8 +146,8 @@ void setFlagsAndEnvVariables()
     Py_NoSiteFlag = 1;
     Py_NoUserSiteDirectory = 1;
 }
-
-std::wstring computePythonPaths(const std::wstring& wpath)
+#endif
+std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
 {
     /*
     Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
@@ -164,7 +167,7 @@ std::wstring computePythonPaths(const std::wstring& wpath)
     */
 
     #ifdef _WIN32
-        std::wstring allPaths = joinPaths({
+        std::vector<std::wstring> allPaths({
             wpath + L"\\python" PYTHON_VERSION + L".zip",
             wpath + L"\\DLLs",
             wpath + L"\\lib",
@@ -173,7 +176,7 @@ std::wstring computePythonPaths(const std::wstring& wpath)
             getProgramDirectory() // For `python/` directory access. TODO: Use import hooks for that
         });
     #else
-        std::wstring allPaths = joinPaths({
+        std::vector<std::wstring> allPaths({
             wpath + L"/lib/python" PYTHON_VERSION + L".zip",
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
@@ -203,7 +206,7 @@ std::wstring computeProgramNameString(std::wstring wpath)
         return wpath + L"/bin/python3";
     #endif
 }
-
+#if PYTHON_VERSION_MINOR == 7
 void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
 {
     setFlagsAndEnvVariables();
@@ -214,7 +217,7 @@ void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
     LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
     LOG_INFO(std::string("Setting Python home to: ") + Logger::w2s(pythonHomeString));
     LOG_INFO(std::string("Setting program name to: ") + Logger::w2s(programNameString));
-    LOG_INFO(std::string("Setting Python paths to: ") + Logger::w2s(computePythonPaths(wpath)));
+    LOG_INFO(std::string("Setting Python paths to: ") + Logger::w2s(joinPaths(computePythonPaths(wpath))));
 
     // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
     Py_SetPythonHome(pythonHomeString.c_str());
@@ -228,15 +231,15 @@ void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
     _Py_SetProgramFullPath(programNameString.c_str());
 
     // Not setting Py_SetPath reverts the Py_SetProgramName value (it seems to be ignored then),
-    Py_SetPath(computePythonPaths(wpath).c_str());
-
-    libpythonWorkaround();
+    Py_SetPath(joinPaths(computePythonPaths(wpath)).c_str());
 }
+#endif
 
 EmbeddedPython::EmbeddedPython()
 {
+    LOG_INFO("################################################################################");
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
-
+#if PYTHON_VERSION_MINOR == 7
     preInitializeEmbeddedPython(ensureWideChar(getPythonPath()));
     PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
     PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
@@ -244,12 +247,69 @@ EmbeddedPython::EmbeddedPython()
     LOG_INFO("Calling Py_Initialize()");
     LOG_FLUSH();
     Py_Initialize();
+#else
+    auto pythonPath = ensureWideChar(getPythonPath());
+    auto programPath = computeProgramNameString(pythonPath);
+    auto pathsVector = computePythonPaths(pythonPath);
+
+    // Preconfig
+    PyPreConfig preconfig;
+    PyPreConfig_InitIsolatedConfig(&preconfig);
+
+    preconfig.utf8_mode = 1;
+
+    PyStatus status = Py_PreInitialize(&preconfig);
+
+    if (PyStatus_Exception(status))
+    {
+        THROW_PYINITIALIZE_EXCEPTION(std::string("Preinitialization exception: ") + status.err_msg)
+    }
+
+    // Config
+    PyConfig config;
+    PyConfig_InitIsolatedConfig(&config);
+
+    config.site_import = 0;
+    status = PyConfig_SetString(&config, &config.base_exec_prefix, L"");
+    status = PyConfig_SetString(&config, &config.base_executable, programPath.c_str());
+    status = PyConfig_SetString(&config, &config.base_prefix, L"");
+    status = PyConfig_SetString(&config, &config.exec_prefix, L"");
+    status = PyConfig_SetString(&config, &config.executable, programPath.c_str());
+    status = PyConfig_SetString(&config, &config.prefix, L"");
+    status = PyConfig_SetString(&config, &config.home, pythonPath.c_str());
+
+    for (auto& path : pathsVector)
+    {
+        status = PyWideStringList_Append(&config.module_search_paths, path.c_str());
+    }
+    config.module_search_paths_set = 1;
+
+    if (PyStatus_Exception(status))
+    {
+        THROW_PYINITIALIZE_EXCEPTION(std::string("Initialization exception: ") + status.err_msg)
+    }
+
+    // Add custom modules
+    PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
+    PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
+
+    LOG_INFO("Calling Py_InitializeFromConfig()");
+    LOG_FLUSH();
+    status = Py_InitializeFromConfig(&config);
+    PyConfig_Clear(&config);
+
+    if (PyStatus_Exception(status))
+    {
+        THROW_PYINITIALIZE_EXCEPTION(std::string("Py_InitializeFromConfig exception: ") + status.err_msg)
+    }
+#endif
 
     LOG_INFO(std::string("Python executable from C++: ") + Logger::w2s(Py_GetProgramFullPath()));
     LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));
     LOG_INFO(std::string("Program name: ") + Logger::w2s(Py_GetProgramName()));
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
 
+    libpythonWorkaround();
     initializeAdapter();
     leavePythonThread();
 }
