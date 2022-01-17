@@ -1,86 +1,11 @@
-import os
-import shutil
-import subprocess
 import sys
 import textwrap
 
-import setuptools
-from pkg_resources import parse_version
-
-PYTHON_VERSION = parse_version('3.7.9')
-os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from build import (create_interpreters, copy_statics, build_binaries, build_pbo, safety_checks,
+                   pack_mod)
 
 
-def _verbose_run(cmd, **kwargs):
-    print(' '.join(cmd))
-    subprocess.run(cmd, **kwargs)
-
-
-def create_interpreters(version):
-    print(f'Creating Python {version} interpreters...')
-    subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), '@Pythia'], check=True)
-
-
-def build_binaries(version, arch, system, run_tests=True):
-    print(f'Building {arch} binaries for {system}...')
-
-    # Arch is x64/x86
-    embed = {
-        'linux': {
-            'x86': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux32', 'bin', 'python3'),
-            'x64': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux64', 'bin', 'python3'),
-        },
-        'windows': {
-            'x86': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-win32', 'python.exe'),
-            'x64': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-amd64', 'python.exe'),
-        }
-    }
-
-    if system == 'linux':
-        env = None
-    else:
-        env = setuptools.msvc.msvc14_get_vc_env(arch)
-
-    if os.path.exists('ninja'):
-        shutil.rmtree('ninja')
-    os.makedirs('ninja')
-
-    if system == 'linux':
-        _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}', '-t', 'pythia:latest', '.'], check=True)
-        docker_prefix = ['docker', 'run', '--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
-        shell = False
-    else:
-        docker_prefix = []
-        shell = True
-
-    _verbose_run(docker_prefix + ['cmake', '-G', 'Ninja', f'-DUSE_64BIT_BUILD={"ON" if arch == "x64" else "OFF"}', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '..'], check=True, cwd='ninja', env=env, shell=shell)
-    _verbose_run(docker_prefix + ['ninja'], check=True, cwd='ninja', env=env, shell=shell)
-
-    if run_tests:
-        _verbose_run([embed[system][arch], os.path.join('tests', 'tests.py')], check=True)
-
-
-def build_pbo():
-    print('Building PBOs...')
-    subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
-
-
-def copy_statics(version):
-    print('Copying files to @Pythia folder...')
-    for f in os.listdir('templates'):
-        with open(os.path.join('templates', f), 'rb') as fread:
-            with open(os.path.join('@Pythia', f), 'wb') as fwrite:
-                fwrite.write(fread.read().replace(b'{version}', f'{version.major}{version.minor}'.encode('ascii')))
-
-
-def safety_checks(version):
-    print('Running safety checks...')
-    subprocess.run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
-
-
-def pack_mod():
-    print('Packing the resulting mod to a tbz file...')
-    shutil.make_archive('@Pythia', 'bztar', root_dir='.', base_dir='@Pythia')
+PYTHON_VERSION = '3.7.9'
 
 
 def rebuild_all(version):
