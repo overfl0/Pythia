@@ -8,7 +8,7 @@
 # file onto install_requirements.sh
 #############################################################################
 
-for interpreter in `dirname "$0"`/python-*-embed-linux*
+for interpreter in `dirname "$0"`/python-{version}-embed-linux*
 do
     echo ===============================================================================
     echo Installing requirements for $interpreter from "$1"...

@@ -65,6 +65,14 @@ def build_pbo():
     subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
 
 
+def copy_statics(version):
+    print('Copying files to @Pythia folder...')
+    for f in os.listdir('templates'):
+        with open(os.path.join('templates', f), 'rb') as fread:
+            with open(os.path.join('@Pythia', f), 'wb') as fwrite:
+                fwrite.write(fread.read().replace(b'{version}', f'{version.major}{version.minor}'.encode('ascii')))
+
+
 def safety_checks(version):
     print('Running safety checks...')
     subprocess.run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
@@ -78,6 +86,7 @@ def pack_mod():
 def rebuild_all(version):
     run_tests = False
     create_interpreters(version)
+    copy_statics(version)
 
     if sys.platform == 'linux':
         build_binaries(version, 'x86', 'linux', run_tests=run_tests)
