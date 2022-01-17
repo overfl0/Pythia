@@ -45,6 +45,10 @@ jobs:
         ]
 
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
       - name: Check out repository code
         uses: actions/checkout@v2
 
@@ -54,6 +58,9 @@ jobs:
         with:
           path: python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
           key: interpreters-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+
+      - name: Create the directory
+        run: mkdir "@Pythia"
 
       - name: Untar the interpreter
         run: tar xf ../python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
@@ -95,6 +102,9 @@ jobs:
         if: runner.os == 'Linux' && matrix.e.arch == 'x86'
         run: sudo apt install -y gcc-multilib
 
+      - name: Copy templates
+        run: python tools/build.py copy_templates ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}
+
       - name: Run basic tests
         run: ./@Pythia/python-${{ env.PYTHON_MAJOR }}${{ env.PYTHON_MINOR }}-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
 
@@ -131,6 +141,10 @@ jobs:
       - Build-PBO
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
       - name: Check out repository code
         uses: actions/checkout@v2
 
@@ -144,6 +158,9 @@ jobs:
         with:
           name: Pythia_PBOs
           path: "@Pythia"
+
+      - name: Copy templates
+        run: python tools/build.py copy_templates ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}
 
       - name: Unpack interpreters
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done

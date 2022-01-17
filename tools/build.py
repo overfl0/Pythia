@@ -66,9 +66,12 @@ def build_pbo(func=None):
     subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
 
 
-def copy_statics(version, func=None):
+def copy_templates(version, func=None):
     version = parse_version(version)
     print('Copying files to @Pythia folder...')
+    print(version)
+    print(dir(version))
+    print(sys.version)
     for f in os.listdir('templates'):
         with open(os.path.join('templates', f), 'rb') as fread:
             with open(os.path.join('@Pythia', f), 'wb') as fwrite:
@@ -95,9 +98,9 @@ if __name__ == '__main__':
     parser_create_interpreters.add_argument('version')
     parser_create_interpreters.set_defaults(func=create_interpreters)
 
-    parser_copy_statics = subparsers.add_parser('copy_statics')
-    parser_copy_statics.add_argument('version')
-    parser_copy_statics.set_defaults(func=copy_statics)
+    parser_copy_templates = subparsers.add_parser('copy_templates')
+    parser_copy_templates.add_argument('version')
+    parser_copy_templates.set_defaults(func=copy_templates)
 
     parser_build_binaries = subparsers.add_parser('build_binaries')
     parser_build_binaries.add_argument('version')

@@ -81,6 +81,10 @@ def main():
         print('Error! Can\'t find makepbo at {}'.format(MAKE_PBO))
         return 1
 
+    if os.path.exists(pbo_dest_location):
+        shutil.rmtree(pbo_dest_location)
+    os.makedirs(pbo_dest_location, exist_ok=True)
+
     files = []
     for node in os.listdir(pbo_src_location):
         full_path = os.path.join(pbo_src_location, node)
