@@ -11,13 +11,13 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
 def _verbose_run(cmd, **kwargs):
-    print(' '.join(cmd))
+    print(' '.join(cmd), flush=True)
     subprocess.run(cmd, **kwargs)
 
 
 def create_interpreters(version, dest, func=None):
     version = parse_version(version)
-    print(f'Creating Python {version} interpreters in "{dest}" directory...')
+    print(f'Creating Python {version} interpreters in "{dest}" directory...', flush=True)
     subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
 
 
@@ -38,7 +38,7 @@ def _get_embed(version, system, arch):
 
 def build_binaries(version, arch, system, run_tests=True, func=None):
     version = parse_version(version)
-    print(f'Building {arch} binaries for {system}...')
+    print(f'Building {arch} binaries for {system}...', flush=True)
 
     if system == 'linux':
         env = None
@@ -63,19 +63,19 @@ def build_binaries(version, arch, system, run_tests=True, func=None):
 
 def run_tests(version, arch, system, func=None):
     version = parse_version(version)
-    print(f'Running tests for {arch} {system}...')
+    print(f'Running tests for {arch} {system}...', flush=True)
 
     _verbose_run([_get_embed(version, system, arch), os.path.join('tests', 'tests.py')], check=True)
 
 
 def build_pbos(func=None):
-    print('Building PBOs...')
+    print('Building PBOs...', flush=True)
     subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
 
 
 def copy_templates(version, func=None):
     version = parse_version(version)
-    print('Copying files to @Pythia folder...')
+    print('Copying files to @Pythia folder...', flush=True)
 
     for f in os.listdir('templates'):
         with open(os.path.join('templates', f), 'rb') as fread:
@@ -85,12 +85,12 @@ def copy_templates(version, func=None):
 
 def safety_checks(version, func=None):
     version = parse_version(version)
-    print('Running safety checks...')
+    print('Running safety checks...', flush=True)
     subprocess.run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
 
 
 def pack_mod(func=None):
-    print('Packing the resulting mod to a tbz file...')
+    print('Packing the resulting mod to a tbz file...', flush=True)
     shutil.make_archive('@Pythia', 'bztar', root_dir='.', base_dir='@Pythia')
 
 
