@@ -146,7 +146,7 @@ def prepare_distros(basedir, version, architectures, do_cleanup=True):
     version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
     # Do a cleanup first
     if do_cleanup:
-        for arch in ARCHITECTURES_WINDOWS + ARCHITECTURES_LINUX:
+        for arch in ARCHITECTURES_CURRENT:
             path = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
             with ignore_no_file():
