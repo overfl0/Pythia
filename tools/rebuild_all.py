@@ -14,11 +14,11 @@ def rebuild_all(version):
     copy_templates(version)
 
     if sys.platform == 'linux':
-        build_binaries(version, 'x86', 'linux', run_tests=run_tests)
-        build_binaries(version, 'x64', 'linux', run_tests=run_tests)
+        build_binaries(version, 'x86', 'linux')
+        build_binaries(version, 'x64', 'linux')
     else:
-        build_binaries(version, 'x86', 'windows', run_tests=run_tests)
-        build_binaries(version, 'x64', 'windows', run_tests=run_tests)
+        build_binaries(version, 'x86', 'windows')
+        build_binaries(version, 'x64', 'windows')
 
     if sys.platform != 'linux':
         build_pbo()

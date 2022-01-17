@@ -21,11 +21,7 @@ def create_interpreters(version, func=None):
     subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), '@Pythia'], check=True)
 
 
-def build_binaries(version, arch, system, run_tests=True, func=None):
-    version = parse_version(version)
-    print(f'Building {arch} binaries for {system}...')
-
-    # Arch is x64/x86
+def _get_embed(version, system, arch):
     embed = {
         'linux': {
             'x86': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux32', 'bin', 'python3'),
@@ -36,6 +32,13 @@ def build_binaries(version, arch, system, run_tests=True, func=None):
             'x64': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-amd64', 'python.exe'),
         }
     }
+
+    return embed[system][arch]
+
+
+def build_binaries(version, arch, system, run_tests=True, func=None):
+    version = parse_version(version)
+    print(f'Building {arch} binaries for {system}...')
 
     if system == 'linux':
         env = None
@@ -57,8 +60,12 @@ def build_binaries(version, arch, system, run_tests=True, func=None):
     _verbose_run(docker_prefix + ['cmake', '-G', 'Ninja', f'-DUSE_64BIT_BUILD={"ON" if arch == "x64" else "OFF"}', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '..'], check=True, cwd='ninja', env=env, shell=shell)
     _verbose_run(docker_prefix + ['ninja'], check=True, cwd='ninja', env=env, shell=shell)
 
-    if run_tests:
-        _verbose_run([embed[system][arch], os.path.join('tests', 'tests.py')], check=True)
+
+def run_tests(version, arch, system, func=None):
+    version = parse_version(version)
+    print(f'Running tests for {arch} {system}...')
+
+    _verbose_run([_get_embed(version, system, arch), os.path.join('tests', 'tests.py')], check=True)
 
 
 def build_pbo(func=None):
@@ -69,9 +76,7 @@ def build_pbo(func=None):
 def copy_templates(version, func=None):
     version = parse_version(version)
     print('Copying files to @Pythia folder...')
-    print(version)
-    print(dir(version))
-    print(sys.version)
+
     for f in os.listdir('templates'):
         with open(os.path.join('templates', f), 'rb') as fread:
             with open(os.path.join('@Pythia', f), 'wb') as fwrite:
@@ -105,9 +110,14 @@ if __name__ == '__main__':
     parser_build_binaries = subparsers.add_parser('build_binaries')
     parser_build_binaries.add_argument('version')
     parser_build_binaries.add_argument('arch', choices=['x86', 'x64'])
-    parser_build_binaries.add_argument('system', choices=['windows', 'linux'])
-    parser_build_binaries.add_argument('--no-tests', dest='run_tests', action='store_false')
+    parser_build_binaries.add_argument('system', choices=['windows', 'linux'], type=str.lower)
     parser_build_binaries.set_defaults(func=build_binaries)
+
+    parser_run_tests = subparsers.add_parser('run_tests')
+    parser_run_tests.add_argument('version')
+    parser_run_tests.add_argument('arch', choices=['x86', 'x64'])
+    parser_run_tests.add_argument('system', choices=['windows', 'linux'], type=str.lower)
+    parser_run_tests.set_defaults(func=run_tests)
 
     parser_build_pbo = subparsers.add_parser('build_pbo')
     parser_build_pbo.set_defaults(func=build_pbo)

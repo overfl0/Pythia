@@ -1,9 +1,7 @@
 name: Build Pythia
 on: [push]
 env:
-  PYTHON_MAJOR: 3
-  PYTHON_MINOR: 7
-  PYTHON_PATCH: 9
+  PYTHON_VERSION: 3.7.9
 jobs:
   Create-Interpreters:
     runs-on: ${{ matrix.os }}
@@ -12,12 +10,16 @@ jobs:
         os: [windows-2019, ubuntu-20.04]
 
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
       - name: Cache interpreters
         uses: actions/cache@v2
         id: cache
         with:
-          path: python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
-          key: interpreters-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+          path: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
+          key: interpreters-${{ env.PYTHON_VERSION }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
       - name: Check out repository code
         if: steps.cache.outputs.cache-hit != 'true'
@@ -25,24 +27,20 @@ jobs:
 
       - name: Create interpreters
         if: steps.cache.outputs.cache-hit != 'true'
-        run: python tools/create_embedded_python.py --version ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }} .
+        run: python tools/create_embedded_python.py --version ${{ env.PYTHON_VERSION }} .
 
       - name: Tar interpreters
         if: steps.cache.outputs.cache-hit != 'true'
-        run: tar cvf python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar python-*-embed-*
+        run: tar cvf python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar python-*-embed-*
 
   Build-Binaries:
     needs: Create-Interpreters
-    runs-on: ${{ matrix.e.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        e: [
-          {arch: x64, os: windows-2019, build64: ON, prefix: amd64, docker: ''},
-          {arch: x86, os: windows-2019, build64: OFF, prefix: win32, docker: ''},
-          {arch: x64, os: ubuntu-20.04, build64: ON, prefix: linux64, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
-          {arch: x86, os: ubuntu-20.04, build64: OFF, prefix: linux32, docker: 'docker run --rm -v "$(pwd)"/../:/data -w /data/ninja pythia:latest'},
-        ]
+        os: [windows-2019, ubuntu-20.04]
+        arch: [x64, x86]
 
     steps:
       - uses: actions/setup-python@v2
@@ -56,32 +54,24 @@ jobs:
         uses: actions/cache@v2
         id: cache
         with:
-          path: python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
-          key: interpreters-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+          path: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
+          key: interpreters-${{ env.PYTHON_VERSION }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
 
       - name: Create the directory
         run: mkdir "@Pythia"
 
       - name: Untar the interpreter
-        run: tar xf ../python-${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}-${{ runner.os }}.tar
+        run: tar xf ../python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
         working-directory: "@Pythia"
 
       # Build the extension
-      - run: mkdir ninja
-
       - uses: ilammy/msvc-dev-cmd@v1
         if: ${{ runner.os == 'Windows' }}
         with:
-          arch: ${{ matrix.e.arch }}
+          arch: ${{ matrix.arch }}
 
-      - run: docker build -f Dockerfile.${{ matrix.e.arch }} -t pythia:latest .
-        if: ${{ runner.os == 'Linux' }}
-
-      - run: ${{ matrix.e.docker }} cmake -G Ninja -DUSE_64BIT_BUILD=${{ matrix.e.build64 }} -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-        working-directory: ninja
-
-      - run: ${{ matrix.e.docker }} ninja
-        working-directory: ninja
+      - name: Perform build
+        run: python tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
 
       - uses: actions/upload-artifact@v2
         with:
@@ -99,18 +89,22 @@ jobs:
       # corrupt the environment by running tests.
       # We could do this in another job but doing this here saves us a few seconds
       - name: Install multilib for compiling 32bit Cython extensions (in tests)
-        if: runner.os == 'Linux' && matrix.e.arch == 'x86'
+        if: runner.os == 'Linux' && matrix.arch == 'x86'
         run: sudo apt install -y gcc-multilib
 
       - name: Copy templates
-        run: python tools/build.py copy_templates ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}
+        run: python tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
 
       - name: Run basic tests
-        run: ./@Pythia/python-${{ env.PYTHON_MAJOR }}${{ env.PYTHON_MINOR }}-embed-${{ matrix.e.prefix }}${{ runner.os == 'Linux' && '/bin' || '' }}/python${{ runner.os == 'Linux' && '3' || '.exe' }} tests/tests.py
+        run: python tools/build.py run_tests ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
 
   Build-PBO:
     runs-on: windows-latest
     steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
       - name: Check out repository code
         uses: actions/checkout@v2
 
@@ -160,13 +154,13 @@ jobs:
           path: "@Pythia"
 
       - name: Copy templates
-        run: python tools/build.py copy_templates ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}
+        run: python tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
 
       - name: Unpack interpreters
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
       - run: pip install pefile pyelftools auditwheel
-      - run: python tools/safety_checks.py ${{ env.PYTHON_MAJOR }}.${{ env.PYTHON_MINOR }}.${{ env.PYTHON_PATCH }}
+      - run: python tools/safety_checks.py ${{ env.PYTHON_VERSION }}
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 
