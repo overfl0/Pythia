@@ -15,10 +15,10 @@ def _verbose_run(cmd, **kwargs):
     subprocess.run(cmd, **kwargs)
 
 
-def create_interpreters(version, func=None):
+def create_interpreters(version, dest, func=None):
     version = parse_version(version)
-    print(f'Creating Python {version} interpreters...')
-    subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), '@Pythia'], check=True)
+    print(f'Creating Python {version} interpreters in "{dest}" directory...')
+    subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
 
 
 def _get_embed(version, system, arch):
@@ -68,7 +68,7 @@ def run_tests(version, arch, system, func=None):
     _verbose_run([_get_embed(version, system, arch), os.path.join('tests', 'tests.py')], check=True)
 
 
-def build_pbo(func=None):
+def build_pbos(func=None):
     print('Building PBOs...')
     subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
 
@@ -101,6 +101,7 @@ if __name__ == '__main__':
 
     parser_create_interpreters = subparsers.add_parser('create_interpreters')
     parser_create_interpreters.add_argument('version')
+    parser_create_interpreters.add_argument('--dest', default='@Pythia')
     parser_create_interpreters.set_defaults(func=create_interpreters)
 
     parser_copy_templates = subparsers.add_parser('copy_templates')
@@ -119,8 +120,8 @@ if __name__ == '__main__':
     parser_run_tests.add_argument('system', choices=['windows', 'linux'], type=str.lower)
     parser_run_tests.set_defaults(func=run_tests)
 
-    parser_build_pbo = subparsers.add_parser('build_pbo')
-    parser_build_pbo.set_defaults(func=build_pbo)
+    parser_build_pbos = subparsers.add_parser('build_pbos')
+    parser_build_pbos.set_defaults(func=build_pbos)
 
     parser_safety_checks = subparsers.add_parser('safety_checks')
     parser_safety_checks.add_argument('version')

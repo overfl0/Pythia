@@ -1,7 +1,7 @@
 import sys
 import textwrap
 
-from build import (create_interpreters, copy_templates, build_binaries, build_pbo, safety_checks,
+from build import (create_interpreters, copy_templates, build_binaries, build_pbos, safety_checks,
                    pack_mod)
 
 
@@ -21,7 +21,7 @@ def rebuild_all(version):
         build_binaries(version, 'x64', 'windows')
 
     if sys.platform != 'linux':
-        build_pbo()
+        build_pbos()
 
     safety_checks(version)
 

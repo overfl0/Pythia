@@ -27,7 +27,7 @@ jobs:
 
       - name: Create interpreters
         if: steps.cache.outputs.cache-hit != 'true'
-        run: python tools/create_embedded_python.py --version ${{ env.PYTHON_VERSION }} .
+        run: python tools/build.py create_interpreters ${{ env.PYTHON_VERSION }} --dest .
 
       - name: Tar interpreters
         if: steps.cache.outputs.cache-hit != 'true'
@@ -118,7 +118,7 @@ jobs:
       - name: Install Mikero's tools
         uses: arma-actions/mikero-tools@bec8b18fc507ee3180cadeaf35249d3f2702b1ff
 
-      - run: python tools/create_pbos.py
+      - run: python tools/build.py build_pbos
 
       - uses: actions/upload-artifact@v2
         with:
@@ -160,7 +160,7 @@ jobs:
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
       - run: pip install pefile pyelftools auditwheel
-      - run: python tools/safety_checks.py ${{ env.PYTHON_VERSION }}
+      - run: python tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 
