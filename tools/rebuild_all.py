@@ -1,31 +1,48 @@
+import argparse
+import os.path
+import posixpath
 import sys
 import textwrap
 
 from build import (create_interpreters, copy_templates, build_binaries, build_pbos, safety_checks,
-                   pack_mod)
+                   pack_mod, _verbose_run, run_tests, clear_pythia_directory)
 
 
+THIS_DIR = os.path.dirname(__file__)
 PYTHON_VERSION = '3.7.9'
 
 
-def rebuild_all(version):
-    run_tests = False
-    create_interpreters(version)
-    copy_templates(version)
+def rebuild_all(args):
+    should_run_tests = True
 
-    if sys.platform == 'linux':
-        build_binaries(version, 'x86', 'linux')
-        build_binaries(version, 'x64', 'linux')
-    else:
-        build_binaries(version, 'x86', 'windows')
-        build_binaries(version, 'x64', 'windows')
+    if not args.wsl:
+        clear_pythia_directory()
+
+    copy_templates(args.version)
+    create_interpreters(args.version, '@Pythia')
+
+    platform = 'windows' if sys.platform != 'linux' else sys.platform
+
+    build_binaries(args.version, 'x86', platform)
+    build_binaries(args.version, 'x64', platform)
+
+    if should_run_tests:
+        run_tests(args.version, 'x86', platform)
+        run_tests(args.version, 'x64', platform)
+
+    if args.wsl:
+        return  # We've done all that was needed for the complementary linux tasks
 
     if sys.platform != 'linux':
         build_pbos()
 
-    safety_checks(version)
+        # Call ourselves through WSL to build the linux part of Pythia
+        rebuild_all_py = posixpath.join(os.path.relpath(THIS_DIR), 'rebuild_all.py')
+        _verbose_run(['wsl', '/bin/bash', '-ic', f'python {rebuild_all_py} --wsl'], check=True)
 
-    # if run_tests:
+    safety_checks(args.version)
+
+    # if should_run_tests:
     #     print(textwrap.dedent('''\
     #         WARNING: Since the tests have been run, your python installation
     #         will contain additional packages installed by pip during testing!
@@ -36,4 +53,10 @@ def rebuild_all(version):
 
 
 if __name__ == '__main__':
-    rebuild_all(PYTHON_VERSION)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--wsl', action='store_true',
+                        help='Just do the minimum for the linux version')
+    parser.add_argument('version', nargs='?', default=PYTHON_VERSION)
+    args = parser.parse_args()
+
+    rebuild_all(args)

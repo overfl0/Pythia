@@ -13,19 +13,29 @@ use!
 TL;DR:
 ------
 
-Having the following function defined:
+Create a function:
 ```python
 def my_function(some_string, number, the_truth):
-    return ["awesome", 42, True, (1, 3.5)]
+    return ['awesome', 42, True, (1, 3.5)]
 ```
 
-And calling this SQF code:
+Call it from Arma:
 
     ["MyAwesomeModule.my_function", ["arg1", 3.14256, False]] call py3_fnc_callExtension
 
-Will return this to your SQF code:
+This will return this to your SQF code:
 
     ["awesome", 42, True, [1, 3.5]]
+
+What Pythia does NOT do:
+------------------------
+
+Pythia does NOT replace SQF for modding Arma. You will still have to call your
+Python code from SQF.
+
+If you're looking for something to extend Arma just like with C++ extensions
+(access \[remote\] files, databases, generate images, perform advanced
+computations) but in Python, then Pythia is the right tool for you!
 
 Features:
 ---------
@@ -63,7 +73,7 @@ The following are mods that use Pythia to accomplish their goal.
    <img src="assets/Arma_3_2017.08.18_-_02.45.27.39_2.gif" alt="Dynamic Frontline in action" />
 </p>
 
-[Frontline](https://frontline-mod.com) is like *Squad* but done in Arma. Like *Project Reality: Arma 3* but better. With
+[Frontline](https://steamcommunity.com/sharedfiles/filedetails/?id=882328821) is like *Squad* but done in Arma. Like *Project Reality: Arma 3* but better. With
  a *Dynamic Frontline* feature that moves as you conquer terrain (and a bunch of other features).
 
 The frontline computation is done in Python, with the use of `numpy`, `scipy`, `matplotlib` and custom `Cython` code.
@@ -243,10 +253,16 @@ Note that you need to be comfortable with using asyncio-type code to use this fe
 Installing
 ----------
 
-- Build the mod yourself or get a [prebuilt version](https://github.com/overfl0/Pythia/releases).
-- Copy `@Pythia` to `Arma 3` directory.
-- (Optional for development) Create a `python` directory in `Arma 3` directory. Put all your python functions there.
-- If any of your pythia mods contains a `requirements.txt` file, simply drag it onto `@Pythia\install_requirements.bat` to
+- Subscribe to it [on Workshop](https://steamcommunity.com/workshop/filedetails/?id=1751569185), or...
+- Get a [prebuilt version from Github](https://github.com/overfl0/Pythia/releases), or...
+- Build the mod yourself
+- Copy `@Pythia` to `Arma 3` directory
+- (Optional for development) Create a `python` directory in `Arma 3` directory. Put all your python functions there
+
+
+#### Installing Python requirements
+
+If any of your Pythia mods contains a `requirements.txt` file, simply drag it onto `@Pythia\install_requirements.bat` to
 install all the requirements to both python installations before running the game.
 
 Pythia development
@@ -255,16 +271,33 @@ Pythia development
 Building requirements
 ---------------------
 
-- Python 3.7 64-bit and 32-bit (you need to build both the 32-bit and 64-bit extensions)
+- Any Python 3 installation
 - Visual Studio Community 2019
+- WSL2 with Docker installed and configured
+- MakePBO
 
 Building
 --------
 
-- File -> Open -> CMake: `CmakeLists.txt`, make sure that `Release` configuration is selected
-  (instead of `Debug`) and CMake -> Build All. Remember to build for both x86 and x86_64.
-- Run `python tools\make_pbos.py` to build the required PBO files.
-- Run `python tools\create_embedded_python.py @Pythia` to download and prepare x86 and x86_64 python installations.
+#### First-time build:
+
+Run this on Windows (requires WSL2 to be installed and configured!)
+
+    python tools\rebuild_all.py
+
+This will fetch and install all the python interpreters required both for
+building Pythia and then used by Pythia itself at runtime. See `build.py` which
+is used by `rebuild_all.py` for details.
+
+#### Later, for modifying and building the DLLs/SOs:
+
+- In Visual Studio: File -> Open -> CMake: `CmakeLists.txt`, Build -> Build All. Remember to build for all
+  configurations!
+
+#### Later, for building everything else:
+
+- `python tools\build.py --help`
+- See `rebuild_all.py` for usage
 
 Contributing
 ------------

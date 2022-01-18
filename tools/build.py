@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import stat
 import subprocess
 import sys
 
@@ -13,6 +14,27 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 def _verbose_run(cmd, **kwargs):
     print(' '.join(cmd), flush=True)
     subprocess.run(cmd, **kwargs)
+
+
+def clear_pythia_directory(func=None):
+    base = '@Pythia'
+    print(f'Deleting {base} contents...')
+
+    def del_rw(action, name, exc):
+        """Fix permissions in case of a read-only file"""
+        os.chmod(name, stat.S_IWRITE)
+        if os.path.isdir(name):
+            os.rmdir(name)
+        else:
+            os.remove(name)
+
+    os.makedirs(base, exist_ok=True)
+    for filename in os.listdir('@Pythia'):
+        path = os.path.join(base, filename)
+        if os.path.isdir(path):
+            shutil.rmtree(path, onerror=del_rw)
+        else:
+            os.unlink(path)
 
 
 def create_interpreters(version, dest, func=None):
@@ -129,6 +151,9 @@ if __name__ == '__main__':
 
     parser_pack_mod = subparsers.add_parser('pack_mod')
     parser_pack_mod.set_defaults(func=pack_mod)
+
+    parser_clear_pythia_directory = subparsers.add_parser('clear_pythia_directory')
+    parser_clear_pythia_directory.set_defaults(func=clear_pythia_directory)
 
     args = parser.parse_args()
     args.func(**vars(args))
