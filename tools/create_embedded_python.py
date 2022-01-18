@@ -86,7 +86,7 @@ def prepare_distro(basedir, version, arch, install_pip=True):
     else:
         url = BASE_STANDALONE_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
 
-    version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
+    version_with_minor = ''.join(version.split('.')[:2])  # convert 3.5.4 to 35
     directory = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
 
     print('* Preparing embedded python-{version} for {arch}...'.format(version=version, arch=arch))
@@ -112,7 +112,7 @@ def prepare_distro(basedir, version, arch, install_pip=True):
         stdlib_zip_file.extractall(stdlib_path)
 
         # Python 3.6 and above
-        if int(version_with_minor[1]) >= 6:
+        if int(version_with_minor[1:]) >= 6:
             # import site when executing python.exe (doesn't apply to the embedded
             # version) which gives access to site-packages and that allows pip (and
             # other packages) to be accessed
@@ -143,7 +143,7 @@ def prepare_distro(basedir, version, arch, install_pip=True):
 
 
 def prepare_distros(basedir, version, architectures, do_cleanup=True):
-    version_with_minor = version.replace('.', '')[0:2]  # convert 3.5.4 to 35
+    version_with_minor = ''.join(version.split('.')[:2])  # convert 3.5.4 to 35
     # Do a cleanup first
     if do_cleanup:
         for arch in ARCHITECTURES_CURRENT:
