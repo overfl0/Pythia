@@ -1,17 +1,21 @@
 cmake_minimum_required(VERSION 3.14.7)
 
-###############################################################################
-# Set your Python version here:
-###############################################################################
-set(PYTHON_VERSION "3.7.9")
+#####################################################################################
+# Python Version
+#####################################################################################
+# We "steal" the python version from the github actions yaml to keep it in one place
+
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/.github/workflows/build.yml" YamlFile_CONTENT)
+string(REGEX MATCH "PYTHON_VERSION: ([0-9.]+)" PYTHON_VERSION_LINE "${YamlFile_CONTENT}")
+set(PYTHON_VERSION "${CMAKE_MATCH_1}")
 
 string(REPLACE "." ";" PYTHON_VERSION_LIST ${PYTHON_VERSION})
 list(GET PYTHON_VERSION_LIST 0 PYTHON_VERSION_MAJOR)
 list(GET PYTHON_VERSION_LIST 1 PYTHON_VERSION_MINOR)
 list(GET PYTHON_VERSION_LIST 2 PYTHON_VERSION_PATCH)
+#####################################################################################
 
 option(USE_64BIT_BUILD "USE_64BIT_BUILD" ON)
-
 
 project(PythiaProject)
 

@@ -1,6 +1,7 @@
 import argparse
 import os.path
 import posixpath
+import re
 import sys
 import textwrap
 
@@ -9,7 +10,6 @@ from build import (create_interpreters, copy_templates, build_binaries, build_pb
 
 
 THIS_DIR = os.path.dirname(__file__)
-PYTHON_VERSION = '3.7.9'
 
 
 def rebuild_all(args):
@@ -52,11 +52,22 @@ def rebuild_all(args):
     #     pack_mod()
 
 
+def _get_python_version():
+    with open(os.path.join(THIS_DIR, '..', '.github', 'workflows', 'build.yml'), 'r') as f:
+        return re.search('PYTHON_VERSION: ([0-9.]+)', f.read()).group(1)
+
+
 if __name__ == '__main__':
+    try:
+        python_version = _get_python_version()
+    except AttributeError:
+        print('Error: Could not parse python version from Github Actions yaml')
+        sys.exit(1)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--wsl', action='store_true',
                         help='Just do the minimum for the linux version')
-    parser.add_argument('version', nargs='?', default=PYTHON_VERSION)
+    parser.add_argument('version', nargs='?', default=python_version)
     args = parser.parse_args()
 
     rebuild_all(args)
