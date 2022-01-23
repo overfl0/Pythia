@@ -26,13 +26,12 @@ def parse_version_wrapper(txt):
     return version
 
 
-
 def _verbose_run(cmd, **kwargs):
     print(' '.join(cmd), flush=True)
     subprocess.run(cmd, **kwargs)
 
 
-def clear_pythia_directory(func=None):
+def clear_pythia_directory():
     base = '@Pythia'
     print(f'Deleting {base} contents...')
 
@@ -53,7 +52,7 @@ def clear_pythia_directory(func=None):
             os.unlink(path)
 
 
-def create_interpreters(version, dest, func=None):
+def create_interpreters(version, dest):
     version = parse_version_wrapper(version)
     print(f'Creating Python {version} interpreters in "{dest}" directory...', flush=True)
     subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
@@ -74,7 +73,7 @@ def _get_embed(version, system, arch):
     return embed[system][arch]
 
 
-def build_binaries(version, arch, system, run_tests=True, func=None):
+def build_binaries(version, arch, system, run_tests=True):
     version = parse_version_wrapper(version)
     print(f'Building {arch} binaries for {system}...', flush=True)
 
@@ -100,19 +99,19 @@ def build_binaries(version, arch, system, run_tests=True, func=None):
     _verbose_run(docker_prefix + ['ninja'], check=True, cwd='ninja', env=env, shell=shell)
 
 
-def run_tests(version, arch, system, func=None):
+def run_tests(version, arch, system):
     version = parse_version_wrapper(version)
     print(f'Running tests for {arch} {system}...', flush=True)
 
     _verbose_run([_get_embed(version, system, arch), os.path.join('tests', 'tests.py')], check=True)
 
 
-def build_pbos(func=None):
+def build_pbos():
     print('Building PBOs...', flush=True)
     subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
 
 
-def copy_templates(version, func=None):
+def copy_templates(version):
     version = parse_version_wrapper(version)
     print('Copying files to @Pythia folder...', flush=True)
 
@@ -122,21 +121,20 @@ def copy_templates(version, func=None):
                 fwrite.write(fread.read().replace(b'{version}', f'{version.major}{version.minor}'.encode('ascii')))
 
 
-def safety_checks(version, func=None):
+def safety_checks(version):
     version = parse_version_wrapper(version)
     print('Running safety checks...', flush=True)
     subprocess.run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
 
 
-def pack_mod(func=None):
+def pack_mod():
     print('Packing the resulting mod to a tbz file...', flush=True)
     shutil.make_archive('@Pythia', 'bztar', root_dir='.', base_dir='@Pythia')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-    subparsers.required = True
+    subparsers = parser.add_subparsers(required=True, dest='command')
 
     parser_create_interpreters = subparsers.add_parser('create_interpreters')
     parser_create_interpreters.add_argument('version')
@@ -172,5 +170,11 @@ if __name__ == '__main__':
     parser_clear_pythia_directory = subparsers.add_parser('clear_pythia_directory')
     parser_clear_pythia_directory.set_defaults(func=clear_pythia_directory)
 
-    args = parser.parse_args()
-    args.func(**vars(args))
+    args_vars = vars(parser.parse_args())
+
+    # Python 3.7 required add_subparsers(dest='...') for when the command is
+    # missing. So we need to pop it here so we don't pass it to functions
+    del args_vars['command']
+
+    func = args_vars.pop('func')
+    func(**args_vars)
