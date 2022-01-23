@@ -273,7 +273,7 @@ Building requirements
 
 - Any Python 3 installation
 - Visual Studio Community 2019
-- WSL2 with Docker installed and configured
+- WSL2 with clang and Docker installed and configured
 - MakePBO
 
 Building
