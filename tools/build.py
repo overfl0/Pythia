@@ -89,7 +89,8 @@ def build_binaries(version, arch, system, run_tests=True, func=None):
 
     if system == 'linux':
         _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}', '-t', 'pythia:latest', '.'], check=True)
-        docker_prefix = ['docker', 'run', '--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
+        platform = ['--platform', 'linux/386'] if arch == 'x86' else []
+        docker_prefix = ['docker', 'run'] + platform + ['--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
         shell = False
     else:
         docker_prefix = []
