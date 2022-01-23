@@ -17,7 +17,9 @@ def compile_python_extension_do_not_use_this_way(setup_py_path):
         os.chdir(setup_py_path)
         cmd = [abs_executable, 'setup.py', 'build_ext', '--inplace']
         process = subprocess.run(cmd, capture_output=True)
-        return process.stdout.decode('utf8'), process.stderr.decode('utf8'), process.returncode
+        return (process.stdout.decode('utf8', errors='replace'),
+                process.stderr.decode('utf8', errors='replace'),
+                process.returncode)
     finally:
         os.chdir(current_dir)
 
