@@ -159,7 +159,7 @@ jobs:
       - name: Unpack interpreters
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
-      - run: pip install pefile pyelftools auditwheel
+      - run: pip install -r requirements.txt
       - run: python tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"

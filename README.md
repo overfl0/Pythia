@@ -283,6 +283,7 @@ Building
 
 Run this on Windows (requires WSL2 to be installed and configured!)
 
+    python -m pip install -r requirements.txt
     python tools\rebuild_all.py
 
 This will fetch and install all the python interpreters required both for
