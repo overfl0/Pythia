@@ -30,7 +30,7 @@ def pip_install(package):
 
 def check(package):
     stub_39 = textwrap.dedent(f'''\
-        import importlib, importlib.metadata , os
+        import importlib, importlib.metadata, os
         dist_path = importlib.metadata.distribution("{package}")._path
         module_name = open(os.path.join(dist_path, "top_level.txt")).read().strip().splitlines()[-1].replace('/', '.')
         importlib.import_module(module_name)
