@@ -3,6 +3,7 @@ import platform
 import shutil
 import struct
 import subprocess
+import sys
 import unittest
 
 
@@ -63,7 +64,8 @@ class Base(unittest.TestCase):
 
 
 class RequirementsInstaller(Base):
-    def _get_python_bitness(self):
+    @staticmethod
+    def _get_python_bitness():
         return str(struct.calcsize("P") * 8)
 
     def _get_requirements_installer(self):
@@ -278,6 +280,10 @@ class TestCython(RequirementsInstaller):
         self.assertEqual(output, '["r","Hello from cython!"]')
         self.assertEqual(code, 0, 'Calling the tester with the right path should succeed')
 
+    @unittest.skipIf(sys.version_info[1] >= 10 and
+                     sys.platform == 'linux' and
+                     RequirementsInstaller._get_python_bitness() == '32',
+                     'No numpy wheel on linux 32bit for 3.10+')
     def test_cython_numpy_mod(self):
         # Install the Cython requirements to build the extension
         requirements_file_path = os.path.join(self.this_dir, '@CythonNumpyMod', 'requirements.txt')
