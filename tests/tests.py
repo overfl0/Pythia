@@ -1,6 +1,7 @@
 import os
 import platform
 import shutil
+import struct
 import subprocess
 import unittest
 
@@ -62,12 +63,22 @@ class Base(unittest.TestCase):
 
 
 class RequirementsInstaller(Base):
-    def _install_requirements(self, requirements_file_path):
-        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, 'install_requirements')
+    def _get_python_bitness(self):
+        return str(struct.calcsize("P") * 8)
+
+    def _get_requirements_installer(self):
+        installer_base = 'install_requirements' + self._get_python_bitness()  # e.g. install_requirements64
+        requirements_installer_path = os.path.join(self.this_dir, self.pythia_path, installer_base)
+
         if platform.system() == 'Windows':
             requirements_installer_path += '.bat'
         else:
             requirements_installer_path += '.sh'
+
+        return requirements_installer_path
+
+    def _install_requirements(self, requirements_file_path):
+        requirements_installer_path = self._get_requirements_installer()
 
         if platform.system() == 'Windows':
             cmd = ['cmd', '/c', requirements_installer_path, 'nopause', requirements_file_path]

@@ -262,8 +262,8 @@ Installing
 
 #### Installing Python requirements
 
-If any of your Pythia mods contains a `requirements.txt` file, simply drag it onto `@Pythia\install_requirements.bat` to
-install all the requirements to both python installations before running the game.
+If any of your Pythia mods contains a `requirements.txt` file, simply drag it onto `@Pythia\install_requirements64.bat`
+to install all the requirements to both python installations before running the game.
 
 Pythia development
 ==================

@@ -2,26 +2,27 @@ echo off
 
 rem ###########################################################################
 rem This script will install any python dependencies that will be needed
-rem by any Pythia code.
+rem by any *64-bit* Pythia code.
 rem
 rem To install the dependencies for a plugin, simply drag a requirements.txt
-rem file onto install_requirements.bat
+rem file onto install_requirements64.bat
 rem ###########################################################################
 
 set requirements_file=%1
 IF "%1"=="nopause" set requirements_file=%2
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
-FOR /D %%G IN ("%~dp0\python-{version}-embed-amd64" "%~dp0\python-{version}-embed-win32") DO (
-    echo ===============================================================================
-    echo Installing requirements for %%G from %requirements_file%...
-    echo ===============================================================================
+set interpreter=%~dp0\python-{version}-embed-amd64
 
-    echo.
-    "%%G\python.exe" -I -E -s -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
-    if ERRORLEVEL 1 GOTO END_PIP_ERROR
-    echo.
-)
+echo ===============================================================================
+echo Installing requirements for %interpreter% from %requirements_file%...
+echo ===============================================================================
+
+echo.
+"%interpreter%\python.exe" -I -E -s -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
+if ERRORLEVEL 1 GOTO END_PIP_ERROR
+echo.
+
 
 echo ===============================================================================
 echo Installation done.
