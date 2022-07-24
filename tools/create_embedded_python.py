@@ -10,9 +10,13 @@ from io import BytesIO
 
 from common import ignore_no_file
 
+USE_PYTHON_ORG = True
+
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_STANDALONE_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}-{arch}-' \
                           'unknown-linux-gnu-pgo+lto.tbz'
+BASE_STANDALONE_WINDOWS_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}' \
+                                  '-{arch}-pc-windows-msvc-shared-pgo.tbz'
 BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
 MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
@@ -22,6 +26,8 @@ ARCHITECTURES_CURRENT = ARCHITECTURES_WINDOWS if platform.system() == 'Windows' 
 STANDALONE_MAPPING = {
     'linux32': 'i686',
     'linux64': 'x86_64',
+    'win32': 'i686',
+    'amd64': 'x86_64',
 }
 PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.1.0', 'wheel==0.37.0']
 PYTHON_VERSION = '3.7.9'
@@ -82,7 +88,10 @@ def prepare_distro(basedir, version, arch, install_pip=True):
     """
 
     if arch in ARCHITECTURES_WINDOWS:
-        url = BASE_ADDRESS.format(version=version, arch=arch)
+        if USE_PYTHON_ORG:
+            url = BASE_ADDRESS.format(version=version, arch=arch)
+        else:
+            url = BASE_STANDALONE_WINDOWS_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
     else:
         url = BASE_STANDALONE_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
 
@@ -97,7 +106,8 @@ def prepare_distro(basedir, version, arch, install_pip=True):
     os.makedirs(directory)
 
     print('* Extracting...')
-    if arch in ARCHITECTURES_WINDOWS:
+    # Python.org standalone windows executables need a few changes before they can be used
+    if USE_PYTHON_ORG and arch in ARCHITECTURES_WINDOWS:
         python_zip_file = zipfile.ZipFile(BytesIO(file_raw), 'r')
         python_zip_file.extractall(directory)
 
@@ -121,14 +131,13 @@ def prepare_distro(basedir, version, arch, install_pip=True):
             with open(_pth, 'a') as f:
                 f.write('import site\n')
 
-    else:  # Linux
+        # Fetch files required when building Cython extensions from source, for example
+        fetch_dev_files(directory, version, arch)
+
+    else:  # Linux or non-python.org-Windows
         python_tar_file = tarfile.open(None, "r:bz2", BytesIO(file_raw))
         python_tar_file.extractall(directory)
         python_tar_file.close()
-
-    if arch in ARCHITECTURES_WINDOWS:
-        # Fetch files required when building Cython extensions from source, for example
-        fetch_dev_files(directory, version, arch)
 
     # Install pip
     if install_pip:
