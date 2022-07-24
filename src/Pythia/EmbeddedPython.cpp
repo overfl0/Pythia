@@ -171,9 +171,9 @@ std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
             wpath + L"\\python" PYTHON_VERSION + L".zip",
             wpath + L"\\DLLs",
             wpath + L"\\lib",
-            wpath,
             wpath + L"\\Lib\\site-packages",
-            getProgramDirectory() // For `python/` directory access. TODO: Use import hooks for that
+            getProgramDirectory(), // For `python/` directory access. TODO: Use import hooks for that
+            wpath,
         });
     #else
         std::vector<std::wstring> allPaths({
@@ -181,8 +181,8 @@ std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
+            Logger::s2w(getProgramDirectory()), // For `python/` directory access. TODO: Use import hooks for that
             wpath,
-            Logger::s2w(getProgramDirectory()) // For `python/` directory access. TODO: Use import hooks for that
         });
     #endif
 
