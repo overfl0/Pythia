@@ -13,7 +13,7 @@ from common import ignore_no_file, get_python_version
 from convert_python_build import zstd_unpack, convert_standalone_build
 from obtain_python_builds import get_relevant_releases
 
-USE_PYTHON_ORG = True
+USE_PYTHON_ORG = False
 
 PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
 BASE_STANDALONE_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}-{arch}-' \

@@ -1,7 +1,7 @@
 name: Build Pythia
 on: [push]
 env:
-  PYTHON_VERSION: 3.7.9
+  PYTHON_VERSION: 3.10.5
 jobs:
   Create-Interpreters:
     runs-on: ${{ matrix.os }}
