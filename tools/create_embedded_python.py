@@ -29,7 +29,7 @@ STANDALONE_MAPPING = {
     'win32': 'i686',
     'amd64': 'x86_64',
 }
-PIP_REQUIREMENTS = ['pip==21.2.4', 'setuptools==58.1.0', 'wheel==0.37.0']
+PIP_REQUIREMENTS = ['pip==22.2', 'setuptools==63.2.0', 'wheel==0.37.0']
 PYTHON_VERSION = '3.7.9'
 
 
