@@ -47,13 +47,16 @@ then
     popd > /dev/null
 fi
 
+# Strip the timestamp for both forms
+new_name=`echo "${1%-*}" | perl -pe 's/\+[0-9]+-/-/'`
+
 # Pack everything back into a tbz file
-echo "Packing into ${1%-*}.tbz..."
+echo "Packing into ${new_name}.tbz..."
 if [ "$windows" = false ]
 then
-    tar -jcf "${1%-*}.tbz" bin include lib share
+    tar -jcf "${new_name}.tbz" bin include lib share
 else
-    tar -jcf "${1%-*}.tbz" DLLs include Lib libs Scripts tcl *.txt *.dll *.exe
+    tar -jcf "${new_name}.tbz" DLLs include Lib libs Scripts tcl *.txt *.dll *.exe
 fi
-mv "${1%-*}.tbz" ../..
+mv "${new_name}.tbz" ../..
 popd > /dev/null
