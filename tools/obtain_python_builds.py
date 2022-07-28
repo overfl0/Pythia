@@ -92,6 +92,8 @@ def fetch_releases(version):
         with open(result.name, 'wb') as f:
             f.write(file_contents)
 
+    return [result.name for result in results]
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

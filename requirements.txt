@@ -1,3 +1,4 @@
 auditwheel
 pefile
 pyelftools
+zstandard
