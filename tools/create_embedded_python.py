@@ -3,12 +3,13 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 import tarfile
 import urllib.request
 import zipfile
 from io import BytesIO
 
-from common import ignore_no_file
+from common import ignore_no_file, get_python_version
 
 USE_PYTHON_ORG = True
 
@@ -30,7 +31,6 @@ STANDALONE_MAPPING = {
     'amd64': 'x86_64',
 }
 PIP_REQUIREMENTS = ['pip==22.2', 'setuptools==63.2.0', 'wheel==0.37.0']
-PYTHON_VERSION = '3.7.9'
 
 
 def install_pip_for(python_executable):
@@ -180,12 +180,18 @@ def prepare_distros(basedir, version, architectures, do_cleanup=True):
 
 
 if __name__ == '__main__':
+    try:
+        python_version = get_python_version()
+    except AttributeError:
+        print('Error: Could not parse python version from Github Actions yaml')
+        sys.exit(1)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('base_directory', help='Directory in which the python directory will be created')
     parser.add_argument('-a', '--arch', help='Architecture name', choices=ARCHITECTURES_WINDOWS + ARCHITECTURES_LINUX,
                         action='append', default=None)
     parser.add_argument('-n', '--noclean', help='Don\'t remove other python installations', action='store_true')
-    parser.add_argument('-v', '--version', help='Python version ("3.x.y")', default=PYTHON_VERSION)
+    parser.add_argument('-v', '--version', help='Python version ("3.x.y")', default=python_version)
     args = parser.parse_args()
 
     if not args.arch:

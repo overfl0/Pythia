@@ -1,13 +1,11 @@
 import argparse
 import os.path
 import posixpath
-import re
 import sys
-import textwrap
 
 from build import (create_interpreters, copy_templates, build_binaries, build_pbos, safety_checks,
-                   pack_mod, _verbose_run, run_tests, clear_pythia_directory)
-
+                   _verbose_run, run_tests, clear_pythia_directory)
+from common import get_python_version
 
 THIS_DIR = os.path.dirname(__file__)
 
@@ -52,14 +50,9 @@ def rebuild_all(args):
     #     pack_mod()
 
 
-def _get_python_version():
-    with open(os.path.join(THIS_DIR, '..', '.github', 'workflows', 'build.yml'), 'r') as f:
-        return re.search('PYTHON_VERSION: ([0-9.]+)', f.read()).group(1)
-
-
 if __name__ == '__main__':
     try:
-        python_version = _get_python_version()
+        python_version = get_python_version()
     except AttributeError:
         print('Error: Could not parse python version from Github Actions yaml')
         sys.exit(1)

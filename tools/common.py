@@ -1,6 +1,10 @@
 import os
+import re
 import shutil
 from contextlib import contextmanager
+
+
+THIS_DIR = os.path.dirname(__file__)
 
 
 @contextmanager
@@ -23,3 +27,8 @@ def print_and_delete(message, *path):
         shutil.rmtree(full_path)
     else:
         print('Error: I don\'t know what this file type is!')
+
+
+def get_python_version():
+    with open(os.path.join(THIS_DIR, '..', '.github', 'workflows', 'build.yml'), 'r') as f:
+        return re.search('PYTHON_VERSION: ([0-9.]+)', f.read()).group(1)
