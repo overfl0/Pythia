@@ -63,7 +63,7 @@ def find_python_release(version):
     return results
 
 
-def get_relevant_releases(version):
+def get_relevant_releases(version, arch=None, windows=None):
     all_pythons = find_python_release(version)
 
     results = [
@@ -72,6 +72,12 @@ def get_relevant_releases(version):
         list(filter(lambda result: f'-x86_64-unknown-linux-gnu-pgo+lto-' in result.name, all_pythons))[0],
         list(filter(lambda result: f'-x86_64-pc-windows-msvc-shared-pgo-' in result.name, all_pythons))[0],
     ]
+
+    if arch is not None:
+        results = list(filter(lambda result: f'-{arch}-' in result.name, results))
+
+    if windows is not None:
+        results = list(filter(lambda result: '-windows-' if windows else '-linux-' in result.name, results))
 
     return results
 
@@ -83,8 +89,8 @@ def show_releases(version):
         print(result.name)
 
 
-def fetch_releases(version):
-    results = get_relevant_releases(version)
+def fetch_releases(version, arch=None, windows=None):
+    results = get_relevant_releases(version, arch=arch, windows=windows)
 
     for result in results:
         print(f'Fetching {result.name}...')
