@@ -25,6 +25,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v2
 
+      - name: Install requirements
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pip install -r requirements.txt
+
       - name: Create interpreters
         if: steps.cache.outputs.cache-hit != 'true'
         run: python tools/build.py create_interpreters ${{ env.PYTHON_VERSION }} --dest .
