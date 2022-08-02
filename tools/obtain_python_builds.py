@@ -77,7 +77,7 @@ def get_relevant_releases(version, arch=None, windows=None):
         results = list(filter(lambda result: f'-{arch}-' in result.name, results))
 
     if windows is not None:
-        results = list(filter(lambda result: '-windows-' if windows else '-linux-' in result.name, results))
+        results = list(filter(lambda result: ('-windows-' if windows else '-linux-') in result.name, results))
 
     return results
 
