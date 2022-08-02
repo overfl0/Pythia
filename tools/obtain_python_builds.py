@@ -7,10 +7,12 @@ from pathlib import Path
 
 
 # https://docs.github.com/en/rest/releases/releases
-GITHUB_RELEASES_URL = 'https://api.github.com/repos/indygreg/python-build-standalone/releases?per_page=100'
+GITHUB_RELEASES_URL = 'https://api.github.com/repos/overfl0/Pythia/releases?per_page=100'
+GITHUB_RELEASES_URL_BACKUP = 'https://api.github.com/repos/indygreg/python-build-standalone/releases?per_page=100'
 
 BASE_URL = Path(__file__).parent
 RELEASES = BASE_URL / 'cache' / 'releases.json'
+RELEASES_BACKUP = BASE_URL / 'cache' / 'releases_backup.json'
 
 
 @dataclass
@@ -19,29 +21,31 @@ class Result:
     url: str
 
 
-def get_python_build_standalone_releases(use_cache=True):
+def get_python_build_standalone_releases(use_cache=True, backup=False):
+    filename = RELEASES_BACKUP if backup else RELEASES
+    url = GITHUB_RELEASES_URL_BACKUP if backup else GITHUB_RELEASES_URL
     if use_cache:
         try:
-            with open(RELEASES, 'r') as f:
+            with open(filename, 'r') as f:
                 return json.load(f)
         except (FileNotFoundError, JSONDecodeError) as e:
             pass  # Fall through to fetch the data online
 
-    file_contents = urllib.request.urlopen(GITHUB_RELEASES_URL).read()
+    file_contents = urllib.request.urlopen(url).read()
     json_data = json.loads(file_contents)
 
-    with open(RELEASES, 'w') as f:
+    with open(filename, 'w') as f:
         json.dump(json_data, f, indent=4)
 
     return json_data
 
 
-def _find_python_release(version, use_cache=True):
+def _find_python_release(version, use_cache=True, backup=False):
     results = []
     if version == '':
         return ValueError('Empty version provided')
 
-    data = get_python_build_standalone_releases(use_cache=use_cache)
+    data = get_python_build_standalone_releases(use_cache=use_cache, backup=backup)
     for release in data:
         for asset in release['assets']:
             if not asset['name'].endswith('.zst'):
@@ -60,11 +64,21 @@ def find_python_release(version):
         print(f'Python version {version} not found. Refreshing cache')
         results = _find_python_release(version, use_cache=False)
 
+    if not results:
+        print(f'Python version {version} still not found. Trying backup')
+        results = _find_python_release(version, use_cache=True, backup=True)
+
+    if not results:
+        print(f'Python version {version} still not found. Refreshing backup cache')
+        results = _find_python_release(version, use_cache=False, backup=True)
+
     return results
 
 
 def get_relevant_releases(version, arch=None, windows=None):
     all_pythons = find_python_release(version)
+    if not all_pythons:
+        return all_pythons
 
     results = [
         list(filter(lambda result: f'-i686-pc-windows-msvc-shared-pgo-' in result.name, all_pythons))[0],
