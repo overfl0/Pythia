@@ -16,10 +16,10 @@ import zstandard
 # time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.7
 
 
-def zstd_unpack(filename, dest, archive_subfolder=None):
+def zstd_unpack(filename_or_file, dest, archive_subfolder=None):
     """
-    :param filename: zstd file to unpack
-    :param dest: Directory where to unpack the atchive
+    :param filename_or_file: zstd file to unpack or a file object
+    :param dest: Directory where to unpack the archive
     :param archive_subfolder: [sub, directory, to, unpack]
     """
     def members(tf, prefix):
@@ -29,11 +29,14 @@ def zstd_unpack(filename, dest, archive_subfolder=None):
                 member.path = member.path[prefix_len:]
                 yield member
 
-    with open(filename, 'rb') as ifh:
-        dctx = zstandard.ZstdDecompressor()
-
-        with dctx.stream_reader(ifh) as reader:
+    dctx = zstandard.ZstdDecompressor()
+    if hasattr(filename_or_file, 'read'):
+        with dctx.stream_reader(filename_or_file) as reader:
             data_file = io.BytesIO(reader.read())
+    else:
+        with open(filename_or_file, 'rb') as ifh:
+            with dctx.stream_reader(ifh) as reader:
+                data_file = io.BytesIO(reader.read())
 
     with tarfile.open(mode='r:', fileobj=data_file) as tf:
         members_ = None
@@ -56,21 +59,7 @@ def dereference_symlinks(path):
                 shutil.copy2(dest, filepath)
 
 
-def convert_standalone_build(filename, directory):
-    windows = True if 'windows' in filename else False
-
-    if windows:
-        if platform.system() != 'Windows':
-            print('You need windows to convert windows builds')
-            sys.exit(1)
-    else:
-        if platform.system() == 'Windows':
-            print('You need linux to convert linux builds')
-            sys.exit(1)
-
-    print('Unpacking...')
-    zstd_unpack(filename, directory, ['python', 'install'])
-
+def convert_standalone_build(directory):
     currdir = os.getcwd()
     os.chdir(directory)
 
@@ -124,10 +113,23 @@ def pack_to_tbz(orig_filename, directory_unpacked):
 
 
 def main(filename):
+    windows = True if 'windows' in filename else False
+
+    if windows:
+        if platform.system() != 'Windows':
+            print('You need windows to convert windows builds')
+            sys.exit(1)
+    else:
+        if platform.system() == 'Windows':
+            print('You need linux to convert linux builds')
+            sys.exit(1)
+
     shutil.rmtree('python', ignore_errors=True)
     os.mkdir('python')
 
-    convert_standalone_build(filename, 'python')
+    print('Unpacking...')
+    zstd_unpack(filename, 'python', ['python', 'install'])
+    convert_standalone_build('python')
     pack_to_tbz(filename, 'python')
 
 
