@@ -10,6 +10,8 @@ import zipfile
 from io import BytesIO
 
 from common import ignore_no_file, get_python_version
+from convert_python_build import zstd_unpack, convert_standalone_build
+from obtain_python_builds import get_relevant_releases
 
 USE_PYTHON_ORG = True
 
@@ -87,13 +89,14 @@ def prepare_distro(basedir, version, arch, install_pip=True):
     4) Install pip inside
     """
 
-    if arch in ARCHITECTURES_WINDOWS:
-        if USE_PYTHON_ORG:
+    windows = arch in ARCHITECTURES_WINDOWS
+    if not USE_PYTHON_ORG:
+        url = get_relevant_releases(version=version, arch=STANDALONE_MAPPING[arch], windows=windows)[0].url
+    else:  # Legacy, TODO: remove me
+        if windows:
             url = BASE_ADDRESS.format(version=version, arch=arch)
         else:
-            url = BASE_STANDALONE_WINDOWS_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
-    else:
-        url = BASE_STANDALONE_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
+            url = BASE_STANDALONE_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
 
     version_with_minor = ''.join(version.split('.')[:2])  # convert 3.5.4 to 35
     directory = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
@@ -142,9 +145,13 @@ def prepare_distro(basedir, version, arch, install_pip=True):
         fetch_dev_files(directory, version, arch)
 
     else:  # Linux or non-python.org-Windows
-        python_tar_file = tarfile.open(None, "r:bz2", BytesIO(file_raw))
-        python_tar_file.extractall(directory)
-        python_tar_file.close()
+        if not USE_PYTHON_ORG:
+            zstd_unpack(BytesIO(file_raw), directory, ['python', 'install'])
+            convert_standalone_build(directory)
+        else:
+            python_tar_file = tarfile.open(None, "r:bz2", BytesIO(file_raw))
+            python_tar_file.extractall(directory)
+            python_tar_file.close()
 
     # Install pip
     if install_pip:
