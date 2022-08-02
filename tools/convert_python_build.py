@@ -56,7 +56,7 @@ def dereference_symlinks(path):
                 shutil.copy2(dest, filepath)
 
 
-def main(filename):
+def convert_standalone_build(filename, directory):
     windows = True if 'windows' in filename else False
 
     if windows:
@@ -68,17 +68,16 @@ def main(filename):
             print('You need linux to convert linux builds')
             sys.exit(1)
 
-    shutil.rmtree('python', ignore_errors=True)
-    os.mkdir('python')
-
     print('Unpacking...')
-    zstd_unpack(filename, 'python', ['python', 'install'])
+    zstd_unpack(filename, directory, ['python', 'install'])
 
-    os.chdir('python')
+    currdir = os.getcwd()
+    os.chdir(directory)
 
     print('Modifying the installation...')
     for path in Path('lib').glob('python*/test'):
         shutil.rmtree(path)
+
     shutil.rmtree('Lib/test', ignore_errors=True)
 
     for path in Path('.').glob('**/*.a'):
@@ -95,32 +94,46 @@ def main(filename):
         os.system('docker run --platform linux/386 --rm -v "$(pwd)"/:/data quay.io/pypa/manylinux2014_i686:latest /bin/bash -c "cp /usr/local/lib/libcrypt.so.1 /data/ && chown 1000:1000 /data/libcrypt.so.1 && chmod 555 /data/libcrypt.so.1"')
         os.chdir('..')
 
+    os.chdir(currdir)
+
+
+def pack_to_tbz(orig_filename, directory_unpacked):
+    windows = True if 'windows' in orig_filename else False
+
+    currdir = os.getcwd()
+    os.chdir(directory_unpacked)
+
     # Strip name of timestamps
-    new_name = filename.rsplit('-', 1)[0]
+    new_name = Path(orig_filename).name
+    new_name = new_name.rsplit('-', 1)[0]
     new_name = re.sub(r'\+[0-9]+-', '-', new_name) + '.tbz'
-    print(f'Packing into {new_name}')
+    new_path = Path(currdir) / new_name
+    print(f'Packing into {new_path}')
 
     if not windows:
         dirs = ['bin', 'include', 'lib', 'share']
     else:
         dirs = ['DLLs', 'include', 'Lib', 'libs', 'Scripts', 'tcl', '*.txt', '*.dll', '*.exe']
 
-    tar = tarfile.open(new_name, "w:bz2")
+    tar = tarfile.open(new_path, "w:bz2")
     for g in dirs:
         for path in Path('.').glob(g):
             print(f'Adding {path}')
             tar.add(path)
     tar.close()
 
-    new_path = Path('..') / Path(new_name).name
-    if new_path.exists():
-        new_path.unlink()
-    print(new_name, '->', new_path.resolve())
-    shutil.move(new_name, new_path)
+
+def main(filename):
+    shutil.rmtree('python', ignore_errors=True)
+    os.mkdir('python')
+
+    convert_standalone_build(filename, 'python')
+    pack_to_tbz(filename, 'python')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('file_to_repack')
     arguments = parser.parse_args()
+
     main(arguments.file_to_repack)
