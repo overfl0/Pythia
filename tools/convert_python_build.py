@@ -1,6 +1,8 @@
 import argparse
+import io
 import os
 import platform
+import posixpath
 import re
 import shutil
 import sys
@@ -10,16 +12,36 @@ from pathlib import Path
 import zstandard
 
 
-# time ./build-linux.py --target-triple i686-unknown-linux-gnu --python cpython-3.7
-# time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --python cpython-3.7
+# time ./build-linux.py --target-triple i686-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.7
+# time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.7
 
 
-def zstd_unpack(filename, dest):
+def zstd_unpack(filename, dest, archive_subfolder=None):
+    """
+    :param filename: zstd file to unpack
+    :param dest: Directory where to unpack the atchive
+    :param archive_subfolder: [sub, directory, to, unpack]
+    """
+    def members(tf, prefix):
+        prefix_len = len(prefix)
+        for member in tf.getmembers():
+            if member.path.startswith(prefix):
+                member.path = member.path[prefix_len:]
+                yield member
+
     with open(filename, 'rb') as ifh:
         dctx = zstandard.ZstdDecompressor()
+
         with dctx.stream_reader(ifh) as reader:
-            with tarfile.open(mode='r|', fileobj=reader) as tf:
-                tf.extractall(dest)
+            data_file = io.BytesIO(reader.read())
+
+    with tarfile.open(mode='r:', fileobj=data_file) as tf:
+        members_ = None
+        if archive_subfolder:
+            prefix = posixpath.join(*archive_subfolder) + '/'
+            members_ = members(tf, prefix)
+
+        tf.extractall(dest, members=members_)
 
 
 def dereference_symlinks(path):
@@ -34,8 +56,8 @@ def dereference_symlinks(path):
                 shutil.copy2(dest, filepath)
 
 
-def main(args):
-    windows = True if 'windows' in args.file_to_repack else False
+def main(filename):
+    windows = True if 'windows' in filename else False
 
     if windows:
         if platform.system() != 'Windows':
@@ -47,11 +69,12 @@ def main(args):
             sys.exit(1)
 
     shutil.rmtree('python', ignore_errors=True)
+    os.mkdir('python')
 
     print('Unpacking...')
-    zstd_unpack(args.file_to_repack, '.')
+    zstd_unpack(filename, 'python', ['python', 'install'])
 
-    os.chdir('python/install/')
+    os.chdir('python')
 
     print('Modifying the installation...')
     for path in Path('lib').glob('python*/test'):
@@ -73,7 +96,7 @@ def main(args):
         os.chdir('..')
 
     # Strip name of timestamps
-    new_name = args.file_to_repack.rsplit('-', 1)[0]
+    new_name = filename.rsplit('-', 1)[0]
     new_name = re.sub(r'\+[0-9]+-', '-', new_name) + '.tbz'
     print(f'Packing into {new_name}')
 
@@ -89,7 +112,7 @@ def main(args):
             tar.add(path)
     tar.close()
 
-    new_path = Path('../..') / Path(new_name).name
+    new_path = Path('..') / Path(new_name).name
     if new_path.exists():
         new_path.unlink()
     print(new_name, '->', new_path.resolve())
@@ -100,4 +123,4 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('file_to_repack')
     arguments = parser.parse_args()
-    main(arguments)
+    main(arguments.file_to_repack)
