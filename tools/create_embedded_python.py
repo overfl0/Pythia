@@ -47,7 +47,7 @@ def install_pip_for(python_executable):
 
 
 def install_pip_linux(python_executable):
-    """Just call ensurepip and then the regulat pip installation."""
+    """Just call ensurepip and then the regular pip installation."""
 
     subprocess.run([python_executable, '-m', 'ensurepip'], check=True)
     subprocess.run([python_executable, '-m', 'pip', 'install'] + PIP_REQUIREMENTS, check=True)
@@ -188,7 +188,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('base_directory', help='Directory in which the python directory will be created')
-    parser.add_argument('-a', '--arch', help='Architecture name', choices=ARCHITECTURES_WINDOWS + ARCHITECTURES_LINUX,
+    parser.add_argument('-a', '--arch', help='Architecture name', choices=ARCHITECTURES_CURRENT,
                         action='append', default=None)
     parser.add_argument('-n', '--noclean', help='Don\'t remove other python installations', action='store_true')
     parser.add_argument('-v', '--version', help='Python version ("3.x.y")', default=python_version)
