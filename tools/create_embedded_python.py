@@ -121,24 +121,22 @@ def prepare_distro(basedir, version, arch, install_pip=True):
         os.makedirs(stdlib_path)
         stdlib_zip_file.extractall(stdlib_path)
 
-        # Python 3.6 and above
-        if int(version_with_minor[1:]) >= 6:
-            _pth = os.path.join(directory,
-                                'python{version_with_minor}._pth'.format(version_with_minor=version_with_minor))
+        # ._pth file handling
+        _pth = os.path.join(directory, 'python{version_with_minor}._pth'.format(version_with_minor=version_with_minor))
 
-            # UPDATE: due to an issue with `pip install` starting in isolated
-            # mode (and failing to resolve relative imports thus failing) we're
-            # simply deleting the _pth file if it exists, instead of crafting
-            # a special _pth file.
+        # UPDATE: due to an issue with `pip install` starting in isolated
+        # mode (and failing to resolve relative imports thus failing) we're
+        # simply deleting the _pth file if it exists, instead of crafting
+        # a special _pth file.
 
-            # import site when executing python.exe (doesn't apply to the embedded
-            # version) which gives access to site-packages and that allows pip (and
-            # other packages) to be accessed
-            # with open(_pth, 'a') as f:
-            #     f.write('import site\n')
+        # import site when executing python.exe (doesn't apply to the embedded
+        # version) which gives access to site-packages and that allows pip (and
+        # other packages) to be accessed
+        # with open(_pth, 'a') as f:
+        #     f.write('import site\n')
 
-            if os.path.exists(_pth):
-                os.unlink(_pth)
+        if os.path.exists(_pth):
+            os.unlink(_pth)
 
         # Fetch files required when building Cython extensions from source, for example
         fetch_dev_files(directory, version, arch)
