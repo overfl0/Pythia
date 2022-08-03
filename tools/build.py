@@ -87,9 +87,8 @@ def build_binaries(version, arch, system, run_tests=True):
     os.makedirs('ninja')
 
     if system == 'linux':
-        _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}', '-t', 'pythia:latest', '.'], check=True)
         platform = ['--platform', 'linux/386'] if arch == 'x86' else []
-        docker_prefix = ['docker', 'run'] + platform + ['--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
+        _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}'] + platform + ['-t', 'pythia:latest', '.'], check=True)
         # Workaround for GitHub Actions
         # This is to fix GIT not liking owner of the checkout dir (git callback in cmake)
         # https://github.com/actions/runner/issues/2033
