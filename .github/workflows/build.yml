@@ -79,7 +79,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Pythia_Binaries
+          name: _Internal_Pythia_Binaries
           path: |
             @Pythia/*.dll
             @Pythia/*.so
@@ -126,7 +126,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Pythia_PBOs
+          name: _Internal_Pythia_PBOs
           path: |
             @Pythia/addons
             @Pythia/keys
@@ -149,12 +149,12 @@ jobs:
       - name: Download the binaries
         uses: actions/download-artifact@v2
         with:
-          name: Pythia_Binaries
+          name: _Internal_Pythia_Binaries
 
       - name: Download the PBOs
         uses: actions/download-artifact@v2
         with:
-          name: Pythia_PBOs
+          name: _Internal_Pythia_PBOs
           path: "@Pythia"
 
       - name: Copy templates
