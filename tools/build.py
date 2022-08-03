@@ -90,6 +90,11 @@ def build_binaries(version, arch, system, run_tests=True):
         _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}', '-t', 'pythia:latest', '.'], check=True)
         platform = ['--platform', 'linux/386'] if arch == 'x86' else []
         docker_prefix = ['docker', 'run'] + platform + ['--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
+        # Workaround for GitHub Actions
+        # This is to fix GIT not liking owner of the checkout dir (git callback in cmake)
+        # https://github.com/actions/runner/issues/2033
+        uid_gid = ['-u', f'{os.getuid()}:{os.getgid()}'] if sys.platform == 'linux' else []
+        docker_prefix = ['docker', 'run'] + platform + uid_gid + ['--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
         shell = False
     else:
         docker_prefix = []

@@ -87,7 +87,9 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 message(STATUS "Configuring Pythia ${GIT_REV}")
-add_compile_definitions(GIT_REV="${GIT_REV}")
+if(GIT_REV)
+    add_compile_definitions(GIT_REV="${GIT_REV}")
+endif()
 
 find_package (Python3 "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" EXACT REQUIRED COMPONENTS Development)
 message(STATUS "Python include_directories: ${Python3_INCLUDE_DIRS}")
