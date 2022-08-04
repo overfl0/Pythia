@@ -19,7 +19,7 @@ echo Installing requirements for %interpreter% from %requirements_file%...
 echo ===============================================================================
 
 echo.
-"%interpreter%\python.exe" -I -E -s -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
+"%interpreter%\python.exe" -I -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
 if ERRORLEVEL 1 GOTO END_PIP_ERROR
 echo.
 
