@@ -4,8 +4,6 @@
     Description:    Call extension function for pythia. Handles parsing input and output and giving proper error codes
     Example:        ["module.submodule.function_name", ["arg1", "arg2", 3]] call py3_fnc_callExtension;
                     ["pythia.ping",[1,2,3,4,5,6,7,8,9,10]] call py3_fnc_callExtension
-                    ["python.coroutines.test_coroutines"] call py3_fnc_callExtension
-
 */
 
 #ifdef SQF_DEVELOPMENT

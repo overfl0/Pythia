@@ -566,9 +566,9 @@ def reload_everything():
 
 def reloadable_modules():
     for module in sys.modules.values():
-        if module.__name__.startswith('python.'):
-            yield module
-            continue
+        # if module.__name__.startswith('python.'):
+        #     yield module
+        #     continue
 
         for name in PythiaModuleWrapper.modules:
             if module.__name__ == name or  module.__name__.startswith(name + '.'):

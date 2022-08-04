@@ -216,6 +216,7 @@ void test_coroutines(ArmaExtensionEx& extension)
 {
     char output[ARMA_EXTENSION_BUFFER_SIZE];
     const int iterations = 10000;
+    // Note: this won't work anymore since the "python" module has been deprecated
     const char *command = "['python.coroutines.test_coroutines']";
     char *response = _strdup("['pythia.continue',         , 'tralala something']");
     char number[10];

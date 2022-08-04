@@ -24,6 +24,5 @@ while {(_resultCompile select 0) == "s"} do {
     _resultCompile = call compile _result;
 };
 
-//hint (["python.coroutines.test_coroutines"] call py3_fnc_callEx)
 (_resultCompile select 1);
 

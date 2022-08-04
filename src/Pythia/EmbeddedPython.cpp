@@ -149,22 +149,15 @@ void setFlagsAndEnvVariables()
 #endif
 std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
 {
-    /*
-    Py_SetPath(L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python35.zip;"
-        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\DLLs;"
-        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\lib;"
-        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64;"
-        L"D:\\Steam\\SteamApps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\Lib\\site-packages;"
-        L"D:\\Steam\\SteamApps\\common\\Arma 3");
-    */
+/*
 
-    /*
-        # Obtain the current paths by running the embedded python binary
+# Obtain the current paths by running the embedded python binary
 import sys
 base_dir = sys.executable.split('/bin/')[0]
 for path in sys.path:
     print(path.replace(base_dir, ''))
-    */
+
+*/
 
     #ifdef _WIN32
         std::vector<std::wstring> allPaths({
@@ -173,7 +166,6 @@ for path in sys.path:
             wpath + L"\\lib",
             wpath,
             wpath + L"\\Lib\\site-packages",
-            getProgramDirectory(), // For `python/` directory access. TODO: Use import hooks for that
         });
     #else
         std::vector<std::wstring> allPaths({
@@ -181,7 +173,6 @@ for path in sys.path:
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
-            Logger::s2w(getProgramDirectory()), // For `python/` directory access. TODO: Use import hooks for that
         });
     #endif
 
