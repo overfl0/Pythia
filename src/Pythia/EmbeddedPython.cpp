@@ -143,7 +143,7 @@ void setFlagsAndEnvVariables()
 
     Py_IgnoreEnvironmentFlag = 1;
     Py_IsolatedFlag = 1;
-    Py_NoSiteFlag = 1;
+    Py_NoSiteFlag = 0;
     Py_NoUserSiteDirectory = 1;
 }
 #endif
@@ -259,7 +259,7 @@ EmbeddedPython::EmbeddedPython()
     PyConfig config;
     PyConfig_InitIsolatedConfig(&config);
 
-    config.site_import = 0;
+    config.site_import = 1;
     status = PyConfig_SetString(&config, &config.base_exec_prefix, L"");
     status = PyConfig_SetString(&config, &config.base_executable, programPath.c_str());
     status = PyConfig_SetString(&config, &config.base_prefix, L"");
