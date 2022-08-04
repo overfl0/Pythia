@@ -11,14 +11,15 @@ import time
 import traceback
 import types
 
-import pythiainternal
-import pythialogger as logger
+import pythiainternal  # noqa
+import pythialogger as logger  # noqa
 
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
 
 COROUTINES_DICT = {}
 COROUTINES_COUNTER = 0
+
 
 def create_root_logger(name):
     file_handler = logging.handlers.RotatingFileHandler('pythia.log', maxBytes=1024*1024, backupCount=10)
@@ -31,6 +32,7 @@ def create_root_logger(name):
     logger.name = name
 
     return logger
+
 
 mod_logger = create_root_logger(__name__)
 
@@ -300,9 +302,11 @@ def interactive(port):
     # To connect, do:
     # import telnetlib; telnetlib.Telnet('127.0.0.1', 4444).interact()
 
+
 def _enable_reloader(enable):
     # Forward declaration
     enable_reloader(enable)
+
 
 # Keep a separate dict of those functions for reloading purposes
 PYTHIA_INTERNAL_FUNCTIONS = {
@@ -314,15 +318,21 @@ PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.enable_reloader': _enable_reloader,
 }
 
+
 def invalidate_pythia_functions_cache():
     global FUNCTION_CACHE
     FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
 
+
 # Comment the following lines out to enable remote interactive debugging
-def interactive(port): raise NotImplementedError
+def interactive(port):
+    raise NotImplementedError
+
+
 PYTHIA_INTERNAL_FUNCTIONS['pythia.interactive'] = interactive
 
 invalidate_pythia_functions_cache()
+
 
 ###############################################################################
 # Module import hooks allowing importing modules from custom locations
@@ -344,7 +354,6 @@ class PythiaModuleWrapper(object):
 
         logger.debug('Returning: {}'.format(node_path))
         return node_path
-
 
     @staticmethod
     def is_handled(fullname):
@@ -467,6 +476,7 @@ class PythiaExtensionLoader(PythiaLoader, importlib.machinery.ExtensionFileLoade
     """
     pass
 
+
 ###############################################################################
 # Monkey patching routines
 # TODO: Move this to a separate file as soon as the C++ code permits
@@ -475,6 +485,7 @@ class PythiaExtensionLoader(PythiaLoader, importlib.machinery.ExtensionFileLoade
 import threading
 
 threading.OriginalThreadConstructor = threading.Thread.__init__
+
 
 def DaemonThreadConstructor(self, *args, **kwargs):
     """
@@ -493,6 +504,7 @@ def DaemonThreadConstructor(self, *args, **kwargs):
     threading.OriginalThreadConstructor(self, *args, **kwargs)
     self.daemon = True
 
+
 threading.Thread.__init__ = DaemonThreadConstructor
 
 
@@ -504,6 +516,7 @@ threading.Thread.__init__ = DaemonThreadConstructor
 MODIFICATION_TIMES = {}
 LAST_CHECK_TIME = 0
 RELOADER_ENABLED = False
+
 
 def enable_reloader(enable):
     global RELOADER_ENABLED
@@ -581,6 +594,7 @@ def set_file_changed(path):
 
     MODIFICATION_TIMES[path] = time.time()
 
+
 def check_reload():
     global LAST_CHECK_TIME
 
@@ -597,6 +611,7 @@ def check_reload():
 
         if any_file_changed:
             reload_everything()
+
 
 ###############################################################################
 
@@ -622,11 +637,11 @@ if __name__ == '__main__':
     # from m_two import file_two
     # file_two.fun()
 
-    import m_one.submodule.subfile as sub
+    import m_one.submodule.subfile as sub  # noqa
     print(sub.fun())
     print(sub.fun2())
     print(sub.fun3())
 
-    import m_one.hello
+    import m_one.hello  # noqa
     print(m_one.hello)
     print(m_one.hello.fun())
