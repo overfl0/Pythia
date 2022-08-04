@@ -160,10 +160,10 @@ std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
 
     /*
         # Obtain the current paths by running the embedded python binary
-        import sys
-        base_dir = sys.executable.split('/bin/')[0]
-        for path in sys.path:
-            print(path.replace(base_dir, ''))
+import sys
+base_dir = sys.executable.split('/bin/')[0]
+for path in sys.path:
+    print(path.replace(base_dir, ''))
     */
 
     #ifdef _WIN32
@@ -171,9 +171,9 @@ std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
             wpath + L"\\python" PYTHON_VERSION + L".zip",
             wpath + L"\\DLLs",
             wpath + L"\\lib",
+            wpath,
             wpath + L"\\Lib\\site-packages",
             getProgramDirectory(), // For `python/` directory access. TODO: Use import hooks for that
-            wpath,
         });
     #else
         std::vector<std::wstring> allPaths({
@@ -182,7 +182,6 @@ std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
             Logger::s2w(getProgramDirectory()), // For `python/` directory access. TODO: Use import hooks for that
-            wpath,
         });
     #endif
 
