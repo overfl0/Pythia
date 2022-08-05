@@ -11,6 +11,7 @@
 #include "Paths.h"
 #include "Modules/pythiainternal.h"
 #include "Modules/pythialogger.h"
+#include "common.h"
 
 #ifndef _WIN32
 #include <dlfcn.h>
@@ -228,6 +229,7 @@ void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
 EmbeddedPython::EmbeddedPython()
 {
     LOG_INFO("################################################################################");
+    LOG_INFO(std::string("Pythia version: ") + PYTHIA_VERSION);
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
 #if PYTHON_VERSION_MINOR == 7
     preInitializeEmbeddedPython(ensureWideChar(getPythonPath()));
@@ -260,12 +262,12 @@ EmbeddedPython::EmbeddedPython()
     PyConfig_InitIsolatedConfig(&config);
 
     config.site_import = 1;
-    status = PyConfig_SetString(&config, &config.base_exec_prefix, L"");
+    status = PyConfig_SetString(&config, &config.base_exec_prefix, pythonPath.c_str());
     status = PyConfig_SetString(&config, &config.base_executable, programPath.c_str());
-    status = PyConfig_SetString(&config, &config.base_prefix, L"");
-    status = PyConfig_SetString(&config, &config.exec_prefix, L"");
+    status = PyConfig_SetString(&config, &config.base_prefix, pythonPath.c_str());
+    status = PyConfig_SetString(&config, &config.exec_prefix, pythonPath.c_str());
     status = PyConfig_SetString(&config, &config.executable, programPath.c_str());
-    status = PyConfig_SetString(&config, &config.prefix, L"");
+    status = PyConfig_SetString(&config, &config.prefix, pythonPath.c_str());
     status = PyConfig_SetString(&config, &config.home, pythonPath.c_str());
 
     for (auto& path : pathsVector)
@@ -300,6 +302,9 @@ EmbeddedPython::EmbeddedPython()
     LOG_INFO(std::string("Python paths: ") + Logger::w2s(Py_GetPath()));
 
     libpythonWorkaround();
+
+    LOG_INFO("Python interpreter initialized. Executing Python code");
+
     initializeAdapter();
     leavePythonThread();
 }
