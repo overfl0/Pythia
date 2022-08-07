@@ -50,8 +50,9 @@ is loaded only after the first `callExtension` call so it's not loaded yet.
 Defines
 -------
 
-* `#define EXTENSION_DEVELOPMENT 1` in `EmbeddedPython.cpp` - Lets you reload
-the python adapter each time you call the function allowing you to make changes
+* `#define EXTENSION_DEVELOPMENT` in `common.h` - Lets you reload the python
+adapter each time you call the function allowing you to make changes. Remember
+to create a `python` junction/symlink to the directory containing adapter.py
 * `#define DEVMODE true` in `@Pythia/Addons/Pythia/fn_callExtension.sqf` - Lets
 you do the same with the SQF file, assuming you have `-filePatching` enabled.
 

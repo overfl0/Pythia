@@ -5,3 +5,5 @@
 #endif
 
 #define PYTHIA_VERSION "1.0.0-rc7." GIT_REV
+
+// #define ADAPTER_DEVELOPMENT

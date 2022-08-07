@@ -19,7 +19,6 @@
 
 #define THROW_PYINITIALIZE_EXCEPTION(_msg_) throw std::runtime_error((_msg_));
 #define THROW_PYEXCEPTION(_msg_) throw std::runtime_error((_msg_) + std::string(": ") + PyExceptionFetcher().getError());
-//#define EXTENSION_DEVELOPMENT 1
 
 EmbeddedPython *python = nullptr;
 std::string pythonInitializationError;
@@ -159,7 +158,6 @@ for path in sys.path:
     print(path.replace(base_dir, ''))
 
 */
-
     #ifdef _WIN32
         std::vector<std::wstring> allPaths({
             wpath + L"\\python" PYTHON_VERSION + L".zip",
@@ -167,6 +165,9 @@ for path in sys.path:
             wpath + L"\\lib",
             wpath,
             wpath + L"\\Lib\\site-packages",
+#           ifdef ADAPTER_DEVELOPMENT
+                getProgramDirectory(),
+#           endif
         });
     #else
         std::vector<std::wstring> allPaths({
@@ -174,6 +175,9 @@ for path in sys.path:
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED,
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/lib-dynload",
             wpath + L"/lib/python" PYTHON_VERSION_DOTTED L"/site-packages",
+#           ifdef ADAPTER_DEVELOPMENT
+                Logger::s2w(getProgramDirectory()),
+#           endif
         });
     #endif
 
@@ -321,7 +325,7 @@ void EmbeddedPython::leavePythonThread()
 
 void EmbeddedPython::initializeAdapter()
 {
-    #ifdef EXTENSION_DEVELOPMENT
+    #ifdef ADAPTER_DEVELOPMENT
     PyObjectGuard mainModuleName(PyUnicode_DecodeFSDefault("python.Adapter"));
     if (!mainModuleName)
     {
@@ -428,15 +432,15 @@ void EmbeddedPython::initModules(modules_t mods)
     }
 }
 
-void EmbeddedPython::deinitialize()
+void EmbeddedPython::deinitializeAdapter()
 {
     Py_CLEAR(pFunc);
     Py_CLEAR(pModule);
 }
 
-void EmbeddedPython::reload()
+void EmbeddedPython::reloadAdapter()
 {
-    deinitialize();
+    deinitializeAdapter();
     try
     {
         initializeAdapter();
@@ -452,7 +456,7 @@ void EmbeddedPython::reload()
 EmbeddedPython::~EmbeddedPython()
 {
     enterPythonThread();
-    deinitialize();
+    deinitializeAdapter();
     libpythonWorkaroundClose();
     Py_Finalize();
 }
@@ -498,10 +502,6 @@ void returnMultipart(unsigned long multipartID, char *output, int outputSize)
 // A value of 10240 means that you can have 10239 characters + '\0' there
 void EmbeddedPython::execute(char *output, int outputSize, const char *input)
 {
-    #ifdef EXTENSION_DEVELOPMENT
-        reload();
-    #endif
-
     auto timeStart = std::chrono::high_resolution_clock::now();
     if (!pFunc)
     {

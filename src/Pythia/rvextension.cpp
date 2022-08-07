@@ -85,6 +85,14 @@ void __stdcall RVExtension(char *output, int outputSize, const char *input)
         try
         {
             static bool sources_initialized = false;
+
+#           ifdef ADAPTER_DEVELOPMENT
+                python->reloadAdapter();
+                sources_initialized = false;
+                LOG_INFO(input);
+                LOG_FLUSH();
+#           endif
+
             if (!sources_initialized)
             {
                 auto sources = getPythiaModulesSources();
