@@ -50,7 +50,6 @@ a bool and a string, get an SQF array containing the float, bool and the string
 - Extendable python environment through pip
 - Proven to work with libraries such as numpy, scipy, matplotlib, PyQt5, etc...
 - Automatic python code reloader for easier development
-- Calling SQF back from Python (experimental, using asyncio syntax)
 - Allows returning more than 10240 characters from the extension transparently
 - Annoys sloppy SQF developers with correct code indentation since Day One ;)
 

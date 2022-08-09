@@ -17,9 +17,6 @@ import pythialogger as logger  # noqa
 # If you want the user modules to be reloaded each time the function is called, set this to True
 PYTHON_MODULE_DEVELOPMENT = False
 
-COROUTINES_DICT = {}
-COROUTINES_COUNTER = 0
-
 
 def create_root_logger(name):
     file_handler = logging.handlers.RotatingFileHandler('pythia.log', maxBytes=1024*1024, backupCount=10)
@@ -65,14 +62,12 @@ def format_error_string(stacktrace_str):
     return ("e", stacktrace_str)
 
 
-def format_response_string(return_value, sql_call=False, coroutine_id=None):
+def format_response_string(return_value):
     """Return a formatted response.
     For now, it's just doing a dumb str() which may or may not work depending
     on the arguments passed. This should work as long as none of the arguments
     contain double quotes (").
     """
-    if sql_call:
-        return ("s", coroutine_id, return_value)
 
     return ("r", return_value)
 
@@ -87,30 +82,13 @@ class PythiaImportException(Exception):
 
 def handle_function_calling(function, args):
     """Calls the given function with the given arguments and formats the response."""
-    global COROUTINES_DICT, COROUTINES_COUNTER
-
-    if function == continue_coroutine:
-        # Special handling
-        return function(*args)
 
     # Call the requested function with the given arguments
     return_value = function(*args)
 
     if isinstance(return_value, types.CoroutineType):
         # This is a coroutine and has to be handled differently
-        try:
-            # Run the coroutine and get the yielded value
-            yielded_value = return_value.send(None)
-
-            COROUTINES_COUNTER += 1
-            COROUTINES_DICT[COROUTINES_COUNTER] = return_value
-
-            return format_response_string(yielded_value, True, COROUTINES_COUNTER)
-
-        except StopIteration as iteration_exception:
-            # The function has ended with a "return" statement
-            return format_response_string(iteration_exception.value)
-
+        raise ValueError('Asynchronous functions are not supported!')
     else:
         return format_response_string(return_value)
 
@@ -250,29 +228,6 @@ def init_modules(modules_dict):
     PythiaModuleWrapper.init_modules(modules_dict)
 
 
-def continue_coroutine(_id, args):
-    """Continue execution of a coroutine.
-
-    Takes an ID of the coroutine to continue.
-    """
-
-    global COROUTINES_DICT, COROUTINES_COUNTER
-
-    coroutine = COROUTINES_DICT.pop(_id)
-
-    # Pass the value back to the coroutine and resume its execution
-    try:
-        next_request = coroutine.send(args)
-
-        # Got next yield. Put the coroutine to the list again
-        COROUTINES_DICT[_id] = coroutine
-        return format_response_string(next_request, True, _id)
-
-    except StopIteration as iteration_exception:
-        # Function has ended with a return. Pass the value back
-        return format_response_string(iteration_exception.value)
-
-
 ###############################################################################
 # Below are testing functions which exist solely to check if everything is
 # working correctly.
@@ -312,7 +267,6 @@ def _enable_reloader(enable):
 PYTHIA_INTERNAL_FUNCTIONS = {
     'pythia.ping': ping,
     'pythia.test': test,
-    'pythia.continue': continue_coroutine,
     'pythia.version': version,
     'pythia.interactive': interactive,
     'pythia.enable_reloader': _enable_reloader,

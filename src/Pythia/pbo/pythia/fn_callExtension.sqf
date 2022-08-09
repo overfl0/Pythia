@@ -26,16 +26,9 @@ if ((_result select [2,1]) isEqualTo "r") exitWith {
     (call compile _result) select 1;
 };
 
-// The "chained SQF calls" has to perform quick so it's been put at the start as well]
-// with a separate check before the big loop below
-while { (_result select [2,1]) isEqualTo "s" } do {
-    private _resultCompile = call compile _result;
-    _result = "Pythia" callExtension (str(["pythia.continue", [_resultCompile select 1, call compile (_resultCompile select 2)]]));
-};
-
 // Main loop
 // Here go all the types of reponses. They are grouped in a big loop so that we cover all the corner cases
-// Where a multipart response can be an "r" response but also a huge "s".
+// Where a multipart response can be an "r".
 scopeName "py3";
 while { true } do {
     switch (_result select [2,1]) do {
@@ -50,13 +43,6 @@ while { true } do {
                 _returnStiched = _returnStiched + _result
             };
             _result = _returnStiched;
-        };
-
-        case "s": {
-            while { (_result select [2,1]) isEqualTo "s" } do {
-                private _resultCompile = call compile _result;
-                _result = "Pythia" callExtension (str(["pythia.continue", [_resultCompile select 1, call compile (_resultCompile select 2)]]));
-            };
         };
 
         case "r": {
