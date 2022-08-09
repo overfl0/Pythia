@@ -184,10 +184,10 @@ namespace SQFWriter
             return;
         }
 
-        writer->writeBytes("Unknown variable type that is not supported! Submit a pull request!");
-        return;
+        writer->writeBytes("Found variable type that is not supported, in data returned from Python code!");
+        writer->writeBytes(" ");
 
-        // Note: this code is never executed and is kept for debugging purposes.
+        // Dump information about the type of object that we have here
         PyObject *repr_obj = PyObject_Repr(obj);
         if (repr_obj)
         {
