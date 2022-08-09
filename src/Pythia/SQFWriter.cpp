@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <Python.h>
 #include "SQFWriter.h"
+#include "Logger.h"
 
 #include <stdlib.h>
 #include <string>
@@ -23,6 +24,30 @@
 
 namespace SQFWriter
 {
+    std::string getRepr(PyObject* obj)
+    {
+        std::string repr;
+
+        PyObject* repr_obj = PyObject_Repr(obj);
+        if (repr_obj)
+        {
+            const char* value_utf8 = PyUnicode_AsUTF8(repr_obj);
+            if (value_utf8)
+            {
+                repr = "Str() gave: " + std::string(value_utf8);
+            }
+            else {
+                repr = "Could not convert to unicode";
+            }
+            Py_DECREF(repr_obj);
+        }
+        else {
+            repr = "Could not call repr()";
+        }
+
+        return repr;
+    }
+
     void encode(PyObject *obj, MultipartResponseWriter *writer)
     {
         if (obj == nullptr)
@@ -162,7 +187,8 @@ namespace SQFWriter
             }
 
             if (PyErr_Occurred()) {
-                writer->writeBytes("Error while iterating iterator. Report a bug!!!");
+                writer->writeBytes("Error while iterating iterator. Report a bug!!! ");
+                writer->writeBytes(getRepr(obj).c_str());
                 return;
             }
 
@@ -184,30 +210,13 @@ namespace SQFWriter
             return;
         }
 
-        writer->writeBytes("Found variable type that is not supported, in data returned from Python code!");
-        writer->writeBytes(" ");
+        std::string errorMessage = "Found variable type that is not supported, in data returned from Python code! ";
 
         // Dump information about the type of object that we have here
-        PyObject *repr_obj = PyObject_Repr(obj);
-        if (repr_obj)
-        {
-            const char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
-            if (value_utf8)
-            {
-                writer->writeBytes((std::string("Str() gave: ") + value_utf8).c_str());
-                return;
-            }
-            else {
-                writer->writeBytes("Could not convert to unicode");
-                return;
-            }
-        }
-        else {
-            writer->writeBytes("Could not call repr()");
-            return;
-        }
+        errorMessage += getRepr(obj);
 
-        writer->writeBytes("");
+        LOG_ERROR(errorMessage);
+        writer->writeBytes(errorMessage.c_str());
         return;
     }
 }
