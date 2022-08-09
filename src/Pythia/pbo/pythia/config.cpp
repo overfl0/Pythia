@@ -25,10 +25,6 @@ class CfgFunctions {
 
                 class showMessage { header = -1; };
 
-                class callEx {
-                    recompile = 1;
-                };
-
                 class extensionTest {
                     preStart = 1;
                     preInit = 1;
