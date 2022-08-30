@@ -1,0 +1,2 @@
+# https://pip.pypa.io/en/stable/reference/requirement-specifiers/
+numpy==1.21.*
