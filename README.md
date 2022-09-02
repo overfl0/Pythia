@@ -241,13 +241,11 @@ Note that using the reloader causes a time penalty for each call and shouldn't b
 
 Threads
 -------
-TODO
 
-Calling SQF back from Python
-----------------------------
-TODO
+You can spawn Python Threads if you want to have functions running in the background or your functions take more than a
+few milliseconds to complete and you don't want to lock the game.
 
-Note that you need to be comfortable with using asyncio-type code to use this feature!
+See [examples/@PythiaThread/README.md](examples/@PythiaThread/README.md) for details.
 
 Installing
 ----------
