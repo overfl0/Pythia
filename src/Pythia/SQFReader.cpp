@@ -28,6 +28,7 @@ namespace SQFReader
         char isFloat = false;
         char isScientific = false;
         char negativeExponent = false;
+        char positiveExponent = false;
 
         if (*end == '-')
         {
@@ -39,7 +40,7 @@ namespace SQFReader
             }
         }
 
-        while ((*end >= '0' && *end <= '9') || *end == '.' || *end == '-' || *end == 'e')
+        while ((*end >= '0' && *end <= '9') || *end == '.' || *end == '-' || *end == '+' || *end == 'e')
         {
             if (*end == '.')
             {
@@ -70,12 +71,27 @@ namespace SQFReader
                 {
                     THROW_PARSEERROR("Error when parsing number");
                 }
-                if (negativeExponent)
+                if (negativeExponent || positiveExponent)
                 {
                     // '-' is present twice in the exponent!
+                    // or we have a +- situation
                     THROW_PARSEERROR("Error when parsing number");
                 }
                 negativeExponent = true;
+            }
+            if (*end == '+')
+            {
+                if (!isScientific)
+                {
+                    THROW_PARSEERROR("Error when parsing number");
+                }
+                if (negativeExponent || positiveExponent)
+                {
+                    // '+' is present twice in the exponent!
+                    // or we have a +- situation
+                    THROW_PARSEERROR("Error when parsing number");
+                }
+                positiveExponent = true;
             }
             end++;
         }

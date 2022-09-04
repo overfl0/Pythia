@@ -110,6 +110,7 @@ namespace SQF_Reading_Test
             sqf_to_python("229371.268934", "229371.268934");
             sqf_to_python("695619.606753", "695619.606753");
             sqf_to_python("-1.23456789012e-08", "-1.23456789012e-08");
+            sqf_to_python("9.22747e+006", "9227470.0");
         }
 
         TEST_METHOD(SQFListParsing)
