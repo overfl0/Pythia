@@ -13,6 +13,9 @@ and another with `requests==2.28.2` will cause issues with always unmet
 requirements. See [requirement specifiers](https://pip.pypa.io/en/stable/reference/requirement-specifiers/)
 for a way to set requirements that are more loose.
 
+Fun fact: `requests` calls a logger which, due to our setup, is caught by the
+pythia logger and shows up in `pythia.log`. See [the logging example](../@PythiaLogging/README.md)
+
 Note that the directory name is _irrelevant_. The package name depends on the
 contents of the `$PYTHIA$` file only!
 
