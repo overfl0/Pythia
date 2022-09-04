@@ -27,6 +27,8 @@ This will return this to your SQF code:
 
     ["awesome", 42, True, [1, 3.5]]
 
+See the [examples directory](examples/) for example mods performing simple functions.
+
 What Pythia does NOT do:
 ------------------------
 
@@ -52,14 +54,6 @@ a bool and a string, get an SQF array containing the float, bool and the string
 - Automatic python code reloader for easier development
 - Allows returning more than 10240 characters from the extension transparently
 - Annoys sloppy SQF developers with correct code indentation since Day One ;)
-
-#### Potential features
-
-These features could be implemented quite easily but for some reason have never been done. Want them in or want to help
-developing them? Contact the developers!
-
-- Mods contained inside single .pbo files
-- Calling functions in the background and polling for them
 
 Example mods:
 -------------
@@ -91,14 +85,15 @@ The newest version is using `PyQt5` to [display Qt widgets over the Arma window]
 Status
 ------
 
-Current status: Finishing touches before 1.0. You can use it right now - it's stable. Yes, really.
+Current status: It's working, it's stable, you can use it :).
 
-If you are serious about using Pythia, see [the issues page](https://github.com/overfl0/Pythia/issues) and especially
-[this one](https://github.com/overfl0/Pythia/issues/9). You can contact me to ask for planned changes, on [Pythia's
+You can contact me to ask for planned changes, on [Pythia's
 Discord server](https://discord.gg/Pp6ac56). I don't bite :).
 
 Example usage
 ------
+
+See the [examples directory](examples/) for example mods performing simple functions.
 
 Your directory structure:
 ```
@@ -108,8 +103,8 @@ Your directory structure:
     ├── $PYTHIA$  # Contains the name of your python package, for example: MyAwesomeModule
     ├── __init__.py
     ├── module.py
-    ├── cython_module.cp37-win_amd64.pyd  # Compiled Cython code, because we can!
-    └── cython_module.cp37-win32.pyd      # Same code but for 32-bit Arma
+    ├── cython_module.cp310-win_amd64.pyd  # Compiled Cython code, because we can!
+    └── cython_module.cp310-win32.pyd      # Same code but for 32-bit Arma
 ```
 
 `__init__.py`:
@@ -250,12 +245,10 @@ See [examples/@PythiaThread/README.md](examples/@PythiaThread/README.md) for det
 Installing
 ----------
 
-- Subscribe to it [on Workshop](https://steamcommunity.com/workshop/filedetails/?id=1751569185), or...
+- Subscribe to it [on Workshop](https://steamcommunity.com/workshop/filedetails/?id=1751569185) (highly recommended), or...
 - Get a [prebuilt version from Github](https://github.com/overfl0/Pythia/releases), or...
 - Build the mod yourself
 - Copy `@Pythia` to `Arma 3` directory
-- (Optional for development) Create a `python` directory in `Arma 3` directory. Put all your python functions there
-
 
 #### Installing Python requirements
 
