@@ -1,3 +1,5 @@
+# @PythiaThread
+
 This example shows how to call Python functions that take a long time to
 execute.
 

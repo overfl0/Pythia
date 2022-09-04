@@ -1,9 +1,11 @@
+# @PythiaNumpy
+
 This example shows how to call Python functions that use Numpy from SQF.
 
-Before you can use numpy in Python, you need to make sure it is correctly
+Before you can use `numpy` in Python, you need to make sure it is correctly
 installed. To do that, drag the `requirements.txt` file over the
 `install_requirements*.bat` script. If you don't do that, Pythia will fail
-while trying to import numpy.
+while trying to import `numpy`.
 
 Note that the directory name is _irrelevant_. The package name depends on the
 contents of the `$PYTHIA$` file only!

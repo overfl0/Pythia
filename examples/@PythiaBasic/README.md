@@ -1,3 +1,5 @@
+# @PythiaBasic
+
 This example shows how to call simple Python functions from SQF.
 
 There are two directories: `basic` and `second` and each of them is considered
