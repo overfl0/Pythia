@@ -52,7 +52,7 @@ namespace SQF_Reading_Test
 
         try
         {
-            sqf_to_python_string(sqf).c_str();
+            static_cast<void>(sqf_to_python_string(sqf).c_str());
         }
         catch (SQFReader::ParseException& ex)
         {
