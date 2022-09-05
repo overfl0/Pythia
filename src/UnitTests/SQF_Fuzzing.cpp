@@ -2,12 +2,12 @@
 #include "CppUnitTest.h"
 #include "CppUnitTestLogger.h"
 #include <Python.h>
-#include "../src/SQFReader.h"
-#include "../src/SQFWriter.h"
-#include "../src/SQFGenerator.h"
-#include "../src/SQFGenerator.cpp"
-#include "../src/ResponseWriter.h"
-#include "../src/ResponseWriter.cpp"
+
+#include "../Pythia/SQFReader.h"
+#include "../Pythia/SQFWriter.h"
+#include "../Pythia/SQFGenerator.h"
+#include "../Pythia/ResponseWriter.h"
+#include "../Pythia/ExceptionFetcher.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 namespace SQF_Fuzzing_Test

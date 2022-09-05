@@ -98,6 +98,8 @@ message(STATUS "Python link_directories: ${Python3_LIBRARY_DIRS}")
 add_subdirectory(src/Pythia)
 add_subdirectory(src/PythiaSetPythonPath)
 add_subdirectory(src/PythiaTester)
+
+# enable_testing()
 # add_subdirectory(src/UnitTests)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PythiaSetPythonPath)

@@ -3,11 +3,14 @@
 #include "CppUnitTestLogger.h"
 #include <Python.h>
 
-#include "../src/SQFWriter.h"
-#include "../src/SQFWriter.cpp"  // I don't know why I cannot make VS use pythia.lib :(
-#include "../src/ExceptionFetcher.h"
-#include "../src/ExceptionFetcher.cpp"
-#include "../src/ResponseWriter.h"
+// TODO: Fix this horrible mess
+#define LOG_ERROR(a)
+#include "../Pythia/SQFWriter.h"
+//#include "../Pythia/SQFWriter.cpp"  // I don't know why I cannot make VS use pythia.lib :(
+#include "../Pythia/ExceptionFetcher.h"
+//#include "../Pythia/ExceptionFetcher.cpp"
+#include "../Pythia/ResponseWriter.h"
+//#include "../Pythia/ResponseWriter.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

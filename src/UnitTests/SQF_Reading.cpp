@@ -3,10 +3,8 @@
 #include "CppUnitTestLogger.h"
 #include <Python.h>
 
-#include "../src/SQFreader.h"
-#include "../src/SQFReader.cpp"  // I don't know why I cannot make VS use pythia.lib :(
-#include "../src/ExceptionFetcher.h"
-//#include "../src/ExceptionFetcher.cpp"
+#include "../Pythia/SQFReader.h"
+#include "../Pythia/ExceptionFetcher.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -17,7 +15,7 @@ namespace SQF_Reading_Test
         PyObject *repr_obj = PyObject_Repr(obj);
         if (repr_obj)
         {
-            char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
+            const char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
             if (value_utf8)
             {
                 return value_utf8;
