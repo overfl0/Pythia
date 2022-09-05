@@ -10,12 +10,12 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace SQF_Reading_Test
 {
-    std::string python_str(PyObject *obj)
+    std::string python_str(PyObject* obj)
     {
-        PyObject *repr_obj = PyObject_Repr(obj);
+        PyObject* repr_obj = PyObject_Repr(obj);
         if (repr_obj)
         {
-            const char *value_utf8 = PyUnicode_AsUTF8(repr_obj);
+            const char* value_utf8 = PyUnicode_AsUTF8(repr_obj);
             if (value_utf8)
             {
                 return value_utf8;
@@ -31,21 +31,21 @@ namespace SQF_Reading_Test
         }
     }
 
-    std::string sqf_to_python_string(const char *sqf)
+    std::string sqf_to_python_string(const char* sqf)
     {
         // Yes, this is leaking memory.
-        PyObject *obj = SQFReader::decode(sqf);
+        PyObject* obj = SQFReader::decode(sqf);
         Assert::IsNotNull(obj);
         std::string output = python_str(obj);
         return output;
     }
 
-    void sqf_to_python(const char *sqf, const char *python)
+    void sqf_to_python(const char* sqf, const char* python)
     {
         Assert::AreEqual(python, sqf_to_python_string(sqf).c_str());
     }
 
-    void sqf_raises(const char *sqf, int at_position)
+    void sqf_raises(const char* sqf, int at_position)
     {
         bool raised = false;
         std::ptrdiff_t error_position = -1;
@@ -95,15 +95,17 @@ namespace SQF_Reading_Test
             sqf_to_python("-0", "0");
             sqf_to_python("250", "250");
             sqf_to_python("1000", "1000");
+            sqf_to_python("1000.000000", "1000");
+            sqf_to_python("9227465.000000", "9227465");
             sqf_to_python("-5", "-5");
         }
 
         TEST_METHOD(SQFFloatParsing)
         {
-            sqf_to_python("0.0", "0.0");
+            sqf_to_python("0.0", "0"); // This is converted to an int
             sqf_to_python("1.5", "1.5");
             sqf_to_python("-1.5", "-1.5");
-            sqf_to_python("1234.0", "1234.0");
+            sqf_to_python("1234.0", "1234"); // This is converted to an int
             sqf_to_python("12345.6", "12345.6");
             sqf_to_python("229371.268934", "229371.268934");
             sqf_to_python("695619.606753", "695619.606753");
@@ -208,7 +210,7 @@ namespace SQF_Reading_Test
         {
             for (int i = 0; i < 100000; i++)
             {
-                PyObject *pyo = SQFReader::decode("[[0.25, 'as'], [TRUE, FALSE], [150, -2]]");
+                PyObject* pyo = SQFReader::decode("[[0.25, 'as'], [TRUE, FALSE], [150, -2]]");
                 Py_XDECREF(pyo);
             }
         }

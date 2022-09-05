@@ -15,7 +15,10 @@
 	};
 #endif
 
+// Do not use scientific notation to preserve precision for integers with > 6 digits
+toFixed 6;
 private _result = "Pythia" callExtension (str _this);
+toFixed -1;
 if (_result == "") exitWith {
 	"Extension output is empty. One possible cause is BattlEye blocking the extension." call PY3_fnc_showMessage;
 	[];
@@ -38,10 +41,12 @@ while { true } do {
             private _returnStiched = "";
             private _multipartString = call compile _result;
 
+            toFixed 6;
             for "_i" from 1 to (_multipartString select 2) do {
                 _result = "Pythia" callExtension (str ["pythia.multipart", _multipartString select 1]);
                 _returnStiched = _returnStiched + _result
             };
+            toFixed -1;
             _result = _returnStiched;
         };
 

@@ -25,10 +25,12 @@ namespace SQFReader
     inline PyObject *try_parse_number(const char **start)
     {
         const char *end = *start;
+        const char *endForceInt = *start;
         char isFloat = false;
         char isScientific = false;
         char negativeExponent = false;
         char positiveExponent = false;
+        char forceInt = false;
 
         if (*end == '-')
         {
@@ -42,6 +44,10 @@ namespace SQFReader
 
         while ((*end >= '0' && *end <= '9') || *end == '.' || *end == '-' || *end == '+' || *end == 'e')
         {
+            if (isFloat && *end != '0')
+            {
+                forceInt = false;
+            }
             if (*end == '.')
             {
                 if (isScientific)
@@ -55,6 +61,8 @@ namespace SQFReader
                     THROW_PARSEERROR("Error when parsing number");
                 }
                 isFloat = true;
+                forceInt = true; // Will later be changed if there is anything after the period
+                endForceInt = end;
             }
             if (*end == 'e')
             {
@@ -96,14 +104,21 @@ namespace SQFReader
             end++;
         }
 
-        std::string tmp_value(*start, end - *start);
         PyObject *number;
-        if (!isFloat)
+        if (forceInt)
         {
+            std::string tmp_value_int(*start, endForceInt - *start);
+            number = PyLong_FromString(tmp_value_int.c_str(), nullptr, 10);
+
+        }
+        else if (!isFloat)
+        {
+            std::string tmp_value(*start, end - *start);
             number = PyLong_FromString(tmp_value.c_str(), nullptr, 10);
         }
         else
         {
+            std::string tmp_value(*start, end - *start);
             double cDouble = atof(tmp_value.c_str());
             number = PyFloat_FromDouble(cDouble);
         }
