@@ -26,7 +26,7 @@ if (_result == "") exitWith {
 
 // This is the most probable reponse so we put it at the start for performance reasons
 if ((_result select [2,1]) isEqualTo "r") exitWith {
-    (call compile _result) select 1;
+    (parseSimpleArray _result) select 1;
 };
 
 // Main loop
@@ -39,7 +39,7 @@ while { true } do {
         // -- Multipart response. This stiches multiple callExtensions to get past the 10k char limit
         case "m": {
             private _returnStiched = "";
-            private _multipartString = call compile _result;
+            private _multipartString = parseSimpleArray _result;
 
             toFixed 6;
             for "_i" from 1 to (_multipartString select 2) do {
@@ -51,7 +51,7 @@ while { true } do {
         };
 
         case "r": {
-            (call compile _result) select 1 breakOut "py3";
+            (parseSimpleArray _result) select 1 breakOut "py3";
         };
 
         case "e": {
