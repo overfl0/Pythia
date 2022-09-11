@@ -83,6 +83,12 @@ namespace SQF_Writing_Test
             python_to_sqf("250", "250");
             python_to_sqf("1000", "1000");
             python_to_sqf("-5", "-5");
+
+            // "long long" overflow
+            python_to_sqf("9223372036854775807", "9223372036854775807");
+            python_to_sqf("9223372036854775808", "OVERFLOW!");
+            python_to_sqf("-9223372036854775808", "-9223372036854775808");
+            python_to_sqf("-9223372036854775809", "OVERFLOW!");
         }
 
         TEST_METHOD(PythonFloatParsing)
@@ -97,6 +103,12 @@ namespace SQF_Writing_Test
             python_to_sqf("229371.268934", "229371.268934");
             python_to_sqf("695619.606753", "695619.606753");
             python_to_sqf("-1.23456789012e-008", "-1.23456789012e-8");
+
+            // "double" overflow
+            python_to_sqf("1.7976931348623157E+308", "1.7976931348623157e+308");
+            python_to_sqf("1.7976931348623157E+309", "Infinity");
+            python_to_sqf("-1.7976931348623157E+308", "-1.7976931348623157e+308");
+            python_to_sqf("-1.7976931348623157E+309", "-Infinity");
         }
 
         TEST_METHOD(PythonListParsing)
