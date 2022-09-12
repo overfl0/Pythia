@@ -240,7 +240,7 @@ Threads
 You can spawn Python Threads if you want to have functions running in the background or your functions take more than a
 few milliseconds to complete and you don't want to lock the game.
 
-See [examples/@PythiaThread/README.md](examples/@PythiaThread/README.md) for details.
+See [examples/@PythiaThread/](examples/@PythiaThread/) for details.
 
 Installing
 ----------
