@@ -228,6 +228,11 @@ def init_modules(modules_dict):
     PythiaModuleWrapper.init_modules(modules_dict)
 
 
+def deinit_modules():
+    logger.debug('Unloading custom PythiaModuleFinder')
+    PythiaModuleWrapper.deinit_modules()
+
+
 ###############################################################################
 # Below are testing functions which exist solely to check if everything is
 # working correctly.
@@ -296,6 +301,7 @@ invalidate_pythia_functions_cache()
 class PythiaModuleWrapper(object):
     initialized = False
     modules = {}
+    orig_sys_meta_path = []
 
     @staticmethod
     def _get_node(fullname):
@@ -369,11 +375,16 @@ class PythiaModuleWrapper(object):
         """Register the whole import mechanism and set the supported Pythia modules."""
         if not PythiaModuleWrapper.initialized:
             logger.info('Initializing module finder')
+            PythiaModuleWrapper.orig_sys_meta_path = sys.meta_path.copy()
             sys.meta_path.insert(0, PythiaModuleFinder())
             PythiaModuleWrapper.initialized = True
 
         PythiaModuleWrapper.modules = modules_dict
 
+    @staticmethod
+    def deinit_modules():
+        if PythiaModuleWrapper.initialized:
+            sys.meta_path = PythiaModuleWrapper.orig_sys_meta_path
 
 class PythiaModuleFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path, target = None):

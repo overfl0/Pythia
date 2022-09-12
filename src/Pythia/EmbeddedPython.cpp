@@ -432,8 +432,38 @@ void EmbeddedPython::initModules(modules_t mods)
     }
 }
 
+void EmbeddedPython::deinitModules()
+{
+    /**
+    Deinitialize python sources for modules.
+    */
+
+    if (!pModule)
+    {
+        THROW_PYEXCEPTION("Pythia adapter not loaded correctly. Not initializing python modules.")
+    }
+
+    // Perform the call adding the mods sources
+    PyObjectGuard function(PyObject_GetAttrString(pModule, "deinit_modules"));
+    if (!function || !PyCallable_Check(function.get()))
+    {
+        THROW_PYEXCEPTION("Failed to reference python function 'deinit_modules'");
+    }
+
+    PyObjectGuard pResult(PyObject_CallFunctionObjArgs(function.get(), NULL));
+    if (pResult)
+    {
+        return; // Yay!
+    }
+    else
+    {
+        THROW_PYEXCEPTION("Failed to execute python deinit_modules function");
+    }
+}
+
 void EmbeddedPython::deinitializeAdapter()
 {
+    deinitModules();
     Py_CLEAR(pFunc);
     Py_CLEAR(pModule);
 }

@@ -13,6 +13,7 @@ public:
 
     void initializeAdapter();
     void initModules(modules_t mods);
+    void deinitModules();
     void deinitializeAdapter();
     void reloadAdapter();
     void execute(char *output, int outputSize, const char* input);
