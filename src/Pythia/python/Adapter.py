@@ -148,7 +148,6 @@ def import_and_strip_traceback(full_module_name):
 def python_adapter(sqf_args):
     """The extension entry point in python."""
 
-    global FUNCTION_CACHE
     global RELOADER_ENABLED
 
     try:
@@ -309,19 +308,12 @@ PYTHIA_INTERNAL_FUNCTIONS = {
 }
 
 
-def invalidate_pythia_functions_cache():
-    global FUNCTION_CACHE
-    FUNCTION_CACHE = PYTHIA_INTERNAL_FUNCTIONS.copy()
-
-
 # Comment the following lines out to enable remote interactive debugging
 def interactive(port):
     raise NotImplementedError
 
 
 PYTHIA_INTERNAL_FUNCTIONS['pythia.interactive'] = interactive
-
-invalidate_pythia_functions_cache()
 
 
 ###############################################################################
@@ -556,8 +548,6 @@ def reload_everything():
     for module in reloadable_modules_list:
         if hasattr(module, '__post_reload__') and module.__name__ in stash:
             module.__post_reload__(stash[module.__name__])
-
-    invalidate_pythia_functions_cache()
 
 
 def reloadable_modules():
