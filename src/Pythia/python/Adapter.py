@@ -14,9 +14,6 @@ import types
 import pythiainternal  # noqa
 import pythialogger as logger  # noqa
 
-# If you want the user modules to be reloaded each time the function is called, set this to True
-PYTHON_MODULE_DEVELOPMENT = False
-
 
 def create_root_logger(name):
     file_handler = logging.handlers.RotatingFileHandler('pythia.log', maxBytes=1024*1024, backupCount=10)
@@ -178,11 +175,19 @@ def python_adapter(sqf_args):
             # Recursively call getattr on elements. If not present, try loading it as a module
             attributes = full_function_name.split('.')
             base_module_name = attributes.pop(0)
+
             try:
                 element = sys.modules[base_module_name]
             except KeyError:
                 # Module not imported yet, import it
-                element = import_and_strip_traceback(base_module_name)
+                try:
+                    element = import_and_strip_traceback(base_module_name)
+                except Exception:
+                    if not PythiaModuleWrapper.is_handled(full_function_name):
+                        message = f'Pythia module "{full_function_name}" not recognized! Have you loaded the right ' \
+                                  f'Arma mods?'
+                        raise PythiaImportException(message)
+                    raise
 
             for depth, attribute in enumerate(attributes):
                 try:
@@ -194,47 +199,10 @@ def python_adapter(sqf_args):
 
                     # No such element. It may be a module, it may be a regular item
                     full_path = '.'.join([base_module_name] + attributes[:depth + 1])
+
                     element = import_and_strip_traceback(full_path)
 
             function = element
-
-        # try:
-        #     # Raise dummy exception if needs force-reload
-        #     if PYTHON_MODULE_DEVELOPMENT:
-        #         if full_function_name not in PYTHIA_INTERNAL_FUNCTIONS:
-        #             raise KeyError('Dummy KeyError')
-        #
-        #     # TODO: Change me here
-        #     function = FUNCTION_CACHE[full_function_name]
-        #
-        # except KeyError:  # Function not cached, load the module
-        #     function_path, function_name = full_function_name.rsplit('.', 1)
-        #
-        #     # Prevent calling arbitrary python functions
-        #     base_module = function_path.split('.')[0]
-        #     if(base_module != 'python' and
-        #        base_module != 'pythia' and
-        #        base_module not in PythiaModuleWrapper.modules):
-        #         message = 'Pythia module \'{}\' not recognized! Have you loaded the right Arma mods?'
-        #         raise PythiaImportException(message.format(base_module))
-        #
-        #     try:
-        #         module = sys.modules[function_path]
-        #
-        #     except KeyError:
-        #         # Module not imported yet, import it
-        #         module = import_and_strip_traceback(function_path)
-        #
-        #     # Force reloading the module if we're developing
-        #     if PYTHON_MODULE_DEVELOPMENT:
-        #         importlib.reload(module)
-        #
-        #     try:
-        #         # Get the requested function
-        #         function = getattr(module, function_name)
-        #     except AttributeError as ex:
-        #         raise PythiaImportException(str(ex))
-        #     FUNCTION_CACHE[full_function_name] = function
 
         retval = handle_function_calling(function, function_args)
 
@@ -246,7 +214,7 @@ def python_adapter(sqf_args):
         retval = format_error_string(ex.args[0])
         logger.error('Exception while calling function:\n{}'.format(ex.args[0]))
 
-    except:
+    except Exception as ex:
         retval = format_error_string(traceback.format_exc())
         logger.error('An exception occurred:\n{}'.format(traceback.format_exc()))
 
