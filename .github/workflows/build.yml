@@ -77,7 +77,7 @@ jobs:
       - name: Perform build
         run: python tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2.2.4
         with:
           name: _Internal_Pythia_Binaries
           path: |
@@ -124,7 +124,7 @@ jobs:
 
       - run: python tools/build.py build_pbos
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2.2.4
         with:
           name: _Internal_Pythia_PBOs
           path: |
@@ -168,7 +168,7 @@ jobs:
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2.2.4
 #        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           name: Pythia
