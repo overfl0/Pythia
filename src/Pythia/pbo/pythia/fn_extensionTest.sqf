@@ -6,6 +6,12 @@
 
 // Set custom dll search path to resolve our embedded python executable
 private _result = "PythiaSetPythonPath" callExtension "";
+
+if ((_result isEqualTo "") && (productVersion select 6 == "Linux") && (productVersion select 7 == "x86")) exitWith {
+	diag_log format ["ERROR: Pythia on Linux 32bit is not supported. Use the 64bit executable"];
+	[false, "ERROR: Pythia on Linux 32bit is not supported. Use the 64bit executable"];
+};
+
 if (_result isEqualTo "") exitWith {
 	diag_log format ["ERROR: @Pythia mod loaded, but PythiaSetPythonPath retured an error or could not be loaded!"];
 	[false, "ERROR: @Pythia mod loaded, but PythiaSetPythonPath retured an error or could not be loaded!"];

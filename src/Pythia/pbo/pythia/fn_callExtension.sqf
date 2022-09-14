@@ -15,13 +15,20 @@
 	};
 #endif
 
+scopeName "py3";
+
 // Do not use scientific notation to preserve precision for integers with > 6 digits
 toFixed 6;
 private _result = "Pythia" callExtension (str _this);
 toFixed -1;
-if (_result == "") exitWith {
-	"Extension output is empty. One possible cause is BattlEye blocking the extension." call PY3_fnc_showMessage;
-	[];
+if (_result == "") then {
+    if ((productVersion select 6 == "Linux") && (productVersion select 7 == "x86")) then {
+        "Linux 32bit is not supported. Use the 64bit executable" call PY3_fnc_showMessage;
+        [] breakOut "py3";
+    } else {
+        "Extension output is empty. One possible cause is BattlEye blocking the extension." call PY3_fnc_showMessage;
+        [] breakOut "py3";
+    };
 };
 
 // This is the most probable reponse so we put it at the start for performance reasons
@@ -32,7 +39,7 @@ if ((_result select [2,1]) isEqualTo "r") exitWith {
 // Main loop
 // Here go all the types of reponses. They are grouped in a big loop so that we cover all the corner cases
 // Where a multipart response can be an "r".
-scopeName "py3";
+
 while { true } do {
     switch (_result select [2,1]) do {
 

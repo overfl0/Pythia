@@ -166,6 +166,9 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
 
+      - name: Remove linux 32bit Pythia
+        run: rm -rf python-*-embed-linux32 Pythia.so PythiaSetPythonPath.so PythiaTester install_requirements32.sh
+
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 
       - uses: actions/upload-artifact@v2.2.4
