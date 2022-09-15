@@ -167,7 +167,7 @@ jobs:
       - run: python tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
 
       - name: Remove linux 32bit Pythia
-        run: rm -rf python-*-embed-linux32 Pythia.so PythiaSetPythonPath.so PythiaTester install_requirements32.sh
+        run: rm -rf @Pythia/python-*-embed-linux32 @Pythia/Pythia.so @Pythia/PythiaSetPythonPath.so @Pythia/PythiaTester @Pythia/install_requirements32.sh
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 
