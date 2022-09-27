@@ -4,6 +4,7 @@ import shutil
 import stat
 import subprocess
 import sys
+from datetime import datetime
 
 import setuptools
 from pkg_resources import parse_version
@@ -122,7 +123,14 @@ def copy_templates(version):
     for f in os.listdir('templates'):
         with open(os.path.join('templates', f), 'rb') as fread:
             with open(os.path.join('@Pythia', f), 'wb') as fwrite:
-                fwrite.write(fread.read().replace(b'{version}', f'{version.major}{version.minor}'.encode('ascii')))
+                data = fread.read()
+                data = data.replace(b'{version}', f'{version.major}{version.minor}'.encode('ascii'))
+                # https://stackoverflow.com/a/15919878/6543759
+                kind = (1 << 62)  # UTC
+                ticks = int((datetime.utcnow() - datetime(1, 1, 1)).total_seconds() * (10 ** 7))
+                dotnet_timestamp = str(ticks | kind)
+                data = data.replace(b'{dotnet_timestamp}', dotnet_timestamp.encode('ascii'))
+                fwrite.write(data)
 
 
 def safety_checks(version):
