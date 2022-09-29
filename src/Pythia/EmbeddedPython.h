@@ -35,10 +35,4 @@ private:
     #ifndef _WIN32
     void* libpythonHandle = nullptr;
     #endif
-
-    // Python magic
-    #if PYTHON_VERSION_MINOR == 7
-    std::wstring pythonHomeString;
-    std::wstring programNameString;
-    #endif
 };

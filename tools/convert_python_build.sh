@@ -12,8 +12,8 @@ if [[ "`basename $1`" == *"windows"* ]]; then
     windows=true
 fi
 
-# time ./build-linux.py --target-triple i686-unknown-linux-gnu --python cpython-3.7
-# time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --python cpython-3.7
+# time ./build-linux.py --target-triple i686-unknown-linux-gnu --python cpython-3.10
+# time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --python cpython-3.10
 
 rm -rf python
 

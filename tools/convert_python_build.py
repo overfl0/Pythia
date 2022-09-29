@@ -12,8 +12,8 @@ from pathlib import Path
 import zstandard
 
 
-# time ./build-linux.py --target-triple i686-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.7
-# time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.7
+# time ./build-linux.py --target-triple i686-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.10
+# time ./build-linux.py --target-triple x86_64-unknown-linux-gnu --optimizations pgo+lto --python cpython-3.10
 
 
 def zstd_unpack(filename_or_file, dest, archive_subfolder=None):

@@ -101,12 +101,7 @@ void EmbeddedPython::libpythonWorkaround()
         // undefined symbol: PyExc_ImportError
         // Manually load libpythonX.Y.so with dlopen(RTLD_GLOBAL) to allow numpy to access python symbols
         // and in Python 3.8+ any C extension
-        #if PYTHON_VERSION_MINOR == 7
-            const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED "m.so.1.0";
-        #else
-            // Python 3.8 and above does not have the "m" flag anymore
-            const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
-        #endif
+        const char* pythonLibraryName = "libpython" PYTHON_VERSION_DOTTED ".so.1.0";
 
         libpythonHandle = dlopen(pythonLibraryName, RTLD_LAZY | RTLD_GLOBAL);
         if (!libpythonHandle)
@@ -127,26 +122,6 @@ void EmbeddedPython::libpythonWorkaroundClose()
     #endif // ifndef _WIN32
 }
 
-#if PYTHON_VERSION_MINOR == 7
-void setFlagsAndEnvVariables()
-{
-    // Clear the env variables, just in case
-    #ifdef _WIN32
-        _putenv_s("PYTHONHOME", "");
-        _putenv_s("PYTHONPATH", "");
-        _putenv_s("PYTHONNOUSERSITE", "1");  // Disable custom user site
-    #else
-        setenv("PYTHONHOME", "", true);
-        setenv("PYTHONPATH", "", true);
-        setenv("PYTHONNOUSERSITE", "1", true);  // Disable custom user site
-    #endif
-
-    Py_IgnoreEnvironmentFlag = 1;
-    Py_IsolatedFlag = 1;
-    Py_NoSiteFlag = 0;
-    Py_NoUserSiteDirectory = 1;
-}
-#endif
 std::vector<std::wstring> computePythonPaths(const std::wstring& wpath)
 {
 /*
@@ -201,49 +176,13 @@ std::wstring computeProgramNameString(std::wstring wpath)
         return wpath + L"/bin/python3";
     #endif
 }
-#if PYTHON_VERSION_MINOR == 7
-void EmbeddedPython::preInitializeEmbeddedPython(std::wstring wpath)
-{
-    setFlagsAndEnvVariables();
-
-    this->pythonHomeString = wpath;
-    this->programNameString = computeProgramNameString(wpath);
-
-    LOG_INFO(std::string("Current directory: ") + GetCurrentWorkingDir());
-    LOG_INFO(std::string("Setting Python home to: ") + Logger::w2s(pythonHomeString));
-    LOG_INFO(std::string("Setting program name to: ") + Logger::w2s(programNameString));
-    LOG_INFO(std::string("Setting Python paths to: ") + Logger::w2s(joinPaths(computePythonPaths(wpath))));
-
-    // Py_SetPythonHome(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64");
-    Py_SetPythonHome(pythonHomeString.c_str());
-
-    // Py_SetProgramName(L"D:\\Steam\\steamapps\\common\\Arma 3\\@Pythia\\python-embed-amd64\\python.exe");
-    Py_SetProgramName(programNameString.c_str());
-
-    // Set the program full name manually because otherwise it may be set to
-    // use "shims" by pyenv, for some reason.
-    // https://bugs.python.org/issue34725#msg330038
-    _Py_SetProgramFullPath(programNameString.c_str());
-
-    // Not setting Py_SetPath reverts the Py_SetProgramName value (it seems to be ignored then),
-    Py_SetPath(joinPaths(computePythonPaths(wpath)).c_str());
-}
-#endif
 
 EmbeddedPython::EmbeddedPython()
 {
     LOG_INFO("################################################################################");
     LOG_INFO(std::string("Pythia version: ") + PYTHIA_VERSION);
     LOG_INFO(std::string("Python version: ") + Py_GetVersion());
-#if PYTHON_VERSION_MINOR == 7
-    preInitializeEmbeddedPython(ensureWideChar(getPythonPath()));
-    PyImport_AppendInittab("pythiainternal", PyInit_pythiainternal);
-    PyImport_AppendInittab("pythialogger", PyInit_pythialogger);
 
-    LOG_INFO("Calling Py_Initialize()");
-    LOG_FLUSH();
-    Py_Initialize();
-#else
     auto pythonPath = ensureWideChar(getPythonPath());
     auto programPath = computeProgramNameString(pythonPath);
     auto pathsVector = computePythonPaths(pythonPath);
@@ -298,7 +237,6 @@ EmbeddedPython::EmbeddedPython()
     {
         THROW_PYINITIALIZE_EXCEPTION(std::string("Py_InitializeFromConfig exception: ") + status.err_msg)
     }
-#endif
 
     LOG_INFO(std::string("Python executable from C++: ") + Logger::w2s(Py_GetProgramFullPath()));
     LOG_INFO(std::string("Python home: ") + Logger::w2s(Py_GetPythonHome()));

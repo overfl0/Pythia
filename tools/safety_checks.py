@@ -157,7 +157,7 @@ def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
 def safety_checks(python_version):
     major, minor, patch = python_version.split('.')
     dll_import = f'python3{minor}.dll'.encode('ascii')
-    so_import = f'libpython3.{minor}{"m" if minor == "7" else ""}.so.1.0'
+    so_import = f'libpython3.{minor}.so.1.0'
     check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[dll_import])
     check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[dll_import])
     check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'))
