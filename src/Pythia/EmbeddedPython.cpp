@@ -300,7 +300,7 @@ void EmbeddedPython::initializeAdapter()
     PyObjectGuard module(PyImport_ExecCodeModule("adapter", pCompiledContents.get()));
     if (!module)
     {
-        THROW_PYEXCEPTION("Failed to add compiled module");
+        THROW_PYEXCEPTION("Failed to import python adapter. This is usually caused by BattlEye");
     }
     #endif
 
