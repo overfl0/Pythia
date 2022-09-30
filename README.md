@@ -164,20 +164,20 @@ The test below was executed by calling `pythia.ping` with different types of arg
 arguments had to be converted to python and the return value had to be converted back to SQF. Each test was conducted 3
 times and the lowest value was written down.
 
-The exact arguments for each test can be found on [the scratchpad](https://github.com/overfl0/Pythia/wiki/Scratchpad).
+The exact arguments for each test can be found in [the Benchmarks](https://github.com/overfl0/Pythia/wiki/Benchmarks).
 
-|  #  | Type of arguments | 10 arguments | 100 arguments |
-| --- | ----------------- | :----------: | :-----------: |
-|  1  | Integers          | 0.0198 ms    | 0.0858 ms     |
-|  2  | Floats            | 0.0225 ms    | 0.1091 ms     |
-|  3  | Booleans          | 0.0155 ms    | 0.0580 ms     |
-|  4  | Strings           | 0.0161 ms    | 0.0580 ms     |
-|  5  | Arrays with ints  | 0.0318 ms    | 0.2086 ms     |
-|  6  | Empty arrays      | 0.0153 ms    | 0.0555 ms     |
+|  #  | Type of arguments | 3 arguments | 10 arguments |
+| --- | ----------------- |:-----------:|:------------:|
+|  1  | Integers          |  0.0137 ms  |  0.0197 ms   |
+|  2  | Floats            |  0.0152 ms  |  0.0229 ms   |
+|  3  | Booleans          |  0.0109 ms  |  0.0130 ms   |
+|  4  | Strings           |  0.0112 ms  |  0.0151 ms   |
+|  5  | Arrays with ints  |  0.0174 ms  |  0.0327 ms   |
+|  6  | Empty arrays      |  0.0107 ms  |  0.0131 ms   |
 
 Note that you will probably usually pass a number of arguments lower than 10 (and if you don't, your function will most
-probably be slower than the (de)serializing overhead) so you can assume that **each Pythia call takes around 0.02 ms**
-on a recent computer.
+probably be slower than the (de)serializing overhead) so you can assume that **each Pythia call takes less than 0.02
+ms** on a recent computer.
 
 This allows for **under 150 Pythia calls per frame** if you want to stay under the 3ms arbitrary limit (arbitrary
 because the callExtension calls are not really limited by the engine, they just block execution until finished).
