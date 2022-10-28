@@ -65,9 +65,13 @@ def get_call_value(thread_id):
         raise ValueError('Thread is still running!')
 
     # Thread has finished, we can return its value now
-    thread.join()
-    del THREADS[thread_id]
+    try:
+        thread.join()
+    finally:
+        del THREADS[thread_id]
+
     try:
         return thread.result
     except AttributeError:
-        raise RuntimeError('The thread does not have the "result" attribute. An unhandled error occurred inside your Thread')
+        raise RuntimeError(
+            'The thread does not have the "result" attribute. An unhandled error occurred inside your Thread')
