@@ -24,10 +24,6 @@ def call_slow_fibonacci(n):
 
     When ot returns True, you can get the value by doing:
     ["thread_example.get_call_value", [thread_id]] call py3_fnc_callExtension
-
-    TODO: The errors in the called function may get suppressed and you will
-    then just receive a cryptic "'ThreadWithResult' object has no attribute
-    'result'" error.
     """
     return call_slow_function(fibonacci, (n,))
 
