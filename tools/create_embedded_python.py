@@ -32,7 +32,7 @@ STANDALONE_MAPPING = {
     'win32': 'i686',
     'amd64': 'x86_64',
 }
-PIP_REQUIREMENTS = ['pip==22.2.1', 'setuptools==65.4.1', 'wheel==0.38.0']
+PIP_REQUIREMENTS = ['pip==22.2', 'setuptools==63.2.0', 'wheel==0.37.0']
 
 
 def install_pip_for(python_executable):
