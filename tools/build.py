@@ -28,7 +28,7 @@ def parse_version_wrapper(txt):
 
 
 def _verbose_run(cmd, **kwargs):
-    print(' '.join(cmd), flush=True)
+    print(' '.join(c if ' ' not in c else f'"{c}"' for c in cmd), flush=True)
     subprocess.run(cmd, **kwargs)
 
 
