@@ -5,6 +5,7 @@ import platform
 import posixpath
 import re
 import shutil
+import subprocess
 import sys
 import tarfile
 from pathlib import Path
@@ -75,13 +76,10 @@ def convert_standalone_build(directory):
         path.unlink()
 
     if platform.system() == 'Linux':
-        os.system("patchelf --set-rpath '$ORIGIN/../lib' bin/python3")
-
+        subprocess.run("patchelf --set-rpath '$ORIGIN/../lib' bin/python3", shell=True, check=True)
         dereference_symlinks('.')
-
-        os.chdir('lib')
-        os.system('docker run --platform linux/386 --rm -v "$(pwd)"/:/data quay.io/pypa/manylinux2014_i686:latest /bin/bash -c "cp /usr/local/lib/libcrypt.so.1 /data/ && chown 1000:1000 /data/libcrypt.so.1 && chmod 555 /data/libcrypt.so.1"')
-        os.chdir('..')
+        subprocess.run('docker run --platform linux/386 --rm -v "$(pwd)"/:/data quay.io/pypa/manylinux2014_i686:latest /bin/bash -c "cp /usr/local/lib/libcrypt.so.1 /data/ && chown 1000:1000 /data/libcrypt.so.1 && chmod 555 /data/libcrypt.so.1"',
+                       shell=True, cwd='lib', check=True)
 
     os.chdir(currdir)
 
@@ -104,12 +102,11 @@ def pack_to_tbz(orig_filename, directory_unpacked):
     else:
         dirs = ['DLLs', 'include', 'Lib', 'libs', 'Scripts', 'tcl', '*.txt', '*.dll', '*.exe']
 
-    tar = tarfile.open(new_path, "w:bz2")
-    for g in dirs:
-        for path in Path('.').glob(g):
-            print(f'Adding {path}')
-            tar.add(path)
-    tar.close()
+    with tarfile.open(new_path, "w:bz2") as tar:
+        for g in dirs:
+            for path in Path('.').glob(g):
+                print(f'Adding {path}')
+                tar.add(path)
 
 
 def main(filename):
