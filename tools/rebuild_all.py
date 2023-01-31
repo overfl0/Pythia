@@ -36,7 +36,7 @@ def rebuild_all(args):
 
         # Call ourselves through WSL to build the linux part of Pythia
         rebuild_all_py = posixpath.join(os.path.relpath(THIS_DIR), 'rebuild_all.py')
-        _verbose_run(['wsl', '/bin/bash', '-ic', f'python {rebuild_all_py} {args.version} --wsl'], check=True)
+        _verbose_run(['wsl', '/bin/bash', '-ic', f'python3 {rebuild_all_py} {args.version} --wsl'], check=True)
 
     safety_checks(args.version)
 
