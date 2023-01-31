@@ -306,10 +306,16 @@ Common errors
 
 #### Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock
 
-Your Docker environment is misconfigured and you probably need to add yourself to the `docker` group and restart the
+Your Docker environment is misconfigured. You probably need to add yourself to the `docker` group and restart the
 shell.
 
     sudo usermod -aG docker $USER
+
+#### FileExistsError: [Errno 17] File exists: '@Pythia/python-310-embed-linux32'
+
+Docker/WSL2 is probably throwing a fit. Restart WSL by typing this command.
+
+    wsl --shutdown
 
 Contributing
 ------------
