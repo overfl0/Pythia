@@ -258,6 +258,10 @@ to install all the requirements to both python installations before running the 
 Pythia development
 ==================
 
+Note: **You do NOT need to compile Pythia yourself** if all you want is create Python extensions.
+All you need for that is to subscribe to the mod [on Workshop](https://steamcommunity.com/workshop/filedetails/?id=1751569185),
+instead.
+
 Building requirements
 ---------------------
 
@@ -271,9 +275,16 @@ Building
 
 #### First-time build:
 
-Run this on Windows (requires WSL2 to be installed and configured!)
+Run this on Windows (requires WSL2 and Docker to be installed and configured!)
 
     python -m pip install -r requirements.txt
+
+    # Setup WSL for both x86 and x64 architectures
+    wsl /bin/bash -ic "sudo dpkg --add-architecture i386"
+    wsl /bin/bash -ic "sudo apt update"
+    wsl /bin/bash -ic "sudo apt install python3-pip patchelf libcrypt1:i386 clang gcc-multilib"
+    wsl /bin/bash -ic "python3 -m pip install -r requirements.txt"
+
     python tools\rebuild_all.py
 
 This will fetch and install all the python interpreters required both for
@@ -289,6 +300,16 @@ is used by `rebuild_all.py` for details.
 
 - `python tools\build.py --help`
 - See `rebuild_all.py` for usage
+
+Common errors
+-------------
+
+#### Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock
+
+Your Docker environment is misconfigured and you probably need to add yourself to the `docker` group and restart the
+shell.
+
+    sudo usermod -aG docker $USER
 
 Contributing
 ------------
