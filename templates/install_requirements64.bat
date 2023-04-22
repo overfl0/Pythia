@@ -9,7 +9,7 @@ rem file onto install_requirements64.bat
 rem ###########################################################################
 
 set requirements_file=%1
-IF "%1"=="nopause" set requirements_file=%2
+IF %1==nopause set requirements_file=%2
 IF %requirements_file%.==. GOTO END_MISSING_ARGUMENT
 
 set interpreter=%~dp0\python-{version}-embed-amd64
@@ -19,7 +19,7 @@ echo Installing requirements for %interpreter% from %requirements_file%...
 echo ===============================================================================
 
 echo.
-"%interpreter%\python.exe" -I -m pip install  --upgrade --no-warn-script-location -r "%requirements_file%"
+"%interpreter%\python.exe" -I -m pip install  --upgrade --no-warn-script-location -r %requirements_file%
 if ERRORLEVEL 1 GOTO END_PIP_ERROR
 echo.
 
@@ -49,14 +49,14 @@ GOTO END_NOT_OK
 rem ### Error handling ########################################################
 
 :END_OK
-IF "%1"=="nopause" goto END_NOPAUSE
+IF %1==nopause goto END_NOPAUSE
 pause
 
 :END_NOPAUSE
 EXIT /b
 
 :END_NOT_OK
-IF "%1"=="nopause" goto END_NOT_OK_NOPAUSE
+IF %1==nopause goto END_NOT_OK_NOPAUSE
 pause
 
 :END_NOT_OK_NOPAUSE
