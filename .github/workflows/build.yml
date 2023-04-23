@@ -37,6 +37,13 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: tar cvf python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar python-*-embed-*
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: _Internal_Python_Interpreters
+          path: python-*.tar
+          if-no-files-found: error
+          retention-days: 1
+
   Build-Binaries:
     needs: Create-Interpreters
     runs-on: ${{ matrix.os }}
@@ -54,12 +61,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Load interpreters from cache
-        uses: actions/cache@v3
-        id: cache
+      - name: Download the interpreters
+        uses: actions/download-artifact@v3
         with:
-          path: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
-          key: interpreters-${{ env.PYTHON_VERSION }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+          name: _Internal_Python_Interpreters
 
       - name: Create the directory
         run: mkdir "@Pythia"
@@ -85,7 +90,6 @@ jobs:
             @Pythia/*.so
             @Pythia/*.exe
             @Pythia/PythiaTester*
-            python-*.tar
           if-no-files-found: error
           retention-days: 1
 
@@ -147,15 +151,21 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download the binaries
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: _Internal_Pythia_Binaries
+          path: "@Pythia"
 
       - name: Download the PBOs
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: _Internal_Pythia_PBOs
           path: "@Pythia"
+
+      - name: Download the interpreters
+        uses: actions/download-artifact@v3
+        with:
+          name: _Internal_Python_Interpreters
 
       - name: Copy templates
         run: python tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
@@ -186,7 +196,7 @@ jobs:
 #    environment: Dev-deploy
 #    steps:
 #      - name: Download the release
-#        uses: actions/download-artifact@v2
+#        uses: actions/download-artifact@v3
 #        with:
 #          name: Pythia
 #
