@@ -11,8 +11,14 @@ import time
 import traceback
 import types
 
-import pythiainternal  # noqa
-import pythialogger as logger  # noqa
+import pkg_resources
+
+if __name__ != '__main__':
+    import pythiainternal  # noqa
+    import pythialogger as logger  # noqa
+else:
+    import logging
+    logger = logging.getLogger(__name__)
 
 
 def create_root_logger(name):
@@ -568,12 +574,111 @@ def check_reload():
 
 
 ###############################################################################
+# Pip related functions
+# TODO: Move this to a separate file as soon as the C++ code permits
+###############################################################################
+
+import pip
+import pip.req
+import sys
+# https://stackoverflow.com/a/45474387/6543759
+# pkg_resources.require(requirements)
+# def _get_requirements_from_file(req_file):
+#     reqs = list(pip.req.parse_requirements(req_file, session='somesession'))
+#     print('=====')
+#     for item in reqs:
+#         if isinstance(item, pip.req.InstallRequirement):
+#             print("required package: {}".format(item.name))
+#
+#             if item.req:
+#                 if len(str(item.req.specifier)) > 0:
+#                     print("  " + str(item.req.specifier))
+#
+#             if item.link is not None:
+#                 print("  from: " + item.link.url)
+#                 print("  filename: " + item.link.filename)
+#                 if item.link.egg_fragment:
+#                     print("  egg: " + item.link.egg_fragment)
+#
+#             if len(item.options) > 0:
+#                 for opt_type,opts in item.options.iteritems():
+#                     print("  {}:".format(opt_type))
+#                     if type(opts) is list:
+#                         for opt in opts:
+#                             print("    " + opt)
+#                     elif type(opts) is dict:
+#                         for k,v in opts.iteritems():
+#                             print("    {}: {}".format(k,v))
+#             print('Satisfied by: {}'.format(item.satisfied_by))
+#
+#     return reqs
+
+def get_requirements_from_file(req_file):
+    if not os.path.isfile(req_file):
+        logger.info('Checking requirements: File not found: {}'.format(req_file))
+        return []
+
+    # TODO: Error checking here
+    reqs = list(pip.req.parse_requirements(req_file, session='somesession'))
+    for req in reqs:
+        if req.req is None:
+            logger.error('Checking requirements: entry cannot be properly checked: '.format(req))
+            logger.error('Checking requirements: If you\'re adding a source from git, make sure to have a '
+                         '`git+somegitrepo/somepath/reponame#egg=reponame` format!')
+            # TODO: return something here
+
+    return [str(req.req) for req in reqs if req.req]
+
+
+def get_all_requirements_files():
+    requirements_files = []
+
+    for name, path in PythiaModuleWrapper.modules.items():
+        if os.path.isdir(path):
+            requirements_txt = os.path.join(path, 'requirements.txt')
+            if os.path.isfile(requirements_txt):
+                requirements_files.append(requirements_txt)
+
+    return requirements_files
+
+
+def get_all_requirements():
+    requirements = []
+    files = get_all_requirements_files()
+
+    for f in files:
+        requirements.extend(get_requirements_from_file(f))
+
+    return requirements
+
+
+def check_all_requirements():
+    needs_install_update = []
+    errors = []
+
+    requirements = get_all_requirements()
+    #pkg_resources.require(requirements)
+
+    for requirement in requirements:
+        try:
+            pkg_resources.require(requirement)
+        except (pkg_resources.DistributionNotFound, pkg_resources.VersionConflict):
+            needs_install_update.append(requirement)
+        except Exception as ex:
+            logger.error('An exception occurred while checking the requirement "{}": {}'.format(requirement, ex))
+            errors.append(requirement)
+
+    return needs_install_update, errors
+
+###############################################################################
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(__file__)
     modules = {
         'm_one': os.path.join(base_dir, 'adapter_import_test', 'module_one'),
         'm_two': os.path.join(base_dir, 'adapter_import_test', 'module_two'),
+        'DynamicFrontline': r'E:\c\DynamicFrontline',
+        'MissionFinder': r'E:\c\MissionFinder',
     }
 
     PythiaModuleWrapper.init_modules(modules)
@@ -591,11 +696,20 @@ if __name__ == '__main__':
     # from m_two import file_two
     # file_two.fun()
 
-    import m_one.submodule.subfile as sub  # noqa
-    print(sub.fun())
-    print(sub.fun2())
-    print(sub.fun3())
+    # import m_one.submodule.subfile as sub  # noqa
+    # print(sub.fun())
+    # print(sub.fun2())
+    # print(sub.fun3())
+    #
+    # import m_one.hello
+    # print(m_one.hello)
+    # print(m_one.hello.fun())
 
-    import m_one.hello  # noqa
-    print(m_one.hello)
-    print(m_one.hello.fun())
+    #a = get_requirements_from_file(r'E:\c\DynamicFrontline\requirements.txt')
+    #a = get_requirements_from_file(r'E:\c\MissionFinder\requirements.txt')
+
+
+    r = check_all_requirements()
+    print(r)
+
+    #import sys, IPython; sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__; IPython.embed()
