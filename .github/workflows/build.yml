@@ -3,95 +3,13 @@ on: [push]
 env:
   PYTHON_VERSION: 3.10.9
 jobs:
-  Create-Interpreters:
-    runs-on: ${{ matrix.os }}
+  Build-binaries:
     strategy:
       matrix:
         os: [windows-2019, ubuntu-20.04]
-
-    steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Cache interpreters
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
-          key: interpreters-${{ env.PYTHON_VERSION }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
-
-      - name: Check out repository code
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v3
-
-      - name: Install requirements
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -r requirements.txt
-
-      - name: Create interpreters
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: python tools/build.py create_interpreters ${{ env.PYTHON_VERSION }} --dest .
-
-      - name: Tar interpreters
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: tar cvf python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar python-*-embed-*
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: _Internal_Python_Interpreters
-          path: python-*.tar
-          if-no-files-found: error
-          retention-days: 1
-
-  Build-Binaries:
-    needs: Create-Interpreters
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-2019, ubuntu-20.04]
-        arch: [x64, x86]
-
-    steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Check out repository code
-        uses: actions/checkout@v3
-
-      - name: Create the directory
-        run: mkdir "@Pythia"
-
-      - name: Download the interpreters
-        uses: actions/download-artifact@v3
-        with:
-          name: _Internal_Python_Interpreters
-
-      - name: Untar the interpreter
-        run: tar xf ../python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
-        working-directory: "@Pythia"
-
-      # Build the extension
-      - uses: ilammy/msvc-dev-cmd@v1
-        if: ${{ runner.os == 'Windows' }}
-        with:
-          arch: ${{ matrix.arch }}
-
-      - name: Perform build
-        run: python tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: _Internal_Pythia_Binaries
-          path: |
-            @Pythia/*.dll
-            @Pythia/*.so
-            @Pythia/*.exe
-            @Pythia/PythiaTester*
-          if-no-files-found: error
-          retention-days: 1
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      os: ${{ matrix.os }}
 
   Build-PBO:
     runs-on: windows-latest
@@ -124,57 +42,8 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  Test-Binaries:
-    needs: Build-Binaries
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-2019, ubuntu-20.04]
-        arch: [x64, x86]
-
-    steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Check out repository code
-        uses: actions/checkout@v3
-
-      - name: Create the directory
-        run: mkdir "@Pythia"
-
-      - name: Download the interpreters
-        uses: actions/download-artifact@v3
-        with:
-          name: _Internal_Python_Interpreters
-
-      - name: Untar the interpreter
-        run: tar xf ../python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
-        working-directory: "@Pythia"
-
-      - name: Download the binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: _Internal_Pythia_Binaries
-          path: "@Pythia"
-
-      - name: Set testers permissions
-        run: chmod a+x @Pythia/PythiaTester*
-
-      - name: Install multilib for compiling 32bit Cython extensions (in tests)
-        if: runner.os == 'Linux' && matrix.arch == 'x86'
-        run: sudo apt install -y gcc-multilib
-
-      - name: Copy templates
-        run: python tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
-
-      - name: Run basic tests
-        run: python tools/build.py run_tests ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
-
   Consolidate:
     needs:
-      - Create-Interpreters
       - Build-Binaries
       - Build-PBO
     runs-on: ubuntu-latest
