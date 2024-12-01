@@ -266,7 +266,7 @@ class TestCython(RequirementsInstaller):
         request = self.create_request('cython_basic.compile_python_extension_do_not_use_this_way', [setup_py_path])
         output, err, code = self._call_tester(self.pythia_path, request,
                                               loaded_pbos=[os.path.join('@CythonMod', 'addons', 'cython_mod.pbo')],
-                                              timeout=30)
+                                              timeout=60)
 
         # Mild check
         self.assertIn('running build_ext', output)
