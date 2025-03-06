@@ -7,8 +7,8 @@ import urllib.request
 
 from tqdm import tqdm
 
-URL = 'https://hugovk.github.io/top-pypi-packages/top-pypi-packages-30-days.json'
-FILENAME = 'top-pypi-packages-30-days.json'
+URL = 'https://hugovk.github.io/top-pypi-packages/top-pypi-packages.json'
+FILENAME = 'top-pypi-packages.json'
 ABS_FILE = os.path.join(os.path.dirname(__file__), FILENAME)
 BLACKLIST = {
     'typing-extensions',
