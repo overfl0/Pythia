@@ -67,23 +67,18 @@ def create_interpreters(version, dest):
     _run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
 
 
-def _get_embed(version, system, arch):
+def _get_embed(version, system):
     embed = {
-        'linux': {
-            'x64': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux64', 'bin', 'python3'),
-        },
-        'windows': {
-            'x86': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-win32', 'python.exe'),
-            'x64': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-amd64', 'python.exe'),
-        }
+        'linux': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux64', 'bin', 'python3'),
+        'windows': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-amd64', 'python.exe'),
     }
 
-    return embed[system][arch]
+    return embed[system]
 
 
-def build_binaries(version, arch, system, run_tests=True):
+def build_binaries(version, system, run_tests=True):
     version = packaging.version.Version(version)
-    print(f'Building {arch} binaries for {system}...', flush=True)
+    print(f'Building binaries for {system}...', flush=True)
 
     if system == 'linux':
         env = None
@@ -92,14 +87,14 @@ def build_binaries(version, arch, system, run_tests=True):
         # See: https://github.com/pypa/distutils/issues/340
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            env = setuptools._distutils._msvccompiler._get_vc_env(arch)  # noqa
+            env = setuptools._distutils._msvccompiler._get_vc_env('x64')  # noqa
 
     if os.path.exists('ninja'):
         shutil.rmtree('ninja')
     os.makedirs('ninja')
 
     if system == 'linux':
-        _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}', '-t', 'pythia:latest', '.'], check=True)
+        _verbose_run(['docker', 'build', '-f', 'Dockerfile.x64', '-t', 'pythia:latest', '.'], check=True)
         # Workaround for GitHub Actions
         # This is to fix GIT not liking owner of the checkout dir (git callback in cmake)
         # https://github.com/actions/runner/issues/2033
@@ -110,15 +105,15 @@ def build_binaries(version, arch, system, run_tests=True):
         docker_prefix = []
         shell = True
 
-    _verbose_run(docker_prefix + ['cmake', '-G', 'Ninja', f'-DUSE_64BIT_BUILD={"ON" if arch == "x64" else "OFF"}', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '..'], check=True, cwd='ninja', env=env, shell=shell)
+    _verbose_run(docker_prefix + ['cmake', '-G', 'Ninja', '-DUSE_64BIT_BUILD="ON"', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '..'], check=True, cwd='ninja', env=env, shell=shell)
     _verbose_run(docker_prefix + ['ninja'], check=True, cwd='ninja', env=env, shell=shell)
 
 
-def run_tests(version, arch, system):
+def run_tests(version, system):
     version = packaging.version.Version(version)
-    print(f'Running tests for {arch} {system}...', flush=True)
+    print(f'Running tests for {system}...', flush=True)
 
-    _verbose_run([_get_embed(version, system, arch), os.path.join('tests', 'tests.py')], check=True)
+    _verbose_run([_get_embed(version, system), os.path.join('tests', 'tests.py')], check=True)
 
 
 def build_pbos():
@@ -169,13 +164,11 @@ if __name__ == '__main__':
 
     parser_build_binaries = subparsers.add_parser('build_binaries')
     parser_build_binaries.add_argument('version')
-    parser_build_binaries.add_argument('arch', choices=['x86', 'x64'])
     parser_build_binaries.add_argument('system', choices=['windows', 'linux'], type=str.lower)
     parser_build_binaries.set_defaults(func=build_binaries)
 
     parser_run_tests = subparsers.add_parser('run_tests')
     parser_run_tests.add_argument('version')
-    parser_run_tests.add_argument('arch', choices=['x86', 'x64'])
     parser_run_tests.add_argument('system', choices=['windows', 'linux'], type=str.lower)
     parser_run_tests.set_defaults(func=run_tests)
 

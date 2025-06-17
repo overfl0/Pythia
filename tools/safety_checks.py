@@ -20,9 +20,8 @@ from auditwheel.lddtree import lddtree
 from elftools.elf.elffile import ELFFile
 
 
-def check_dll_architecture(path: str, x86=False):
-    arch = '32bit' if x86 else '64bit'
-    print(f'Checking if file {path} is {arch}...')
+def check_dll_architecture(path: str):
+    print(f'Checking if file {path} is 64bit...')
 
     if not os.path.exists(path):
         print(f'File {path} is missing!')
@@ -31,8 +30,8 @@ def check_dll_architecture(path: str, x86=False):
     pe = pefile.PE(path)
     arch32 = bool(pe.NT_HEADERS.FILE_HEADER.Characteristics & pefile.IMAGE_CHARACTERISTICS['IMAGE_FILE_32BIT_MACHINE'])
 
-    if (x86 and not arch32) or (not x86 and arch32):
-        print(f'File {path} is not {arch}!')
+    if arch32:
+        print(f'File {path} is not 64bit!')
         sys.exit(1)
 
 
@@ -63,9 +62,8 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
             sys.exit(1)
 
 
-def check_so_architecture(path: str, x86=False):
-    arch = '32bit' if x86 else '64bit'
-    print(f'Checking if file {path} is {arch}...')
+def check_so_architecture(path: str):
+    print(f'Checking if file {path} is 64bit...')
 
     if not os.path.exists(path):
         print(f'File {path} is missing!')
@@ -76,8 +74,8 @@ def check_so_architecture(path: str, x86=False):
 
     arch32 = elffile.elfclass == 32
 
-    if (x86 and not arch32) or (not x86 and arch32):
-        print(f'File {path} is not {arch}!')
+    if arch32:
+        print(f'File {path} is not 64bit!')
         sys.exit(1)
 
 
@@ -147,18 +145,14 @@ def safety_checks(python_version):
     major, minor, patch = python_version.split('.')
     dll_import = f'python3{minor}.dll'.encode('ascii')
     so_import = f'libpython3.{minor}.so.1.0'
-    check_dll_is_static(os.path.join('@Pythia', 'Pythia.dll'), allowed_imports=[dll_import])
     check_dll_is_static(os.path.join('@Pythia', 'Pythia_x64.dll'), allowed_imports=[dll_import])
-    check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'))
     check_dll_is_static(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'))
     print()
-    check_dll_architecture(os.path.join('@Pythia', 'Pythia.dll'), x86=True)
-    check_dll_architecture(os.path.join('@Pythia', 'Pythia_x64.dll'), x86=False)
-    check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'), x86=True)
-    check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'), x86=False)
+    check_dll_architecture(os.path.join('@Pythia', 'Pythia_x64.dll'))
+    check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'))
     print()
-    check_so_architecture(os.path.join('@Pythia', 'Pythia_x64.so'), x86=False)
-    check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'), x86=False)
+    check_so_architecture(os.path.join('@Pythia', 'Pythia_x64.so'))
+    check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'))
     print()
     linux_imports = [so_import]
     check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia_x64.so'), allowed_imports=linux_imports)

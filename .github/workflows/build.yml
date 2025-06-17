@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-22.04]
+        os: [windows-2022, ubuntu-22.04]
 
     steps:
       - name: Cache interpreters
@@ -18,7 +18,7 @@ jobs:
         id: cache
         with:
           path: python-${{ env.PYTHON_VERSION }}-${{ runner.os }}.tar
-          key: interpreters-${{ env.PYTHON_VERSION }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}
+          key: interpreters-${{ env.PYTHON_VERSION }}-${{ runner.os }}-${{ secrets.CACHE_VERSION }}-x64
 
       - name: Check out repository code
         if: steps.cache.outputs.cache-hit != 'true'
@@ -52,11 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-22.04]
-        arch: [x64, x86]
-        exclude:
-          - os: ubuntu-22.04
-            arch: x86
+        os: [windows-2022, ubuntu-22.04]
 
     steps:
       - name: Check out repository code
@@ -83,15 +79,13 @@ jobs:
       # Build the extension
       - uses: ilammy/msvc-dev-cmd@v1
         if: ${{ runner.os == 'Windows' }}
-        with:
-          arch: ${{ matrix.arch }}
 
       - name: Perform build
-        run: uv run tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
+        run: uv run tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ runner.os }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: _Internal_Pythia_Binaries-${{ runner.os }}-${{ matrix.arch }}
+          name: _Internal_Pythia_Binaries-${{ runner.os }}
           path: |
             @Pythia/*.dll
             @Pythia/*.so
@@ -139,11 +133,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-22.04]
-        arch: [x64, x86]
-        exclude:
-          - os: ubuntu-22.04
-            arch: x86
+        os: [windows-2022, ubuntu-22.04]
 
     steps:
       - name: Check out repository code
@@ -170,7 +160,7 @@ jobs:
       - name: Download the binaries
         uses: actions/download-artifact@v4
         with:
-          name: _Internal_Pythia_Binaries-${{ runner.os }}-${{ matrix.arch }}
+          name: _Internal_Pythia_Binaries-${{ runner.os }}
           path: "@Pythia"
 
       - name: Set testers permissions
@@ -180,7 +170,7 @@ jobs:
         run: uv run tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
 
       - name: Run basic tests
-        run: uv run tools/build.py run_tests ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
+        run: uv run tools/build.py run_tests ${{ env.PYTHON_VERSION }} ${{ runner.os }}
 
   Consolidate:
     needs:

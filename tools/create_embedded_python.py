@@ -9,12 +9,11 @@ from pathlib import Path
 from common import ignore_no_file, get_python_version
 
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
-ARCHITECTURES_WINDOWS = ['win32', 'amd64']
+ARCHITECTURES_WINDOWS = ['amd64']
 ARCHITECTURES_LINUX = ['linux64']
 ARCHITECTURES_CURRENT = ARCHITECTURES_WINDOWS if platform.system() == 'Windows' else ARCHITECTURES_LINUX
 STANDALONE_MAPPING = {
     'linux64': 'cpython-{version}-linux-x86_64-gnu',
-    'win32': 'cpython-{version}-windows-x86-none',
     'amd64': 'cpython-{version}-windows-x86_64-none',
 }
 PIP_REQUIREMENTS = ['pip==23.0', 'setuptools==65.1.1', 'wheel==0.38.4']

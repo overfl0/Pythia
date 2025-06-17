@@ -37,14 +37,10 @@ def rebuild_all(args):
 
     platform = 'windows' if sys.platform != 'linux' else sys.platform
 
-    if platform != 'linux':
-        build_binaries(args.version, 'x86', platform)
-    build_binaries(args.version, 'x64', platform)
+    build_binaries(args.version, platform)
 
     if should_run_tests:
-        if platform != 'linux':
-            run_tests(args.version, 'x86', platform)
-        run_tests(args.version, 'x64', platform)
+        run_tests(args.version, platform)
 
     if args.wsl:
         return  # We've done all that was needed for the complementary linux tasks
