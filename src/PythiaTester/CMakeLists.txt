@@ -16,20 +16,11 @@ add_custom_command(
         "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/../@Pythia/"
 )
 
-if(USE_64BIT_BUILD)
-    set_target_properties(PythiaTester PROPERTIES
-        OUTPUT_NAME "PythiaTester_x64"
-        BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH "\$ORIGIN"
-    )
-else()
-    set_target_properties(PythiaTester PROPERTIES
-        OUTPUT_NAME "PythiaTester"
-        BUILD_WITH_INSTALL_RPATH TRUE
-        INSTALL_RPATH "\$ORIGIN"
-    )
-endif()
-
+set_target_properties(PythiaTester PROPERTIES
+    OUTPUT_NAME "PythiaTester_x64"
+    BUILD_WITH_INSTALL_RPATH TRUE
+    INSTALL_RPATH "\$ORIGIN"
+)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     target_link_libraries(PythiaTester dl)

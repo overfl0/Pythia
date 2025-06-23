@@ -105,7 +105,7 @@ def build_binaries(version, system, run_tests=True):
         docker_prefix = []
         shell = True
 
-    _verbose_run(docker_prefix + ['cmake', '-G', 'Ninja', '-DUSE_64BIT_BUILD="ON"', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '..'], check=True, cwd='ninja', env=env, shell=shell)
+    _verbose_run(docker_prefix + ['cmake', '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '..'], check=True, cwd='ninja', env=env, shell=shell)
     _verbose_run(docker_prefix + ['ninja'], check=True, cwd='ninja', env=env, shell=shell)
 
 

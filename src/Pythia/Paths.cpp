@@ -4,11 +4,7 @@
 #include "Logger.h"
 
 #ifdef _WIN32
-    #ifdef _WIN64
     #define EMBEDDEDPYTHONPATH L"python-" PYTHON_VERSION "-embed-amd64"
-    #else
-    #define EMBEDDEDPYTHONPATH L"python-" PYTHON_VERSION "-embed-win32"
-    #endif
 #else // ifdef _WIN32
     #define EMBEDDEDPYTHONPATH "python-" PYTHON_VERSION "-embed-linux64"
 #endif

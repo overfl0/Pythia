@@ -24,10 +24,7 @@ class Base(unittest.TestCase):
 
     @staticmethod
     def pythia_tester():
-        name = 'PythiaTester'
-
-        if platform.architecture()[0] == '64bit':
-            name += '_x64'
+        name = 'PythiaTester_x64'
 
         if platform.system() == 'Windows':
             name += '.exe'

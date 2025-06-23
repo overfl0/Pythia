@@ -15,8 +15,6 @@ list(GET PYTHON_VERSION_LIST 1 PYTHON_VERSION_MINOR)
 list(GET PYTHON_VERSION_LIST 2 PYTHON_VERSION_PATCH)
 #####################################################################################
 
-option(USE_64BIT_BUILD "USE_64BIT_BUILD" ON)
-
 project(PythiaProject)
 
 message(STATUS "Cmake version: ${CMAKE_VERSION}")
@@ -34,14 +32,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-linux64")
 
 else() # MSVC
-    if(CMAKE_SIZEOF_VOID_P LESS 8)
-        set(USE_64BIT_BUILD OFF)
-        message(STATUS "Setting MSVC flags (32bit)")
-        set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-win32")
-    else()
-        message(STATUS "Setting MSVC flags (64bit)")
-        set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-amd64")
-    endif()
+    message(STATUS "Setting MSVC flags (64bit)")
+    set(CMAKE_PREFIX_PATH "@Pythia/python-${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}-embed-amd64")
 
     message(STATUS "Setting MSVC flags")
 

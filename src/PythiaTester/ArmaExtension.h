@@ -80,13 +80,8 @@ class ArmaExtension
             return;
         }
 
-        #if defined _WIN32 && !defined _WIN64
-            rvextensionPtr = (RVExtension_t)getFunction("_RVExtension@12");
-            rvextensionVersionPtr = (RVExtensionVersion_t)getFunction("_RVExtensionVersion@8");
-        #else
-            rvextensionPtr = (RVExtension_t)getFunction("RVExtension");
-            rvextensionVersionPtr = (RVExtensionVersion_t)getFunction("RVExtensionVersion");
-        #endif
+        rvextensionPtr = (RVExtension_t)getFunction("RVExtension");
+        rvextensionVersionPtr = (RVExtensionVersion_t)getFunction("RVExtensionVersion");
     }
 
     void unload()
@@ -104,9 +99,7 @@ class ArmaExtension
     private:
     static std::string fixName(std::string name)
     {
-        #if defined(_WIN64) || defined(__amd64__) || defined(_M_X64)
-            name += "_x64";
-        #endif
+        name += "_x64";
 
         #ifdef _WIN32
             name += ".dll";
