@@ -25,6 +25,12 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
 
+      - name: Install uv
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.17"
+
       - name: Install requirements
         if: steps.cache.outputs.cache-hit != 'true'
         run: pip install -r requirements.txt

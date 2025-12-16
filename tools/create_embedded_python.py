@@ -4,164 +4,104 @@ import platform
 import shutil
 import subprocess
 import sys
-import tarfile
-import urllib.request
-import zipfile
-from io import BytesIO
+from pathlib import Path
 
 from common import ignore_no_file, get_python_version
-from convert_python_build import zstd_unpack, convert_standalone_build
-from obtain_python_builds import get_relevant_releases
 
-USE_PYTHON_ORG = False
-
-PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
-BASE_STANDALONE_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}-{arch}-' \
-                          'unknown-linux-gnu-pgo+lto.tbz'
-BASE_STANDALONE_WINDOWS_ADDRESS = 'https://github.com/overfl0/Pythia/releases/download/interpreters/cpython-{version}' \
-                                  '-{arch}-pc-windows-msvc-shared-pgo.tbz'
-BASE_ADDRESS = 'https://www.python.org/ftp/python/{version}/python-{version}-embed-{arch}.zip'
-MSI_ADDRESS = 'https://www.python.org/ftp/python/{version}/{arch}/{file}.msi'
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES_WINDOWS = ['win32', 'amd64']
 ARCHITECTURES_LINUX = ['linux32', 'linux64']
 ARCHITECTURES_CURRENT = ARCHITECTURES_WINDOWS if platform.system() == 'Windows' else ARCHITECTURES_LINUX
 STANDALONE_MAPPING = {
-    'linux32': 'i686',
-    'linux64': 'x86_64',
-    'win32': 'i686',
-    'amd64': 'x86_64',
+    'linux32': 'cpython-{version}-linux-x86-gnu',
+    'linux64': 'cpython-{version}-linux-x86_64-gnu',
+    'win32': 'cpython-{version}-windows-x86-none',
+    'amd64': 'cpython-{version}-windows-x86_64-none',
 }
 PIP_REQUIREMENTS = ['pip==23.0', 'setuptools==65.1.1', 'wheel==0.38.4']
 
-
-def install_pip_for(python_executable):
-    """Fetch get_pip.py and run it with the given python executable."""
-
-    file_raw = urllib.request.urlopen(PIP_URL).read()
-    pip_installer = 'get-pip.py'
-    with open(pip_installer, 'wb') as f:
-        f.write(file_raw)
-    try:
-        subprocess.run([python_executable, pip_installer, '--no-warn-script-location'] + PIP_REQUIREMENTS, check=True)
-    finally:
-        os.unlink(pip_installer)
+def dereference_symlinks(path):
+    for root_, dirs, files in os.walk(path, followlinks=False):
+        root = Path(root_)
+        for f in files:
+            filepath = root / f
+            if filepath.is_symlink():
+                dest = filepath.resolve()
+                # print(f'Dereferencing {filepath} -> {dest}')
+                filepath.unlink()
+                shutil.copy2(dest, filepath)
 
 
-def install_pip_linux(python_executable):
+def convert_standalone_build(directory):
+    currdir = os.getcwd()
+    os.chdir(directory)
+
+    print('Modifying the installation...')
+    for path in Path('.').glob('**/*.a'):
+        path.unlink()
+    for path in Path('.').glob('**/*.pdb'):
+        path.unlink()
+    for path in Path('.').glob('**/EXTERNALLY-MANAGED'):
+        path.unlink()
+
+    if platform.system() == 'Linux':
+        dereference_symlinks('.')
+        # Note: both adding the rpath and copying libcrypt will be unnecessary with 3.11+
+        subprocess.run("patchelf --set-rpath '$ORIGIN/../lib' bin/python3", shell=True, check=True)
+        subprocess.run('docker run --platform linux/386 --rm -v "$(pwd)"/:/data quay.io/pypa/manylinux2014_i686:latest /bin/bash -c "cp /usr/local/lib/libcrypt.so.1 /data/ && chown 1000:1000 /data/libcrypt.so.1 && chmod 555 /data/libcrypt.so.1"',
+                       shell=True, cwd='lib', check=True)
+
+    os.chdir(currdir)
+
+def install_pip(python_executable):
     """Just call ensurepip and then the regular pip installation."""
 
     subprocess.run([python_executable, '-m', 'ensurepip'], check=True)
-    subprocess.run([python_executable, '-m', 'pip', 'install'] + PIP_REQUIREMENTS, check=True)
+    subprocess.run([python_executable, '-m', 'pip', 'install', '--no-warn-script-location'] + PIP_REQUIREMENTS, check=True)
 
 
-def fetch_dev_files(directory, version, arch):
-    """Fetch the include and libs directories contained in dev.msi"""
-
-    print('* Fetching dev.msi')
-    url = MSI_ADDRESS.format(version=version, arch=arch, file='dev')
-    file_raw = urllib.request.urlopen(url).read()
-
-    try:
-        with open('dev.msi', 'wb') as f:
-            f.write(file_raw)
-
-        if platform.system() == 'Windows':
-            cmd = ['msiexec.exe', '/a', 'dev.msi', '/qn', 'TARGETDIR={}'.format(os.path.realpath(directory))]
-        else:
-            cmd = ['msiextract', '--directory', directory, 'dev.msi']
-
-        print('* Unpacking dev.msi')
-        subprocess.check_call(cmd)
-
-    finally:
-        with ignore_no_file():
-            os.unlink(os.path.join(directory, 'dev.msi'))  # It's created only with msiexec.exe, for some reason
-        with ignore_no_file():
-            os.unlink('dev.msi')
-
-
-def prepare_distro(basedir, version, arch, install_pip=True):
+def prepare_distro(basedir, version, arch, should_install_pip=True):
     """Basically:
-    1) Download the embedded version from Python.org
-    2) Unpack it to a well known directory name
-    3) Unpack its stdlib
-    4) Install pip inside
+    1) Download the embedded version with uv
+    2) Apply several fixes to its structure
+    3) Install pip and basic requirements
     """
 
-    windows = arch in ARCHITECTURES_WINDOWS
-    if not USE_PYTHON_ORG:
-        url = get_relevant_releases(version=version, arch=STANDALONE_MAPPING[arch], windows=windows)[0].url
-    else:  # Legacy, TODO: remove me
-        if windows:
-            url = BASE_ADDRESS.format(version=version, arch=arch)
-        else:
-            url = BASE_STANDALONE_ADDRESS.format(version=version, arch=STANDALONE_MAPPING[arch])
+    uv_python_name = STANDALONE_MAPPING[arch].format(version=version)
+    uv_python_directory = os.path.join(basedir, uv_python_name)
 
     version_with_minor = ''.join(version.split('.')[:2])  # convert 3.5.4 to 35
-    directory = os.path.join(basedir, EMBED_DIR.format(arch=arch, version_short=version_with_minor))
+    pythia_python_name = EMBED_DIR.format(arch=arch, version_short=version_with_minor)
+    pythia_python_directory = os.path.join(basedir, pythia_python_name)
+
+    with ignore_no_file():
+        shutil.rmtree(uv_python_directory)
+    with ignore_no_file():
+        shutil.rmtree(pythia_python_directory)
 
     print('* Preparing embedded python-{version} for {arch}...'.format(version=version, arch=arch))
 
-    # Download compressed file
-    print('* Downloading python compressed installation...')
-    file_raw = urllib.request.urlopen(url).read()
-    os.makedirs(directory)
+    # Download original python installation
+    # uv python install --install-dir . --no-registry --no-bin cpython-3.10.9-windows-x86_64-none
+    subprocess.run(['uv', 'python', 'install', '--install-dir', basedir, '--no-registry', '--no-bin', '--no-config', uv_python_name], check=True)
 
-    print('* Extracting...')
-    # Python.org standalone windows executables need a few changes before they can be used
-    if USE_PYTHON_ORG and arch in ARCHITECTURES_WINDOWS:
-        python_zip_file = zipfile.ZipFile(BytesIO(file_raw), 'r')
-        python_zip_file.extractall(directory)
+    # TODO: use uv in a temporary directory, so we don't have to clean after it
+    os.unlink(os.path.join(basedir, '.gitignore'))
+    os.unlink(os.path.join(basedir, '.lock'))
+    os.rmdir(os.path.join(basedir, '.temp'))
+    # End uv cleanup
 
-        # Unpack stdlib (not doing so breaks some pip downloaded tools, like 2to3)
-        # Prefetch the whole file prior to deletion
-        print('* Unpacking stdlib')
-        stdlib = 'python{version_with_minor}.zip'.format(version_with_minor=version_with_minor)
-        stdlib_path = os.path.join(directory, stdlib)
-        stdlib_zip_file = zipfile.ZipFile(BytesIO(open(stdlib_path, 'rb').read()), 'r')
-        os.unlink(stdlib_path)
-        os.makedirs(stdlib_path)
-        stdlib_zip_file.extractall(stdlib_path)
+    os.rename(uv_python_directory, pythia_python_directory)
 
-        # ._pth file handling
-        _pth = os.path.join(directory, 'python{version_with_minor}._pth'.format(version_with_minor=version_with_minor))
-
-        # UPDATE: due to an issue with `pip install` starting in isolated
-        # mode (and failing to resolve relative imports thus failing) we're
-        # simply deleting the _pth file if it exists, instead of crafting
-        # a special _pth file.
-
-        # import site when executing python.exe (doesn't apply to the embedded
-        # version) which gives access to site-packages and that allows pip (and
-        # other packages) to be accessed
-        # with open(_pth, 'a') as f:
-        #     f.write('import site\n')
-
-        if os.path.exists(_pth):
-            os.unlink(_pth)
-
-        # Fetch files required when building Cython extensions from source, for example
-        fetch_dev_files(directory, version, arch)
-
-    else:  # Linux or non-python.org-Windows
-        if not USE_PYTHON_ORG:
-            zstd_unpack(BytesIO(file_raw), directory, ['python', 'install'])
-            convert_standalone_build(directory)
-        else:
-            python_tar_file = tarfile.open(None, "r:bz2", BytesIO(file_raw))
-            python_tar_file.extractall(directory)
-            python_tar_file.close()
+    convert_standalone_build(pythia_python_directory)
 
     # Install pip
-    if install_pip:
+    if should_install_pip:
         print('* Installing pip into the python distribution...')
         if arch in ARCHITECTURES_WINDOWS:
-            install_pip_for(os.path.join(directory, 'python.exe'))
+            install_pip(os.path.join(pythia_python_directory, 'python.exe'))
         else:  # Linux
-            # Don't install pip, for now, as the package is supposed to contain it already
-            # install_pip_for(os.path.join(directory, 'bin', 'python'))
-            install_pip_linux(os.path.join(directory, 'bin', 'python3'))
+            install_pip(os.path.join(pythia_python_directory, 'bin', 'python3'))
         print('* Pip installation done!\n')
 
 

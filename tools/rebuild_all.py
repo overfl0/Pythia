@@ -16,7 +16,7 @@ def rebuild_all(args):
     if not args.wsl and not args.clear:
         # Call ourselves through WSL to build the linux part of Pythia
         rebuild_all_py = posixpath.join(os.path.relpath(THIS_DIR), 'rebuild_all.py')
-        _verbose_run(['wsl', '/bin/bash', '-ic', f'python3 {rebuild_all_py} {args.version} --wsl --clear'], check=True)
+        _verbose_run(['wsl', '/bin/bash', '-lic', f'python3 {rebuild_all_py} {args.version} --wsl --clear'], check=True)
 
     if args.clear:
         clear_pythia_directory()
@@ -42,7 +42,7 @@ def rebuild_all(args):
 
         # Call ourselves through WSL to build the linux part of Pythia
         rebuild_all_py = posixpath.join(os.path.relpath(THIS_DIR), 'rebuild_all.py')
-        _verbose_run(['wsl', '/bin/bash', '-ic', f'python3 {rebuild_all_py} {args.version} --wsl'], check=True)
+        _verbose_run(['wsl', '/bin/bash', '-lic', f'python3 {rebuild_all_py} {args.version} --wsl'], check=True)
 
     safety_checks(args.version)
 
