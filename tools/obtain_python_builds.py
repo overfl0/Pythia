@@ -8,7 +8,7 @@ from pathlib import Path
 
 # https://docs.github.com/en/rest/releases/releases
 GITHUB_RELEASES_URL = 'https://api.github.com/repos/overfl0/Pythia/releases?per_page=100'
-GITHUB_RELEASES_URL_BACKUP = 'https://api.github.com/repos/indygreg/python-build-standalone/releases?per_page=100'
+GITHUB_RELEASES_URL_BACKUP = 'https://api.github.com/repos/indygreg/python-build-standalone/releases?per_page=20&page=3'
 
 BASE_URL = Path(__file__).parent
 RELEASES = BASE_URL / 'cache' / 'releases.json'
