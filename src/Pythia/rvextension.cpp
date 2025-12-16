@@ -73,7 +73,7 @@ extern "C"
 
 void __stdcall RVExtension(char *output, int outputSize, const char *input)
 {
-    static bool logger_initialized = false;
+    static bool logger_initialized = true;
     if (!logger_initialized)
     {
         switchToAsyncLogger("PythiaLogger", LITERAL("Pythia_c.log"));
