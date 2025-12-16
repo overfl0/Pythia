@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-20.04]
+        os: [windows-2019, ubuntu-22.04]
 
     steps:
       - uses: actions/setup-python@v4
@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-20.04]
+        os: [windows-2019, ubuntu-22.04]
         arch: [x64, x86]
 
     steps:
@@ -130,7 +130,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-20.04]
+        os: [windows-2019, ubuntu-22.04]
         arch: [x64, x86]
 
     steps:
