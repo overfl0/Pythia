@@ -1,5 +1,0 @@
-auditwheel < 5
-pefile
-pyelftools
-setuptools < 81
-zstandard

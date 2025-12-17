@@ -10,10 +10,6 @@ jobs:
         os: [windows-2019, ubuntu-22.04]
 
     steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
       - name: Cache interpreters
         uses: actions/cache@v3
         id: cache
@@ -30,14 +26,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.9.17"
-
-      - name: Install requirements
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: pip install -r requirements.txt
+          enable-cache: false
 
       - name: Create interpreters
         if: steps.cache.outputs.cache-hit != 'true'
-        run: python tools/build.py create_interpreters ${{ env.PYTHON_VERSION }} --dest .
+        run: uv run tools/build.py create_interpreters ${{ env.PYTHON_VERSION }} --dest .
 
       - name: Tar interpreters
         if: steps.cache.outputs.cache-hit != 'true'
@@ -60,12 +53,14 @@ jobs:
         arch: [x64, x86]
 
     steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
       - name: Check out repository code
         uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.17"
+          enable-cache: false
 
       - name: Create the directory
         run: mkdir "@Pythia"
@@ -86,7 +81,7 @@ jobs:
           arch: ${{ matrix.arch }}
 
       - name: Perform build
-        run: python tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
+        run: uv run tools/build.py build_binaries ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -102,12 +97,14 @@ jobs:
   Build-PBO:
     runs-on: windows-latest
     steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
       - name: Check out repository code
         uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.17"
+          enable-cache: false
 
       - name: Cache tools
         uses: actions/cache@v3
@@ -119,7 +116,7 @@ jobs:
       - name: Install Mikero's tools
         uses: arma-actions/mikero-tools@bec8b18fc507ee3180cadeaf35249d3f2702b1ff
 
-      - run: python tools/build.py build_pbos
+      - run: uv run tools/build.py build_pbos
 
       - uses: actions/upload-artifact@v4
         with:
@@ -140,12 +137,14 @@ jobs:
         arch: [x64, x86]
 
     steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
       - name: Check out repository code
         uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.17"
+          enable-cache: false
 
       - name: Create the directory
         run: mkdir "@Pythia"
@@ -173,10 +172,10 @@ jobs:
         run: sudo apt install -y gcc-multilib
 
       - name: Copy templates
-        run: python tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
+        run: uv run tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
 
       - name: Run basic tests
-        run: python tools/build.py run_tests ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
+        run: uv run tools/build.py run_tests ${{ env.PYTHON_VERSION }} ${{ matrix.arch }} ${{ runner.os }}
 
   Consolidate:
     needs:
@@ -185,12 +184,14 @@ jobs:
       - Build-PBO
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
       - name: Check out repository code
         uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.17"
+          enable-cache: false
 
       - name: Download the binaries
         uses: actions/download-artifact@v4
@@ -215,13 +216,12 @@ jobs:
         run: chmod a+x @Pythia/PythiaTester*
 
       - name: Copy templates
-        run: python tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
+        run: uv run tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
 
       - name: Unpack interpreters
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
-      - run: pip install -r requirements.txt
-      - run: python tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
+      - run: uv run tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
 
       - name: Remove linux 32bit Pythia
         run: rm -rf @Pythia/python-*-embed-linux32 @Pythia/Pythia.so @Pythia/PythiaSetPythonPath.so @Pythia/PythiaTester @Pythia/install_requirements32.sh

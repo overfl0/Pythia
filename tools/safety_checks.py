@@ -1,3 +1,12 @@
+# /// script
+# dependencies = [
+#   "auditwheel < 5",
+#   "pefile",
+#   "pyelftools",  # elftools
+#   "setuptools < 74",
+# ]
+# ///
+
 import argparse
 import os
 import sys

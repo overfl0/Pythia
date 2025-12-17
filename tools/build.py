@@ -1,3 +1,12 @@
+# /// script
+# dependencies = [
+#   "auditwheel < 5",
+#   "pefile",
+#   "pyelftools",  # elftools
+#   "setuptools < 74",
+# ]
+# ///
+
 import argparse
 import os
 import shutil
@@ -6,7 +15,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-import setuptools
+import setuptools.msvc
 from pkg_resources import parse_version
 
 os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))

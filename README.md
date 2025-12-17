@@ -265,11 +265,10 @@ instead.
 Building requirements
 ---------------------
 
-- Any Python 3 installation
+- uv
 - Visual Studio Community 2022
 - WSL2 with clang and Docker installed and configured
 - MakePBO
-- uv
 
 Building
 --------
@@ -278,17 +277,15 @@ Building
 
 Run this on Windows (requires WSL2 and Docker to be installed and configured!)
 
-    python -m pip install -r requirements.txt
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
     # Setup WSL for both x86 and x64 architectures
     wsl /bin/bash -ic "sudo dpkg --add-architecture i386"
     wsl /bin/bash -ic "sudo apt update"
     wsl /bin/bash -ic "sudo apt install python3-pip patchelf libcrypt1:i386 clang gcc-multilib"
-    wsl /bin/bash -ic "python3 -m pip install -r requirements.txt"
     wsl /bin/bash -ic "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
-    python tools\rebuild_all.py
+    uv run tools\rebuild_all.py
 
 This will fetch and install all the python interpreters required both for
 building Pythia and then used by Pythia itself at runtime. See `build.py` which
@@ -301,7 +298,7 @@ is used by `rebuild_all.py` for details.
 
 #### Later, for building everything else:
 
-- `python tools\build.py --help`
+- `uv run tools\build.py --help`
 - See `rebuild_all.py` for usage
 
 Common errors
