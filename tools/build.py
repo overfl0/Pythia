@@ -27,9 +27,21 @@ def parse_version_wrapper(txt):
     return version
 
 
+def _run(cmd, **kwargs):
+    # For some reason, when combined with wsl calls, Python thinks the directory we're in has been deleted
+    # so os.getcwd() fails
+    saved_directory = os.getcwd()
+    subprocess.run(cmd, **kwargs)
+    os.chdir(saved_directory)
+
+
 def _verbose_run(cmd, **kwargs):
     print(' '.join(c if ' ' not in c else f'"{c}"' for c in cmd), flush=True)
+    # For some reason, when combined with wsl calls, Python thinks the directory we're in has been deleted
+    # so os.getcwd() fails
+    saved_directory = os.getcwd()
     subprocess.run(cmd, **kwargs)
+    os.chdir(saved_directory)
 
 
 def clear_pythia_directory():
@@ -56,7 +68,7 @@ def clear_pythia_directory():
 def create_interpreters(version, dest):
     version = parse_version_wrapper(version)
     print(f'Creating Python {version} interpreters in "{dest}" directory...', flush=True)
-    subprocess.run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
+    _run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
 
 
 def _get_embed(version, system, arch):
@@ -113,7 +125,7 @@ def run_tests(version, arch, system):
 
 def build_pbos():
     print('Building PBOs...', flush=True)
-    subprocess.run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
+    _run([sys.executable, os.path.join('tools', 'create_pbos.py')], check=True)
 
 
 def copy_templates(version):
@@ -136,7 +148,7 @@ def copy_templates(version):
 def safety_checks(version):
     version = parse_version_wrapper(version)
     print('Running safety checks...', flush=True)
-    subprocess.run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
+    _run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
 
 
 def pack_mod():

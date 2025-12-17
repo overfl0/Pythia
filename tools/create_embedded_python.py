@@ -48,10 +48,13 @@ def convert_standalone_build(directory):
         dereference_symlinks('.')
         # Note: both adding the rpath and copying libcrypt will be unnecessary with 3.11+
         subprocess.run("patchelf --set-rpath '$ORIGIN/../lib' bin/python3", shell=True, check=True)
+        current_dir = os.getcwd()
         subprocess.run('docker run --platform linux/386 --rm -v "$(pwd)"/:/data quay.io/pypa/manylinux2014_i686:latest /bin/bash -c "cp /usr/local/lib/libcrypt.so.1 /data/ && chown 1000:1000 /data/libcrypt.so.1 && chmod 555 /data/libcrypt.so.1"',
                        shell=True, cwd='lib', check=True)
+        os.chdir(current_dir)
 
     os.chdir(currdir)
+
 
 def install_pip(python_executable):
     """Just call ensurepip and then the regular pip installation."""
