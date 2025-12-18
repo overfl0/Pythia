@@ -234,6 +234,7 @@ jobs:
           path: "@Pythia.tbz"
           if-no-files-found: error
           retention-days: 8
+          compression-level: 0
 
 #  Deploy-dev:
 #    needs:
