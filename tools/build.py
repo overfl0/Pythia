@@ -4,7 +4,7 @@
 #   "packaging",
 #   "pefile",
 #   "pyelftools",  # elftools
-#   "setuptools < 74",
+#   "setuptools < 81",  # Check the _get_vc_env function before bumping this
 # ]
 # ///
 
@@ -14,10 +14,11 @@ import shutil
 import stat
 import subprocess
 import sys
+import warnings
 from datetime import datetime
 
 import packaging.version
-import setuptools.msvc
+import setuptools._distutils._msvccompiler
 
 os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -87,11 +88,11 @@ def build_binaries(version, arch, system, run_tests=True):
     if system == 'linux':
         env = None
     else:
-        env = setuptools.msvc.msvc14_get_vc_env(arch)
-    #     env = os.environ.copy()
-    #     msvc_env = setuptools.msvc.EnvironmentInfo(arch).return_env()
-    #     env.update(msvc_env)
-    # print(env)
+        # This API is not public and hence it throws warnings, but there are no workarounds for now
+        # See: https://github.com/pypa/distutils/issues/340
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            env = setuptools._distutils._msvccompiler._get_vc_env(arch)  # noqa
 
     if os.path.exists('ninja'):
         shutil.rmtree('ninja')

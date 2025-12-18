@@ -4,7 +4,7 @@
 #   "packaging",
 #   "pefile",
 #   "pyelftools",  # elftools
-#   "setuptools < 74",
+#   "setuptools < 81",  # Check the _get_vc_env function before bumping this
 # ]
 # ///
 
