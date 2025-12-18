@@ -1,5 +1,8 @@
 name: Build Pythia
-on: [push]
+on:
+  push:
+  schedule:
+    - cron: '0 0 1 * *'  # runs at 00:00 UTC on the 1st of every month
 env:
   PYTHON_VERSION: 3.10.19
 jobs:
