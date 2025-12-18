@@ -1,6 +1,7 @@
 # /// script
 # dependencies = [
 #   "auditwheel < 5",
+#   "packaging",
 #   "pefile",
 #   "pyelftools",  # elftools
 #   "setuptools < 74",
@@ -12,7 +13,7 @@ import os
 import sys
 from typing import List
 
-from pkg_resources import parse_version
+import packaging.version
 
 
 def check_dll_architecture(path: str, x86=False):
@@ -117,10 +118,10 @@ def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
     }
 
     allowed_symbol_versions = {
-        'GLIBC': parse_version('2.17'),
-        'CXXABI': parse_version('1.3.7'),
-        'GLIBCXX': parse_version('3.4.19'),
-        'GCC': parse_version('4.8.0'),
+        'GLIBC': packaging.version.Version('2.17'),
+        'CXXABI': packaging.version.Version('1.3.7'),
+        'GLIBCXX': packaging.version.Version('3.4.19'),
+        'GCC': packaging.version.Version('4.8.0'),
     }
 
     allowed_imports_lower = {'ld-linux.so.2', 'ld-linux-x86-64.so.2'}
@@ -157,7 +158,7 @@ def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
         elffile = ELFFile(file)
         for filename, symbol in elf_find_versioned_symbols(elffile):
             symbol_name, _, version = symbol.partition('_')
-            if parse_version(version) > allowed_symbol_versions[symbol_name]:
+            if packaging.version.Version(version) > allowed_symbol_versions[symbol_name]:
                 print(f'There is a call to {symbol_name} at version {version} which is not allowed for manylinux2014. '
                       'Rebuild the code using the manylinux2014 docker image!')
                 sys.exit(1)

@@ -1,6 +1,7 @@
 # /// script
 # dependencies = [
 #   "auditwheel < 5",
+#   "packaging",
 #   "pefile",
 #   "pyelftools",  # elftools
 #   "setuptools < 74",
@@ -15,25 +16,10 @@ import subprocess
 import sys
 from datetime import datetime
 
+import packaging.version
 import setuptools.msvc
-from pkg_resources import parse_version
 
 os.chdir(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
-
-# Python 3.7 workaround:
-def parse_version_wrapper(txt):
-    version = parse_version(txt)
-
-    try:
-        version.major  # noqa
-        version.minor  # noqa
-    except AttributeError:
-        # Python 3.7 doesn't have these so we patch them in
-        version.major = version._version.release[0]
-        version.minor = version._version.release[1]
-
-    return version
 
 
 def _run(cmd, **kwargs):
@@ -75,7 +61,7 @@ def clear_pythia_directory():
 
 
 def create_interpreters(version, dest):
-    version = parse_version_wrapper(version)
+    version = packaging.version.Version(version)
     print(f'Creating Python {version} interpreters in "{dest}" directory...', flush=True)
     _run([sys.executable, os.path.join('tools', 'create_embedded_python.py'), '--version', str(version), dest], check=True)
 
@@ -95,7 +81,7 @@ def _get_embed(version, system, arch):
 
 
 def build_binaries(version, arch, system, run_tests=True):
-    version = parse_version_wrapper(version)
+    version = packaging.version.Version(version)
     print(f'Building {arch} binaries for {system}...', flush=True)
 
     if system == 'linux':
@@ -128,7 +114,7 @@ def build_binaries(version, arch, system, run_tests=True):
 
 
 def run_tests(version, arch, system):
-    version = parse_version_wrapper(version)
+    version = packaging.version.Version(version)
     print(f'Running tests for {arch} {system}...', flush=True)
 
     _verbose_run([_get_embed(version, system, arch), os.path.join('tests', 'tests.py')], check=True)
@@ -140,7 +126,7 @@ def build_pbos():
 
 
 def copy_templates(version):
-    version = parse_version_wrapper(version)
+    version = packaging.version.Version(version)
     print('Copying files to @Pythia folder...', flush=True)
 
     for f in os.listdir('templates'):
@@ -157,7 +143,7 @@ def copy_templates(version):
 
 
 def safety_checks(version):
-    version = parse_version_wrapper(version)
+    version = packaging.version.Version(version)
     print('Running safety checks...', flush=True)
     _run([sys.executable, os.path.join('tools', 'safety_checks.py'), str(version)], check=True)
 
