@@ -14,16 +14,15 @@ import sys
 from typing import List
 
 import packaging.version
+import pefile
+from auditwheel.elfutils import elf_find_versioned_symbols
+from auditwheel.lddtree import lddtree
+from elftools.elf.elffile import ELFFile
 
 
 def check_dll_architecture(path: str, x86=False):
     arch = '32bit' if x86 else '64bit'
     print(f'Checking if file {path} is {arch}...')
-    try:
-        import pefile
-    except ImportError:
-        print('Install pefile: pip install pefile')
-        sys.exit(1)
 
     if not os.path.exists(path):
         print(f'File {path} is missing!')
@@ -44,11 +43,6 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
     """
 
     print(f'Checking if file {path} is static...')
-    try:
-        import pefile
-    except ImportError:
-        print('Install pefile: pip install pefile')
-        sys.exit(1)
 
     if not os.path.exists(path):
         print(f'File {path} is missing!')
@@ -72,12 +66,6 @@ def check_dll_is_static(path: str, allowed_imports: List = None):
 def check_so_architecture(path: str, x86=False):
     arch = '32bit' if x86 else '64bit'
     print(f'Checking if file {path} is {arch}...')
-    try:
-        import elftools
-    except ImportError:
-        print('Install elftools: pip install pyelftools')
-        sys.exit(1)
-    from elftools.elf.elffile import ELFFile
 
     if not os.path.exists(path):
         print(f'File {path} is missing!')
@@ -130,15 +118,6 @@ def check_so_is_manylinux2014(path: str, allowed_imports: List = None):
             allowed_imports_lower.add(allowed_import)
 
     print(f'Checking if file {path} is manylinux2014...')
-    try:
-        import auditwheel
-    except ImportError:
-        print('Install auditwheel: pip install auditwheel')
-        sys.exit(1)
-
-    from auditwheel.lddtree import lddtree
-    from auditwheel.elfutils import elf_find_versioned_symbols
-    from elftools.elf.elffile import ELFFile
 
     if not os.path.exists(path):
         print(f'File {path} is missing!')
