@@ -10,10 +10,9 @@ from common import ignore_no_file, get_python_version
 
 EMBED_DIR = 'python-{version_short}-embed-{arch}'
 ARCHITECTURES_WINDOWS = ['win32', 'amd64']
-ARCHITECTURES_LINUX = ['linux32', 'linux64']
+ARCHITECTURES_LINUX = ['linux64']
 ARCHITECTURES_CURRENT = ARCHITECTURES_WINDOWS if platform.system() == 'Windows' else ARCHITECTURES_LINUX
 STANDALONE_MAPPING = {
-    'linux32': 'cpython-{version}-linux-x86-gnu',
     'linux64': 'cpython-{version}-linux-x86_64-gnu',
     'win32': 'cpython-{version}-windows-x86-none',
     'amd64': 'cpython-{version}-windows-x86_64-none',
@@ -46,12 +45,6 @@ def convert_standalone_build(directory):
 
     if platform.system() == 'Linux':
         dereference_symlinks('.')
-        # Note: both adding the rpath and copying libcrypt will be unnecessary with 3.11+
-        subprocess.run("patchelf --set-rpath '$ORIGIN/../lib' bin/python3", shell=True, check=True)
-        current_dir = os.getcwd()
-        subprocess.run('docker run --platform linux/386 --rm -v "$(pwd)"/:/data quay.io/pypa/manylinux2014_i686:latest /bin/bash -c "cp /usr/local/lib/libcrypt.so.1 /data/ && chown 1000:1000 /data/libcrypt.so.1 && chmod 555 /data/libcrypt.so.1"',
-                       shell=True, cwd='lib', check=True)
-        os.chdir(current_dir)
 
     os.chdir(currdir)
 

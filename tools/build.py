@@ -83,7 +83,6 @@ def create_interpreters(version, dest):
 def _get_embed(version, system, arch):
     embed = {
         'linux': {
-            'x86': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux32', 'bin', 'python3'),
             'x64': os.path.join('@Pythia', f'python-{version.major}{version.minor}-embed-linux64', 'bin', 'python3'),
         },
         'windows': {
@@ -103,19 +102,22 @@ def build_binaries(version, arch, system, run_tests=True):
         env = None
     else:
         env = setuptools.msvc.msvc14_get_vc_env(arch)
+    #     env = os.environ.copy()
+    #     msvc_env = setuptools.msvc.EnvironmentInfo(arch).return_env()
+    #     env.update(msvc_env)
+    # print(env)
 
     if os.path.exists('ninja'):
         shutil.rmtree('ninja')
     os.makedirs('ninja')
 
     if system == 'linux':
-        platform = ['--platform', 'linux/386'] if arch == 'x86' else []
-        _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}'] + platform + ['-t', 'pythia:latest', '.'], check=True)
+        _verbose_run(['docker', 'build', '-f', f'Dockerfile.{arch}', '-t', 'pythia:latest', '.'], check=True)
         # Workaround for GitHub Actions
         # This is to fix GIT not liking owner of the checkout dir (git callback in cmake)
         # https://github.com/actions/runner/issues/2033
         uid_gid = ['-u', f'{os.getuid()}:{os.getgid()}'] if sys.platform == 'linux' else []
-        docker_prefix = ['docker', 'run'] + platform + uid_gid + ['--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
+        docker_prefix = ['docker', 'run'] + uid_gid + ['--rm', '-v', f'{os.getcwd()}/:/data', '-w', '/data/ninja', 'pythia:latest']
         shell = False
     else:
         docker_prefix = []

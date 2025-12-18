@@ -10,11 +10,7 @@
     #define EMBEDDEDPYTHONPATH L"python-" PYTHON_VERSION "-embed-win32"
     #endif
 #else // ifdef _WIN32
-    #if defined(__amd64__) || defined(_M_X64) /* x86_64 arch */
     #define EMBEDDEDPYTHONPATH "python-" PYTHON_VERSION "-embed-linux64"
-    #else
-    #define EMBEDDEDPYTHONPATH "python-" PYTHON_VERSION "-embed-linux32"
-    #endif
 #endif
 
 std::string GetCurrentWorkingDir()

@@ -279,10 +279,7 @@ Run this on Windows (requires WSL2 and Docker to be installed and configured!)
 
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
-    # Setup WSL for both x86 and x64 architectures
-    wsl /bin/bash -ic "sudo dpkg --add-architecture i386"
-    wsl /bin/bash -ic "sudo apt update"
-    wsl /bin/bash -ic "sudo apt install python3-pip patchelf libcrypt1:i386 clang gcc-multilib"
+    # Setup uv on WSL
     wsl /bin/bash -ic "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
     uv run tools\rebuild_all.py
