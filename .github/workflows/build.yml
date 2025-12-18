@@ -51,6 +51,9 @@ jobs:
       matrix:
         os: [windows-2019, ubuntu-22.04]
         arch: [x64, x86]
+        exclude:
+          - os: ubuntu-22.04
+            arch: x86
 
     steps:
       - name: Check out repository code
@@ -135,6 +138,9 @@ jobs:
       matrix:
         os: [windows-2019, ubuntu-22.04]
         arch: [x64, x86]
+        exclude:
+          - os: ubuntu-22.04
+            arch: x86
 
     steps:
       - name: Check out repository code
@@ -166,10 +172,6 @@ jobs:
 
       - name: Set testers permissions
         run: chmod a+x @Pythia/PythiaTester*
-
-      - name: Install multilib for compiling 32bit Cython extensions (in tests)
-        if: runner.os == 'Linux' && matrix.arch == 'x86'
-        run: sudo apt install -y gcc-multilib
 
       - name: Copy templates
         run: uv run tools/build.py copy_templates ${{ env.PYTHON_VERSION }}
@@ -222,9 +224,6 @@ jobs:
         run: for i in python-*.tar; do tar xf "$i" --directory "@Pythia"; done
 
       - run: uv run tools/build.py safety_checks ${{ env.PYTHON_VERSION }}
-
-      - name: Remove linux 32bit Pythia
-        run: rm -rf @Pythia/python-*-embed-linux32 @Pythia/Pythia.so @Pythia/PythiaSetPythonPath.so @Pythia/PythiaTester @Pythia/install_requirements32.sh
 
       - run: tar -jcf "@Pythia.tbz" "@Pythia"
 

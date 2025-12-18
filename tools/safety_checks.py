@@ -177,15 +177,11 @@ def safety_checks(python_version):
     check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.dll'), x86=True)
     check_dll_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.dll'), x86=False)
     print()
-    check_so_architecture(os.path.join('@Pythia', 'Pythia.so'), x86=True)
     check_so_architecture(os.path.join('@Pythia', 'Pythia_x64.so'), x86=False)
-    check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath.so'), x86=True)
     check_so_architecture(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'), x86=False)
     print()
-    linux_imports = [so_import, 'libcrypt.so.1']
-    check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia.so'), allowed_imports=linux_imports)
+    linux_imports = [so_import]
     check_so_is_manylinux2014(os.path.join('@Pythia', 'Pythia_x64.so'), allowed_imports=linux_imports)
-    check_so_is_manylinux2014(os.path.join('@Pythia', 'PythiaSetPythonPath.so'))
     check_so_is_manylinux2014(os.path.join('@Pythia', 'PythiaSetPythonPath_x64.so'))
 
 
