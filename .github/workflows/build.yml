@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-22.04]
+        os: [windows-2022, ubuntu-22.04]
 
     steps:
       - name: Cache interpreters
@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-22.04]
+        os: [windows-2022, ubuntu-22.04]
         arch: [x64, x86]
         exclude:
           - os: ubuntu-22.04
@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-22.04]
+        os: [windows-2022, ubuntu-22.04]
         arch: [x64, x86]
         exclude:
           - os: ubuntu-22.04
